@@ -1,0 +1,22 @@
+packages:
+  "framer-motion": "For smooth page transitions and staggered list animations"
+  "recharts": "For visualizing category scores and trends on user detail pages"
+  "date-fns": "For readable date and time formatting across the dashboard"
+  "clsx": "For conditional tailwind class merging"
+  "tailwind-merge": "For conditional tailwind class merging"
+  "@radix-ui/react-dialog": "For accessible modals and dialogs"
+  "@radix-ui/react-dropdown-menu": "For dropdown menus and actions"
+  "@radix-ui/react-progress": "For goal completion progress bars"
+  "@radix-ui/react-slot": "For component composition"
+  "@radix-ui/react-tooltip": "For tooltips on dense data elements"
+  "@radix-ui/react-select": "For forms and status updates"
+
+images:
+  - path: "artifacts/flipiq-dashboard/public/images/auth-bg.png"
+    description: "Dark, sleek abstract background with glowing blue and indigo geometric lines, representing data flow and analytics in a professional corporate setting"
+    aspect_ratio: "16:9"
+
+notes:
+  - The API client is already generated and available at @workspace/api-client-react
+  - Using Replit built-in postgres DB structure as defined in the context
+  - Health colors map to specific design tokens for visual consistency

@@ -1,22 +1,32 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: FlipIQ CSM Dashboard API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: users
+    description: User (Acquisition Associate) operations
+  - name: dashboard
+    description: Dashboard data
+  - name: emails
+    description: Coaching email operations
+  - name: tasks
+    description: Task completion operations
+  - name: stats
+    description: Daily stats operations
+  - name: claude
+    description: Claude API integration endpoints
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +34,722 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get full dashboard data (users + today's stats + emails + tasks)
+      responses:
+        "200":
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardResponse"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all active users
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    get:
+      operationId: getUserDetail
+      tags: [users]
+      summary: Get full user detail (user + events + category scores + gaps)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDetail"
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update user health, priority, agenda, goals
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /emails:
+    get:
+      operationId: listEmails
+      tags: [emails]
+      summary: List coaching emails (optionally filtered by date)
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [draft, reviewed, forwarded, skipped]
+      responses:
+        "200":
+          description: List of coaching emails
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CoachingEmail"
+    post:
+      operationId: createEmail
+      tags: [emails]
+      summary: Create a coaching email (Claude uses this)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEmailRequest"
+      responses:
+        "201":
+          description: Created email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoachingEmail"
+
+  /emails/{id}/forward:
+    post:
+      operationId: forwardEmail
+      tags: [emails]
+      summary: Mark email as forwarded
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoachingEmail"
+
+  /emails/{id}/status:
+    patch:
+      operationId: updateEmailStatus
+      tags: [emails]
+      summary: Update email status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [draft, reviewed, forwarded, skipped]
+      responses:
+        "200":
+          description: Updated email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoachingEmail"
+
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List task completions for today
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TaskCompletion"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Log a task completion (Ramy checks off an action)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskRequest"
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskCompletion"
+
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      tags: [stats]
+      summary: Get leaderboard with cumulative stats per user
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Leaderboard data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeaderboardEntry"
+
+  /claude/read-all:
+    get:
+      operationId: claudeReadAll
+      tags: [claude]
+      summary: Claude reads all user data for morning processing
+      responses:
+        "200":
+          description: All data for Claude analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaudeReadAllResponse"
+
+  /claude/update-health:
+    post:
+      operationId: claudeUpdateHealth
+      tags: [claude]
+      summary: Claude updates user health scores, gaps, and agendas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaudeUpdateHealthRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    SuccessResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    Organization:
+      type: object
+      required: [id, name, am_name]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        domain:
+          type: string
+          nullable: true
+        principal:
+          type: string
+          nullable: true
+        am_name:
+          type: string
+        am_email:
+          type: string
+          nullable: true
+
+    User:
+      type: object
+      required: [id, name, phase, day_number, health, priority_score]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          nullable: true
+        org_id:
+          type: integer
+          nullable: true
+        org_name:
+          type: string
+          nullable: true
+        am_name:
+          type: string
+          nullable: true
+        am_email:
+          type: string
+          nullable: true
+        phase:
+          type: integer
+        day_number:
+          type: integer
+        start_date:
+          type: string
+          format: date
+        health:
+          type: string
+          enum: [red, orange, yellow, green]
+        priority_score:
+          type: integer
+        goals_calls_per_day:
+          type: integer
+          nullable: true
+        goals_offers_per_day:
+          type: integer
+          nullable: true
+        goals_contacts_per_day:
+          type: integer
+          nullable: true
+        discussion_agenda:
+          type: string
+          nullable: true
+        active:
+          type: boolean
+        today_calls:
+          type: integer
+          nullable: true
+        today_texts:
+          type: integer
+          nullable: true
+        today_emails:
+          type: integer
+          nullable: true
+        today_offers:
+          type: integer
+          nullable: true
+        today_checkin:
+          type: boolean
+          nullable: true
+        today_minutes:
+          type: integer
+          nullable: true
+        yesterday_calls:
+          type: integer
+          nullable: true
+        yesterday_offers:
+          type: integer
+          nullable: true
+        coaching_emails_sent:
+          type: integer
+          nullable: true
+        coaching_responded:
+          type: boolean
+          nullable: true
+        escalated_to_am:
+          type: boolean
+          nullable: true
+
+    UserDetail:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserEvent"
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryScore"
+        gaps:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserGap"
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskCompletion"
+
+    UserEvent:
+      type: object
+      required: [id, user_id, event_id, status]
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        event_id:
+          type: integer
+        event_number:
+          type: integer
+          nullable: true
+        action:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        priority_level:
+          type: string
+          nullable: true
+        first_used:
+          type: string
+          format: date-time
+          nullable: true
+        use_count:
+          type: integer
+        last_used:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [missing, gap, cooling, active]
+
+    CategoryScore:
+      type: object
+      required: [id, user_id, category_slug, score]
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        category_slug:
+          type: string
+        score:
+          type: integer
+        active_count:
+          type: integer
+        missing_count:
+          type: integer
+        total_count:
+          type: integer
+        total_uses:
+          type: integer
+
+    UserGap:
+      type: object
+      required: [id, user_id, gap_text]
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        gap_text:
+          type: string
+        gap_type:
+          type: string
+          nullable: true
+        detected_at:
+          type: string
+          format: date-time
+
+    CoachingEmail:
+      type: object
+      required: [id, user_id, email_date, to_name, subject, body, status]
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        email_date:
+          type: string
+          format: date
+        to_name:
+          type: string
+        to_email:
+          type: string
+          nullable: true
+        subject:
+          type: string
+        body:
+          type: string
+        is_escalation:
+          type: boolean
+        escalation_to:
+          type: string
+          nullable: true
+        video_included:
+          type: string
+          nullable: true
+        root_cause:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, reviewed, forwarded, skipped]
+        forwarded_at:
+          type: string
+          format: date-time
+          nullable: true
+        forwarded_by:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    TaskCompletion:
+      type: object
+      required: [id, user_id, task_date, action_type]
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        task_date:
+          type: string
+          format: date
+        action_type:
+          type: string
+          enum: [call, text, email, notify_am, walkthrough, other]
+        notes:
+          type: string
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+        completed_by:
+          type: string
+
+    LeaderboardEntry:
+      type: object
+      required: [id, name, health, phase, day_number]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        health:
+          type: string
+          enum: [red, orange, yellow, green]
+        phase:
+          type: integer
+        day_number:
+          type: integer
+        org_name:
+          type: string
+          nullable: true
+        total_texts:
+          type: integer
+        total_emails:
+          type: integer
+        total_calls:
+          type: integer
+        total_calls_connected:
+          type: integer
+        total_new_rel:
+          type: integer
+        total_upgraded:
+          type: integer
+        total_opened:
+          type: integer
+        total_offers:
+          type: integer
+        total_negotiations:
+          type: integer
+        total_accepted:
+          type: integer
+        total_acquired:
+          type: integer
+        total_minutes:
+          type: integer
+
+    DashboardResponse:
+      type: object
+      required: [users, emails, tasks]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        emails:
+          type: array
+          items:
+            $ref: "#/components/schemas/CoachingEmail"
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskCompletion"
+        date:
+          type: string
+          format: date
+
+    CreateEmailRequest:
+      type: object
+      required: [user_id, to_name, subject, body]
+      properties:
+        user_id:
+          type: integer
+        to_name:
+          type: string
+        to_email:
+          type: string
+          nullable: true
+        subject:
+          type: string
+        body:
+          type: string
+        is_escalation:
+          type: boolean
+        escalation_to:
+          type: string
+          nullable: true
+        video_included:
+          type: string
+          nullable: true
+        root_cause:
+          type: string
+          nullable: true
+
+    CreateTaskRequest:
+      type: object
+      required: [user_id, action_type]
+      properties:
+        user_id:
+          type: integer
+        action_type:
+          type: string
+          enum: [call, text, email, notify_am, walkthrough, other]
+        notes:
+          type: string
+          nullable: true
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        health:
+          type: string
+          enum: [red, orange, yellow, green]
+        priority_score:
+          type: integer
+        discussion_agenda:
+          type: string
+          nullable: true
+        goals_calls_per_day:
+          type: integer
+        goals_offers_per_day:
+          type: integer
+        goals_contacts_per_day:
+          type: integer
+
+    ClaudeReadAllResponse:
+      type: object
+      required: [users, date]
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserEvent"
+        gaps:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserGap"
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryScore"
+        date:
+          type: string
+          format: date-time
+
+    ClaudeUpdateHealthRequest:
+      type: object
+      required: [updates]
+      properties:
+        updates:
+          type: array
+          items:
+            type: object
+            required: [user_id, health, priority_score]
+            properties:
+              user_id:
+                type: integer
+              health:
+                type: string
+                enum: [red, orange, yellow, green]
+              priority_score:
+                type: integer
+              discussion_agenda:
+                type: string
+                nullable: true
+              gaps:
+                type: array
+                items:
+                  type: string
