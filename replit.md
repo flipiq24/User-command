@@ -2,7 +2,7 @@
 
 ## Overview
 
-FlipIQ CSM Dashboard — a full-stack monorepo for Ramy's morning review of Acquisition Associates (AAs) using the FlipIQ real estate platform.
+FlipIQ CSM Dashboard — an internal tool for Ramy (CSM Lead) to monitor Acquisition Associates (AAs) daily. Built to match the V9 prototype design exactly.
 
 ## Stack
 
@@ -13,9 +13,8 @@ FlipIQ CSM Dashboard — a full-stack monorepo for Ramy's morning review of Acqu
 - **API framework**: Express 5
 - **Database**: PostgreSQL + Drizzle ORM (Replit built-in)
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
-- **Frontend**: React + Vite + Tailwind CSS + shadcn/ui
+- **Frontend**: React + Vite, inline styles (V9 design), DM Sans font
 
 ## Structure
 
@@ -23,7 +22,7 @@ FlipIQ CSM Dashboard — a full-stack monorepo for Ramy's morning review of Acqu
 artifacts-monorepo/
 ├── artifacts/
 │   ├── api-server/         # Express API server (all FlipIQ routes)
-│   └── flipiq-dashboard/   # React dashboard (Ramy's morning view)
+│   └── flipiq-dashboard/   # React dashboard (V9 light-theme design)
 ├── lib/
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
@@ -36,19 +35,42 @@ artifacts-monorepo/
 └── package.json
 ```
 
-## FlipIQ Domain
+## Frontend (V9 Design)
 
-### Organizations (Tenants)
-Real orgs from production data: Acquired, Command, DBTM, Dev Command, Diversified Capital Partners, Flip IQ, Hegemark, STJ
+The dashboard is a single-page React component with embedded data arrays and inline styles.
 
-### Users (Acquisition Associates)
-60 real AAs across all organizations, loaded from Tenant_Performance spreadsheet data (Jan 17 – Mar 20, 2026).
+### Design
+- Light theme: #F8FAFB background, white cards, orange #F97316 accent
+- Header: "FlipIQ COMMAND / CSM Dashboard" with iQ gradient logo
+- DM Sans font family
+- No external component libraries (no shadcn, no Tailwind utility classes in JSX)
 
-### Health Scoring
-- **green**: avg_calls >= 3/day AND checkin_rate >= 80% AND avg_offers >= 0.5/day
-- **yellow**: avg_calls >= 1/day AND checkin_rate >= 60%
-- **orange**: checkin_rate >= 30% OR avg_calls >= 0.3/day
-- **red**: very low/no activity
+### Tabs
+1. **Overview** — Info cards, Atomic KPI (2 deals/month/person), task list with checkboxes, WHY root cause
+2. **Leaderboard** — Full stats table with medals for top 3, date range dropdown
+3. **Heat map** — 7 category columns (Plan/Find/Comms/Prop/Analysis/Offers/Tools), color-coded cells, tooltips
+4. **Emails** — Coaching email cards with Generate button, BECAUSE root cause, yesterday/goal stats
+5. **Email logic** — Reference table of all trigger rules across P1/P2/P3 phases
+
+### Data (Embedded)
+- 5 organizations: Coko Homes, Hegemark, TD Realty, STJ Investments, Fair Close
+- 21 users with full stats, health, phase, gaps, agenda, email count
+- 7 event categories with 61 total events
+- 3-Track scoring function (g3) generates event usage data
+- Root cause logic (gc) identifies WHY behind each user's issues
+- Email builder (bE) generates coaching emails or AM escalations
+
+### Health Labels
+- red = Critical, orange = Gap, yellow = Cooling, green = Healthy
+
+### Phase Labels
+- 1 = Onboarding (Days 1-7), 2 = Activation (Days 8-21), 3 = Performance (Day 22+)
+
+### Key Functions
+- `g3(health, categoryIndex, eventIndex)` — 3-Track scoring per event
+- `gc(user)` — Root cause analysis (returns WHY string)
+- `bE(user)` — Email builder (coaching email or AM escalation if ec >= 3)
+- `vc(value, goal)` — Value color (green >= 80%, amber >= 50%, red < 50%)
 
 ## Database Schema
 
@@ -87,18 +109,9 @@ Claude calls `/api/claude/read-all` at 5 AM to read all user data, then:
 - Calls `POST /api/emails` to write coaching emails
 - Calls `POST /api/claude/update-health` to update health/priority/agenda
 
-## Dashboard Pages
-
-1. **Dashboard** (`/`) — user card grid, sorted by priority (1=most critical). Health filter tabs.
-2. **Coaching Emails** (`/emails`) — today's draft emails, forward/skip actions
-3. **Leaderboard** (`/leaderboard`) — ranked table with call/offer/acquisition stats
-4. **User Detail** (slide panel) — full breakdown per AA with events, categories, gaps, tasks
-
 ## Migrations / Schema
 
 In development, use Drizzle Kit push:
 ```bash
 pnpm --filter @workspace/db run push
 ```
-
-Data was loaded from: `attached_assets/Tenant_Performance_(1)_1774135413810.xlsx` (3,780 rows, Jan 17–Mar 20 2026)
