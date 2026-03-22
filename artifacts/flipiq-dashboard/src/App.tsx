@@ -614,7 +614,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         ))}
       </div>
 
-      <div style={{ padding: "16px 24px", maxWidth: 1300, margin: "0 auto" }}>
+      <div style={{ padding: "16px 24px" }}>
         {tab === "overview" && !sel && !eV && (
           <>
 
