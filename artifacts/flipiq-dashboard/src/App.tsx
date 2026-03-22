@@ -909,7 +909,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           </div>
         )}
 
-        {tab === "heatmap" && !sel && (
+        {tab === "heatmap" && !sel && !eV && (
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
             <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between" }}>
               <div><div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Visual grid showing every AA's feature usage across 7 categories. Colors indicate activity level — red is missing, green is active. Click any cell to see full event breakdown.">Heat map</Tip></div><div style={{ fontSize: 11, color: "#94A3B8" }}>61 events. Hover for 3-Track. Click to expand.</div></div>
@@ -1457,7 +1457,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         )}
       </div>
 
-      {hC && !sel && tab === "heatmap" && (() => {
+      {hC && !sel && !eV && tab === "heatmap" && (() => {
         const u = U.find((x) => x.id === hC.uid);
         const cs = u?.cs[hC.ci];
         if (!u || !cs) return null;
