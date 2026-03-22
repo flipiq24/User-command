@@ -213,8 +213,8 @@ const U = UR.map((u) => {
     const ac = c.events.filter((e) => e.st >= 2).length;
     const mi = c.events.filter((e) => e.st === 0).length;
     const tc = c.events.reduce((s, e) => s + e.count, 0);
-    const fs = c.events.filter((e) => e.first).map((e) => e.first);
-    const ls = c.events.filter((e) => e.last).map((e) => e.last);
+    const fs = c.events.filter((e) => e.first).map((e) => e.first).sort((a, b) => (parseMarDate(a) || 0) - (parseMarDate(b) || 0));
+    const ls = c.events.filter((e) => e.last).map((e) => e.last).sort((a, b) => (parseMarDate(a) || 0) - (parseMarDate(b) || 0));
     return { sc: a >= 2.5 ? 3 : a >= 1.5 ? 2 : a >= 0.5 ? 1 : 0, ac, mi, t, tc, fa: fs[0] || null, la: ls[ls.length - 1] || null };
   });
   return { ...u, ev, cs };
@@ -690,7 +690,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
       </div>
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "0 24px", display: "flex" }}>
-        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 61 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."]].map(([t, label, tip]) => (
+        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."]].map(([t, label, tip]) => (
           <Tip key={t} text={tip}><button onClick={() => { st(t); ss(null); seV(null); sE(null); }} style={{ padding: "10px 14px", fontSize: 12, fontWeight: tab === t ? 700 : 500, color: tab === t ? "#F97316" : "#64748B", background: "none", border: "none", borderBottom: tab === t ? "2px solid #F97316" : "2px solid transparent", cursor: "pointer" }}>
             {label}
           </button></Tip>
@@ -936,7 +936,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         {tab === "heatmap" && !sel && !eV && (
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
             <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between" }}>
-              <div><div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Visual grid showing every AA's feature usage across 7 categories. Colors indicate activity level — red is missing, green is active. Click any cell to see full event breakdown.">Heat map</Tip></div><div style={{ fontSize: 11, color: "#94A3B8" }}>61 events. Hover for 3-Track. Click to expand.</div></div>
+              <div><div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Visual grid showing every AA's feature usage across 7 categories. Colors indicate activity level — red is missing, green is active. Click any cell to see full event breakdown.">Heat map</Tip></div><div style={{ fontSize: 11, color: "#94A3B8" }}>62 events. Hover for 3-Track. Click to expand.</div></div>
               <div style={{ display: "flex", gap: 10 }}>
                 {[["#DC2626", "Miss", "Feature never used. AA hasn't tried this at all."], ["#EA580C", "Gap", "Feature used once or twice but not recently. Training gap."], ["#D97706", "Cool", "Feature was used but activity is cooling off."], ["#10B981", "Active", "Feature is being used regularly. On track."]].map(([c, l, tip]) => (
                   <Tip key={l} text={tip}><div style={{ display: "flex", alignItems: "center", gap: 3 }}><div style={{ width: 9, height: 9, borderRadius: 2, background: c }} /><span style={{ fontSize: 10, color: "#64748B" }}>{l}</span></div></Tip>
@@ -1074,11 +1074,11 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         {tab === "logic" && (
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
             <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0" }}>
-              <div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Reference table showing every rule that triggers a coaching email. Each rule fires based on phase, timing, and specific behavior patterns detected in the AA's data. Events column shows which of the 61 tracked events each rule targets.">Email logic</Tip></div>
+              <div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Reference table showing every rule that triggers a coaching email. Each rule fires based on phase, timing, and specific behavior patterns detected in the AA's data. Events column shows which of the 62 tracked events each rule targets.">Email logic</Tip></div>
               <div style={{ fontSize: 10, color: "#94A3B8" }}>Every email: yesterday data + event targets + phase-matched video + iQ Help Bot. System tracks sent vs. used vs. ignored daily.</div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "40px 45px 140px 1fr 70px 140px 40px 1fr", padding: "5px 8px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-              <div><Tip text="Which phase this rule applies to: P1 (Onboarding), P2 (Activation), P3 (Performance), or ALL.">Ph</Tip></div><div><Tip text="When the rule fires: Daily, at specific day milestones (D3, D14, etc.), or after inactivity periods (7+d).">When</Tip></div><div><Tip text="The specific behavior or condition that triggers the email. E.g., 'Calls below 30/day' or 'Feature unused 7d'.">Trigger</Tip></div><div><Tip text="What the coaching email says — the specific message or subject line sent to the AA.">Email</Tip></div><div><Tip text="Which training video is linked in the email. Shows the specific feature or skill the AA needs help with.">Video</Tip></div><div><Tip text="Which of the 61 tracked FlipiQ events this rule targets. (dynamic) means the system picks the specific unused event for that AA.">Events</Tip></div><div><Tip text="Who receives the email: AA (the associate), AM (account manager), or both AA+AM.">To</Tip></div><div><Tip text="What happens if the AA doesn't respond to the email. Escalation path — e.g., 'Flag', 'call', or 'Escalate' to AM.">No resp</Tip></div>
+              <div><Tip text="Which phase this rule applies to: P1 (Onboarding), P2 (Activation), P3 (Performance), or ALL.">Ph</Tip></div><div><Tip text="When the rule fires: Daily, at specific day milestones (D3, D14, etc.), or after inactivity periods (7+d).">When</Tip></div><div><Tip text="The specific behavior or condition that triggers the email. E.g., 'Calls below 30/day' or 'Feature unused 7d'.">Trigger</Tip></div><div><Tip text="What the coaching email says — the specific message or subject line sent to the AA.">Email</Tip></div><div><Tip text="Which training video is linked in the email. Shows the specific feature or skill the AA needs help with.">Video</Tip></div><div><Tip text="Which of the 62 tracked FlipiQ events this rule targets. (dynamic) means the system picks the specific unused event for that AA.">Events</Tip></div><div><Tip text="Who receives the email: AA (the associate), AM (account manager), or both AA+AM.">To</Tip></div><div><Tip text="What happens if the AA doesn't respond to the email. Escalation path — e.g., 'Flag', 'call', or 'Escalate' to AM.">No resp</Tip></div>
             </div>
             {EL.map((r, i) => {
               const strike = r.tr.includes("0 response");
@@ -1305,7 +1305,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               return (
                 <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, padding: "16px 18px", marginBottom: 12 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>
-                    <Tip text="Visual breakdown of feature adoption across 61 events in 7 categories. Shows what's actively used, cooling off, has gaps, or is completely unused. The progress bar shows the overall adoption rate (Active + Cooling events).">Feature Adoption</Tip>
+                    <Tip text="Visual breakdown of feature adoption across 62 events in 7 categories. Shows what's actively used, cooling off, has gaps, or is completely unused. The progress bar shows the overall adoption rate (Active + Cooling events).">Feature Adoption</Tip>
                     <span style={{ fontSize: 11, color: "#94A3B8", fontWeight: 400, marginLeft: 8 }}>{adopted}/{total} adopted ({pct}%)</span>
                     <Tip text={"AA started on " + startDate(user.day) + " — Day " + user.day + " of " + (user.day <= 7 ? "Onboarding" : user.day <= 21 ? "Activation" : "Performance") + ". Track adoption timeline from this date."}><span style={{ fontSize: 10, color: "#64748B", fontWeight: 400, marginLeft: 10, background: "#F1F5F9", padding: "2px 8px", borderRadius: 4 }}>Started {startDate(user.day)} · Day {user.day}</span></Tip>
                   </div>
@@ -1375,7 +1375,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               );
             })()}
 
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}><Tip text="3-Track scoring of 61 FlipiQ features across 7 categories. Each event is scored: First use (ever used?), Recency (used recently?), Frequency (how often?). Colors: red=missing, orange=gap, yellow=cooling, green=active.">Feature usage</Tip> &mdash; 61 events</div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}><Tip text="3-Track scoring of 62 FlipiQ features across 7 categories. Each event is scored: First use (ever used?), Recency (used recently?), Frequency (how often?). Colors: red=missing, orange=gap, yellow=cooling, green=active.">Feature usage</Tip> &mdash; 62 events</div>
             {C.map((cat, ci) => {
               const cs = user.cs[ci];
               const isO = exp && exp.u === user.id && exp.c === ci;
