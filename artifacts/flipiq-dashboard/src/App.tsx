@@ -407,7 +407,7 @@ export default function App() {
           </>
         )}
 
-        {eV && (tab === "overview" || tab === "emails") && !sel && (
+        {eV && !sel && (
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "18px 22px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
               <div style={{ fontSize: 14, fontWeight: 700 }}>{eV.ie ? "AM Escalation" : "Coaching Email"}</div>
