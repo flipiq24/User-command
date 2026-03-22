@@ -1,5 +1,29 @@
 // @ts-nocheck
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
+
+function Tip({ text, children }) {
+  const [show, setShow] = useState(false);
+  const ref = useRef(null);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const enter = (e) => {
+    const r = (ref.current || e.currentTarget).getBoundingClientRect();
+    setPos({ x: r.left + r.width / 2, y: r.top });
+    setShow(true);
+  };
+  return (
+    <>
+      <span ref={ref} onMouseEnter={enter} onMouseLeave={() => setShow(false)} style={{ cursor: "help", borderBottom: "1px dotted #CBD5E1", display: "inline" }}>
+        {children}
+      </span>
+      {show && (
+        <div style={{ position: "fixed", left: Math.max(8, Math.min(pos.x - 120, window.innerWidth - 260)), top: pos.y - 6, transform: "translateY(-100%)", width: 240, background: "#1E293B", color: "#F8FAFC", fontSize: 11, lineHeight: 1.5, padding: "8px 12px", borderRadius: 6, boxShadow: "0 8px 24px rgba(0,0,0,0.25)", zIndex: 9999, pointerEvents: "none" }}>
+          {text}
+          <div style={{ position: "absolute", bottom: -4, left: "50%", marginLeft: -4, width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "5px solid #1E293B" }} />
+        </div>
+      )}
+    </>
+  );
+}
 
 const O = [
   { id: 1, n: "Coko Homes", am: "Gregory Patterson" },
@@ -259,8 +283,8 @@ export default function App() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div>
-            <div style={{ fontSize: 9, fontWeight: 700, color: "#F97316", textTransform: "uppercase", letterSpacing: 1.5 }}>Atomic KPI</div>
-            <div style={{ fontSize: 16, fontWeight: 800 }}>2 Deals / Month / Person</div>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#F97316", textTransform: "uppercase", letterSpacing: 1.5 }}><Tip text="The single North Star metric every AA is measured against. Hit this and everything else follows.">Atomic KPI</Tip></div>
+            <div style={{ fontSize: 16, fontWeight: 800 }}><Tip text="Each AA must close at least 2 deals per month. This is the minimum acquisition target across all orgs.">2 Deals / Month / Person</Tip></div>
             <div style={{ fontSize: 10, color: "#64748B" }}>= Big Bucks for All <b style={{ color: "#F97316" }}>Ramy, get us to big bucks!!!</b></div>
           </div>
           <div style={{ width: 1, height: 32, background: "#FED7AA" }} />
@@ -281,13 +305,13 @@ export default function App() {
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0" }}>
         <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}>ORG</span>
+          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}><Tip text="Filter by organization. Each org has an Account Manager (AM) who oversees the AAs.">ORG</Tip></span>
           <select value={flt.org || "all"} onChange={(e) => sf((f) => ({ ...f, org: e.target.value === "all" ? null : +e.target.value }))} style={{ padding: "6px 32px 6px 12px", fontSize: 13, fontWeight: 500, border: "1px solid #E2E8F0", borderRadius: 8, background: "#FFF", appearance: "none", WebkitAppearance: "none", cursor: "pointer", minWidth: 200, backgroundImage: sel0, backgroundRepeat: "no-repeat", backgroundPosition: "right 10px center" }}>
             <option value="all">All organizations ({U.length})</option>
             {O.map((o) => <option key={o.id} value={o.id}>{o.n} ({U.filter((u) => u.org === o.id).length})</option>)}
           </select>
           <div style={{ width: 1, height: 28, background: "#E2E8F0", margin: "0 4px" }} />
-          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}>PHASE</span>
+          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}><Tip text="AA lifecycle phase. P1 Onboarding (Days 1-7): learn the tool. P2 Activation (Days 8-21): build habits. P3 Performance (Day 22+): hit targets.">PHASE</Tip></span>
           <div style={{ display: "flex", gap: 8 }}>
             {[{ p: 1, n: "Onboarding", d: "Days 1-7", c: "#0C447C", bc: "#85B7EB", bg: "#E6F1FB" }, { p: 2, n: "Activation", d: "Days 8-21", c: "#854F0B", bc: "#EF9F27", bg: "#FAEEDA" }, { p: 3, n: "Performance", d: "Day 22+", c: "#085041", bc: "#5DCAA5", bg: "#E1F5EE" }].map((x) => (
               <div key={x.p} onClick={() => tog("phase", x.p)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", borderRadius: 8, border: flt.phase === x.p ? "1.5px solid " + x.bc : "1px solid #E2E8F0", background: flt.phase === x.p ? x.bg : "#FAFBFC", cursor: "pointer", minWidth: 150 }}>
@@ -297,7 +321,7 @@ export default function App() {
             ))}
           </div>
           <div style={{ width: 1, height: 28, background: "#E2E8F0", margin: "0 4px" }} />
-          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}>HEALTH</span>
+          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}><Tip text="Overall health score based on 3-Track scoring. Critical = needs immediate attention. Gap = falling behind. Cooling = slowing down. Healthy = on track.">HEALTH</Tip></span>
           <div style={{ display: "flex", gap: 8 }}>
             {[{ h: "red", n: "Critical", c: "#791F1F", bc: "#F09595", bg: "#FCEBEB", dot: "#E24B4A", k: "r" }, { h: "orange", n: "Gap", c: "#712B13", bc: "#F0997B", bg: "#FAECE7", dot: "#D85A30", k: "o" }, { h: "yellow", n: "Cooling", c: "#854F0B", bc: "#FAC775", bg: "#FAEEDA", dot: "#EF9F27", k: "y" }, { h: "green", n: "Healthy", c: "#085041", bc: "#9FE1CB", bg: "#E1F5EE", dot: "#1D9E75", k: "g" }].map((x) => (
               <div key={x.h} onClick={() => tog("health", x.h)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: flt.health === x.h ? "1.5px solid " + x.bc : "1px solid #E2E8F0", background: flt.health === x.h ? x.bg : "#FAFBFC", cursor: "pointer", minWidth: 110 }}>
@@ -332,7 +356,7 @@ export default function App() {
 
 
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "10px 16px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 12, fontWeight: 700 }}>Tasks</span><span style={{ fontSize: 11, color: "#64748B" }}>{fin.length}/{tasks.length}</span></div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 12, fontWeight: 700 }}><Tip text="Daily action items for you (CSM). Each non-healthy AA generates a task. Complete by reviewing, forwarding an email, or logging an action.">Tasks</Tip></span><span style={{ fontSize: 11, color: "#64748B" }}>{fin.length}/{tasks.length}</span></div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{ width: 160, height: 6, background: "#F1F5F9", borderRadius: 3 }}><div style={{ height: 6, background: cp === 100 ? "#10B981" : "#F97316", borderRadius: 3, width: cp + "%" }} /></div>
                 <span style={{ fontSize: 12, fontWeight: 800, color: cp === 100 ? "#10B981" : "#F97316" }}>{cp}%</span>
@@ -348,11 +372,11 @@ export default function App() {
                     <span style={{ fontSize: 8, fontWeight: 800, color: "#fff", background: PLC[u.ps], padding: "1px 6px", borderRadius: 3 }}>{PL[u.ps]}</span>
                     <span onClick={() => ss(u.id)} style={{ fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "underline", textDecorationColor: "#E2E8F0" }}>{u.n}</span>
                     <span style={{ fontSize: 10, color: "#94A3B8" }}>{O.find((o) => o.id === u.org)?.n} D{u.day} {PN[u.ph]}</span>
-                    {u.ec >= 3 && <span style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 5px", borderRadius: 2, border: "1px solid #FECACA" }}>3-STRIKE</span>}
-                    {!u.s.ck && <span style={{ fontSize: 7, fontWeight: 800, color: "#EA580C", background: "#FFF7ED", padding: "1px 5px", borderRadius: 2, border: "1px solid #FED7AA" }}>NO CHECK-IN</span>}
+                    {u.ec >= 3 && <Tip text="This AA has been emailed 3 times with no response. STOP emailing — escalate to their Account Manager instead."><span style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 5px", borderRadius: 2, border: "1px solid #FECACA" }}>3-STRIKE</span></Tip>}
+                    {!u.s.ck && <Tip text="This AA hasn't completed their daily iQ Check-In. No check-in = no coaching triggers fire. This is the first thing to fix."><span style={{ fontSize: 7, fontWeight: 800, color: "#EA580C", background: "#FFF7ED", padding: "1px 5px", borderRadius: 2, border: "1px solid #FED7AA" }}>NO CHECK-IN</span></Tip>}
                     <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
-                      <span style={{ fontSize: 9, color: "#64748B" }}>C:<span style={{ color: vc(u.s.ca, u.g.ca), fontWeight: 700 }}>{u.s.ca}</span> O:<span style={{ color: vc(u.s.of, u.g.of * Math.min(u.day, 30)), fontWeight: 700 }}>{u.s.of}</span></span>
-                      <button onClick={() => seV(bE(u))} style={{ fontSize: 9, fontWeight: 600, color: "#F97316", background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 4, padding: "2px 8px", cursor: "pointer" }}>{u.ec >= 3 ? "AM" : "Email"}</button>
+                      <span style={{ fontSize: 9, color: "#64748B" }}><Tip text="C = Calls today vs goal. O = Offers today vs daily pace needed for monthly target.">C:<span style={{ color: vc(u.s.ca, u.g.ca), fontWeight: 700 }}>{u.s.ca}</span> O:<span style={{ color: vc(u.s.of, u.g.of * Math.min(u.day, 30)), fontWeight: 700 }}>{u.s.of}</span></Tip></span>
+                      <Tip text={u.ec >= 3 ? "3 strikes reached. This will notify the Account Manager instead of the AA." : "Generate a coaching email for this AA based on their root cause and gaps."}><button onClick={() => seV(bE(u))} style={{ fontSize: 9, fontWeight: 600, color: "#F97316", background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 4, padding: "2px 8px", cursor: "pointer" }}>{u.ec >= 3 ? "AM" : "Email"}</button></Tip>
                     </div>
                   </div>
                   {ca && <div style={{ marginTop: 4, marginLeft: 24, fontSize: 10, color: "#EA580C", fontWeight: 600 }}>WHY: {ca}</div>}
@@ -404,7 +428,7 @@ export default function App() {
         {tab === "leaderboard" && !sel && (
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
             <div style={{ padding: "16px 20px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div><div style={{ fontSize: 16, fontWeight: 800 }}>Team Leaderboard</div><div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>My Stats KPIs. Click name for detail.</div></div>
+              <div><div style={{ fontSize: 16, fontWeight: 800 }}><Tip text="Ranked list of all AAs sorted by deals acquired. Compare performance across all metrics. Click any name to see detailed breakdown.">Team Leaderboard</Tip></div><div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>My Stats KPIs. Click name for detail.</div></div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <select value={dR} onChange={(e) => sDR(e.target.value)} style={{ padding: "6px 30px 6px 12px", fontSize: 12, border: "1px solid #E2E8F0", borderRadius: 8, background: "#FFF", appearance: "none", WebkitAppearance: "none", cursor: "pointer", backgroundImage: sel0, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
                   {DR.map((d) => <option key={d}>{d}</option>)}
@@ -417,10 +441,10 @@ export default function App() {
                 <thead>
                   <tr style={{ background: "#F1F5F9", borderBottom: "1px solid #E2E8F0" }}>
                     <th colSpan={2} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "left", borderRight: "1px solid #E2E8F0" }}></th>
-                    <th colSpan={3} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#0C447C", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", borderRight: "1px solid #E2E8F0", background: "#EEF5FC" }}>Communication</th>
-                    <th colSpan={2} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#085041", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", borderRight: "1px solid #E2E8F0", background: "#E8F8F2" }}>Relationships</th>
-                    <th colSpan={4} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#854F0B", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", borderRight: "1px solid #E2E8F0", background: "#FEF7E8" }}>Pipeline</th>
-                    <th colSpan={3} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#7C2D12", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", background: "#FFF1EC" }}>Deal Progress</th>
+                    <th colSpan={3} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#0C447C", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", borderRight: "1px solid #E2E8F0", background: "#EEF5FC" }}><Tip text="Outbound activity: texts sent, emails sent, and calls made (with connected calls). Green = at/above goal, red = below.">Communication</Tip></th>
+                    <th colSpan={2} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#085041", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", borderRight: "1px solid #E2E8F0", background: "#E8F8F2" }}><Tip text="New contacts added and relationship upgrades (e.g. cold → warm). Shows how well the AA is building their network.">Relationships</Tip></th>
+                    <th colSpan={4} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#854F0B", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", borderRight: "1px solid #E2E8F0", background: "#FEF7E8" }}><Tip text="Deal pipeline: open deals, reopened deals, R/N ratio (reopened/new), and offers made. Tracks deal flow health.">Pipeline</Tip></th>
+                    <th colSpan={3} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#7C2D12", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", background: "#FFF1EC" }}><Tip text="Final deal stages: negotiations, accepted offers, and acquisitions (closed deals). Acq is the key number — 2/month is the target.">Deal Progress</Tip></th>
                   </tr>
                   <tr style={{ background: "#F8FAFB", borderBottom: "2px solid #E2E8F0" }}>
                     <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "left", width: 36 }}>#</th>
@@ -474,7 +498,7 @@ export default function App() {
         {tab === "heatmap" && !sel && (
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
             <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between" }}>
-              <div><div style={{ fontSize: 14, fontWeight: 700 }}>Heat map</div><div style={{ fontSize: 11, color: "#94A3B8" }}>61 events. Hover for 3-Track. Click to expand.</div></div>
+              <div><div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Visual grid showing every AA's feature usage across 7 categories. Colors indicate activity level — red is missing, green is active. Click any cell to see full event breakdown.">Heat map</Tip></div><div style={{ fontSize: 11, color: "#94A3B8" }}>61 events. Hover for 3-Track. Click to expand.</div></div>
               <div style={{ display: "flex", gap: 10 }}>
                 {[["#DC2626", "Miss"], ["#EA580C", "Gap"], ["#D97706", "Cool"], ["#10B981", "Active"]].map(([c, l]) => (
                   <div key={l} style={{ display: "flex", alignItems: "center", gap: 3 }}><div style={{ width: 9, height: 9, borderRadius: 2, background: c }} /><span style={{ fontSize: 10, color: "#64748B" }}>{l}</span></div>
@@ -511,7 +535,7 @@ export default function App() {
 
         {tab === "emails" && !eV && (
           <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}>Coaching emails ({fU.filter((u) => u.health !== "green").length})</div>
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}><Tip text="Pre-written coaching emails for each non-healthy AA. Generated based on their root cause, gaps, and current stats vs goals. Click Generate to preview the full email.">Coaching emails</Tip> ({fU.filter((u) => u.health !== "green").length})</div>
             {fU.filter((u) => u.health !== "green").map((u) => {
               const ca = gc(u);
               return (
@@ -550,11 +574,11 @@ export default function App() {
         {tab === "logic" && (
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
             <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0" }}>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>Email logic</div>
+              <div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Reference table showing every rule that triggers a coaching email. Each rule fires based on phase, timing, and specific behavior patterns detected in the AA's data.">Email logic</Tip></div>
               <div style={{ fontSize: 10, color: "#94A3B8" }}>Every email: yesterday data + video + iQ Help Bot.</div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "45px 50px 160px 1fr 75px 45px 1fr", padding: "5px 8px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-              <div>Ph</div><div>When</div><div>Trigger</div><div>Email</div><div>Video</div><div>To</div><div>No resp</div>
+              <div><Tip text="Which phase this rule applies to: P1 (Onboarding), P2 (Activation), P3 (Performance), or ALL.">Ph</Tip></div><div><Tip text="When the rule fires: Daily, at specific day milestones (D3, D14, etc.), or after inactivity periods (7+d).">When</Tip></div><div><Tip text="The specific behavior or condition that triggers the email. E.g., 'Calls below 30/day' or 'Feature unused 7d'.">Trigger</Tip></div><div><Tip text="What the coaching email says — the specific message or subject line sent to the AA.">Email</Tip></div><div><Tip text="Which training video is linked in the email. Shows the specific feature or skill the AA needs help with.">Video</Tip></div><div><Tip text="Who receives the email: AA (the associate), AM (account manager), or both AA+AM.">To</Tip></div><div><Tip text="What happens if the AA doesn't respond to the email. Escalation path — e.g., 'Flag', 'call', or 'Escalate' to AM.">No resp</Tip></div>
             </div>
             {EL.map((r, i) => {
               const strike = r.tr.includes("0 response");
@@ -599,7 +623,7 @@ export default function App() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#F97316", marginBottom: 8 }}>Communication</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#F97316", marginBottom: 8 }}><Tip text="Outbound communication metrics: texts, emails, calls (with connected count), and average time spent. Green values = on pace, red = below goal.">Communication</Tip></div>
                 {[["Texts", user.s.tx], ["Emails", user.s.em], ["Calls", user.s.ca + " (" + user.s.cc + " conn)", user.g.ca], ["Avg Time", Math.round(user.s.mn / 60) + "h"]].map(([l, v, g]) => (
                   <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
                     <span style={{ color: "#64748B" }}>{l}</span>
@@ -610,7 +634,7 @@ export default function App() {
               </div>
 
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}>Deal pipeline</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}><Tip text="Deal flow from opened to acquired. R/N = reopened/new ratio. Offers break down by type (T=traditional, C=creative). Acquired target is 2/month.">Deal pipeline</Tip></div>
                 {[["Opened", user.s.op], ["Reopened", user.s.re], ["R/N", user.s.op > 0 ? (user.s.re / user.s.op).toFixed(2) : "0"], ["Offers", user.s.of + " (T:" + user.s.oT + " C:" + user.s.oC + ")", user.g.of * Math.min(user.day, 30)], ["Negot", user.s.ng], ["Accepted", user.s.ac], ["Acquired", user.s.aq, 2]].map(([l, v, g]) => (
                   <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
                     <span style={{ color: "#64748B" }}>{l}</span>
@@ -621,7 +645,7 @@ export default function App() {
               </div>
 
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981", marginBottom: 8 }}>Relationships</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981", marginBottom: 8 }}><Tip text="Contact relationship status: new contacts added, upgrades (cold→warm), priority/hot contacts, warm leads, and daily check-in completion.">Relationships</Tip></div>
                 {[["New", user.s.nr], ["Upgraded", user.s.up], ["Priority H", user.s.pH], ["Warm", user.s.pW], ["Check-in", user.s.ck ? "Done" : "Not Done"]].map(([l, v]) => (
                   <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
                     <span style={{ color: "#64748B" }}>{l}</span>
@@ -633,12 +657,12 @@ export default function App() {
 
             {gc(user) && (
               <div style={{ background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 8, padding: "12px 14px", marginBottom: 10 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#EA580C", marginBottom: 4 }}>ROOT CAUSE</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#EA580C", marginBottom: 4 }}><Tip text="The #1 reason this AA is struggling, determined by the WHY analysis. This drives the coaching email content and recommended action.">ROOT CAUSE</Tip></div>
                 <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.6 }}>{gc(user)}</div>
               </div>
             )}
 
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Feature usage &mdash; 61 events</div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}><Tip text="3-Track scoring of 61 FlipIQ features across 7 categories. Each event is scored: First use (ever used?), Recency (used recently?), Frequency (how often?). Colors: red=missing, orange=gap, yellow=cooling, green=active.">Feature usage</Tip> &mdash; 61 events</div>
             {C.map((cat, ci) => {
               const cs = user.cs[ci];
               const isO = exp && exp.u === user.id && exp.c === ci;
