@@ -394,7 +394,7 @@ export default function App() {
                     <div key={u.id} style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 7, padding: "7px 12px", marginBottom: 3, opacity: 0.55, borderLeft: "4px solid #CBD5E1" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <div style={{ width: 18, height: 18, borderRadius: 4, background: "#10B981", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 10, fontWeight: 800 }}>&#10003;</div>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: "#64748B", textDecoration: "line-through" }}>{u.n}</span>
+                        <span onClick={() => ss(u.id)} style={{ fontSize: 11, fontWeight: 600, color: "#64748B", textDecoration: "line-through", cursor: "pointer" }}>{u.n}</span>
                         <span style={{ fontSize: 8, fontWeight: 600, color: "#10B981", background: "#ECFDF5", padding: "1px 5px", borderRadius: 2 }}>{a.type}</span>
                         {a.note && <span style={{ fontSize: 8, color: "#64748B", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.note}</span>}
                         <span style={{ fontSize: 8, color: "#94A3B8", marginLeft: "auto" }}>{a.time}</span>
