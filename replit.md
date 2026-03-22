@@ -59,6 +59,7 @@ The dashboard is a single-page React component with embedded data arrays and inl
 - Below: Communication, Deal Pipeline, and Relationships stat cards
 - Root cause analysis section (WHY) when applicable
 - Feature usage accordion with 7 categories and 61 sortable events
+- **AI Assistant panel** at the bottom: auto-generated summary + top 3 priorities + interactive chat
 
 ### Tooltips
 - Comprehensive tooltips on every interactive element, label, badge, button, tab, filter, column header, legend item, and pipeline card across all tabs
@@ -110,6 +111,7 @@ All routes under `/api/`:
 - `GET /tasks?date=` — list task completions
 - `POST /tasks` — log Ramy's task
 - `GET /leaderboard?startDate=&endDate=` — ranked stats
+- `POST /ai/chat` — AI assistant chat (OpenAI via Replit proxy, input-validated)
 - `GET /claude/read-all` — all data for Claude's morning processing
 - `POST /claude/update-health` — Claude writes back health scores + gaps
 

@@ -6,6 +6,7 @@ import emailsRouter from "./emails";
 import tasksRouter from "./tasks";
 import leaderboardRouter from "./leaderboard";
 import claudeRouter from "./claude";
+import aiRouter from "./ai";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(emailsRouter);
 router.use(tasksRouter);
 router.use(leaderboardRouter);
 router.use(claudeRouter);
+router.use(aiRouter);
 
 export default router;

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 
 function Tip({ text, children }) {
   const [show, setShow] = useState(false);
@@ -224,9 +224,58 @@ export default function App() {
   const [dR, sDR] = useState("Today");
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState("desc");
+  const [aiMsgs, setAiMsgs] = useState([]);
+  const [aiInput, setAiInput] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSummary, setAiSummary] = useState(null);
+  const [aiSumLoading, setAiSumLoading] = useState(false);
+  const [prevAiUser, setPrevAiUser] = useState(null);
+  const aiEndRef = useRef(null);
 
   const tog = (k, v) => sf((f) => ({ ...f, [k]: f[k] === v ? null : v }));
   const toggleSort = (col) => { if (sortCol === col) { setSortDir(d => d === "desc" ? "asc" : "desc"); } else { setSortCol(col); setSortDir("desc"); } };
+
+  const buildCtx = useCallback((u) => {
+    if (!u) return "";
+    const org = O.find((o) => o.id === u.org);
+    const hl = { red: "Critical", orange: "Gap", yellow: "Cooling", green: "Healthy" };
+    const missingCats = u.cs.filter((c) => c.sc === 0).map((_, i) => C[i]?.n).filter(Boolean);
+    const gapCats = u.cs.filter((c) => c.sc === 1).map((_, i) => C[i]?.n).filter(Boolean);
+    return `Name: ${u.n}
+Organization: ${org?.n || "?"} (AM: ${org?.am || "?"})
+Day: ${u.day}, Phase: ${PN[u.ph]} (P${u.ph}), Health: ${hl[u.health] || u.health}
+Priority: ${PL[u.ps] || u.ps}, Email count: ${u.ec} (${u.ec >= 3 ? "3-STRIKE reached" : "no response"})
+Agenda: ${u.agenda || "none"}
+Gaps: ${u.gaps.length > 0 ? u.gaps.join(", ") : "none"}
+Root cause: ${gc(u) || "none identified"}
+Check-in: ${u.s.ck ? "Done" : "NOT DONE"}
+Stats: Calls=${u.s.ca}/${u.g.ca} goal, Texts=${u.s.tx}, Emails=${u.s.em}, Connected=${u.s.cc}
+Pipeline: Open=${u.s.op}, Reopened=${u.s.re}, Offers=${u.s.of} (T:${u.s.oT} C:${u.s.oC}), Negot=${u.s.ng}, Accepted=${u.s.ac}, Acquired=${u.s.aq}/2 target
+Yesterday: Calls=${u.y.ca}, Texts=${u.y.tx}, Emails=${u.y.em}, Offers=${u.y.of}, Opens=${u.y.op}
+Time: ${Math.round(u.s.mn / 60)}h total, PIQ:${u.s.piq}m, Comps:${u.s.comp}m, IA:${u.s.ia}m
+Contacts: New=${u.s.nr}, Upgraded=${u.s.up}, MLS=${u.s.mls}, DM=${u.s.dm}
+Feature usage: ${u.cs.map((c, i) => C[i].n + "=" + SL[c.sc] + "(" + c.ac + "/" + c.t + ")").join(", ")}
+${missingCats.length > 0 ? "Missing categories: " + missingCats.join(", ") : ""}
+${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] + ")" : u.vid) : ""}`;
+  }, []);
+
+  const aiCall = useCallback(async (msgs, ctx) => {
+    const base = import.meta.env.BASE_URL || "/";
+    const apiBase = base.replace(/\/$/, "").replace(/\/[^/]*$/, "") || "";
+    try {
+      const res = await fetch(apiBase + "/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: msgs, userContext: ctx }),
+      });
+      if (!res.ok) throw new Error("API error " + res.status);
+      const data = await res.json();
+      return data.reply;
+    } catch (e) {
+      return "Unable to reach AI service. Please try again.";
+    }
+  }, []);
+
 
   const fU = useMemo(() => {
     let u = [...U];
@@ -275,6 +324,39 @@ export default function App() {
   };
 
   const user = sel ? U.find((u) => u.id === sel) : null;
+
+  useEffect(() => {
+    if (!sel || !user) { setAiSummary(null); setPrevAiUser(null); setAiMsgs([]); return; }
+    if (prevAiUser === sel) return;
+    setPrevAiUser(sel);
+    setAiMsgs([]);
+    setAiInput("");
+    setAiSummary(null);
+    setAiSumLoading(true);
+    const ctx = buildCtx(user);
+    aiCall([{ role: "user", content: "Give me a brief 2-3 sentence summary of this AA's current situation. Then list the TOP 3 most important things I should do TODAY for this AA, numbered 1-2-3. Be specific and actionable." }], ctx)
+      .then((reply) => { setAiSummary(reply); setAiSumLoading(false); })
+      .catch(() => { setAiSummary("Failed to load summary."); setAiSumLoading(false); });
+  }, [sel, prevAiUser, buildCtx, aiCall]);
+
+  useEffect(() => { aiEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [aiMsgs]);
+
+  const sendAiMsg = async () => {
+    if (!aiInput.trim() || aiLoading || !user) return;
+    const q = aiInput.trim();
+    setAiInput("");
+    const newMsgs = [...aiMsgs, { role: "user", content: q }];
+    setAiMsgs(newMsgs);
+    setAiLoading(true);
+    const ctx = buildCtx(user);
+    const allMsgs = aiSummary
+      ? [{ role: "user", content: "Give me a summary and top 3 for today." }, { role: "assistant", content: aiSummary }, ...newMsgs]
+      : newMsgs;
+    const reply = await aiCall(allMsgs, ctx);
+    setAiMsgs([...newMsgs, { role: "assistant", content: reply }]);
+    setAiLoading(false);
+  };
+
   const tE = (uid, ci) => { if (exp && exp.u === uid && exp.c === ci) sE(null); else sE({ u: uid, c: ci }); };
   const sel0 = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%2394A3B8' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E\")";
 
@@ -747,6 +829,71 @@ export default function App() {
                 </div>
               );
             })}
+
+            <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, marginTop: 14, overflow: "hidden" }}>
+              <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #F97316, #F59E0B)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🤖</div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>FlipiQ AI Assistant</div>
+                  <div style={{ fontSize: 10, color: "#94A3B8" }}>Powered by AI &middot; Knows everything about {user.n}</div>
+                </div>
+              </div>
+
+              <div style={{ padding: "14px 18px", borderBottom: "1px solid #F1F5F9" }}>
+                {aiSumLoading ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "16px 0" }}>
+                    <div style={{ width: 16, height: 16, border: "2px solid #F97316", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                    <span style={{ fontSize: 12, color: "#94A3B8" }}>Analyzing {user.n}'s data...</span>
+                    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                  </div>
+                ) : aiSummary ? (
+                  <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{aiSummary}</div>
+                ) : (
+                  <div style={{ fontSize: 12, color: "#94A3B8", padding: "8px 0" }}>Summary unavailable.</div>
+                )}
+              </div>
+
+              {aiMsgs.length > 0 && (
+                <div style={{ maxHeight: 280, overflowY: "auto", padding: "10px 18px", borderBottom: "1px solid #F1F5F9" }}>
+                  {aiMsgs.map((m, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", marginBottom: 8 }}>
+                      <div style={{
+                        maxWidth: "80%", padding: "8px 12px", borderRadius: 10,
+                        background: m.role === "user" ? "#F97316" : "#F8FAFB",
+                        color: m.role === "user" ? "#FFF" : "#334155",
+                        fontSize: 12, lineHeight: 1.6, whiteSpace: "pre-wrap",
+                        border: m.role === "user" ? "none" : "1px solid #E2E8F0"
+                      }}>{m.content}</div>
+                    </div>
+                  ))}
+                  {aiLoading && (
+                    <div style={{ display: "flex", gap: 4, padding: "6px 0" }}>
+                      {[0, 1, 2].map((d) => (
+                        <div key={d} style={{ width: 6, height: 6, borderRadius: "50%", background: "#F97316", animation: `bounce 1s ease-in-out ${d * 0.15}s infinite` }} />
+                      ))}
+                      <style>{`@keyframes bounce { 0%,80%,100% { transform: scale(0); } 40% { transform: scale(1); } }`}</style>
+                    </div>
+                  )}
+                  <div ref={aiEndRef} />
+                </div>
+              )}
+
+              <div style={{ padding: "10px 18px", display: "flex", gap: 8 }}>
+                <input
+                  value={aiInput}
+                  onChange={(e) => setAiInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendAiMsg(); } }}
+                  placeholder={"Ask anything about " + user.n + "..."}
+                  style={{ flex: 1, padding: "8px 12px", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 12, outline: "none", fontFamily: "inherit" }}
+                  disabled={aiLoading}
+                />
+                <button
+                  onClick={sendAiMsg}
+                  disabled={!aiInput.trim() || aiLoading}
+                  style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: aiInput.trim() && !aiLoading ? "#F97316" : "#E2E8F0", color: aiInput.trim() && !aiLoading ? "#FFF" : "#94A3B8", fontSize: 12, fontWeight: 700, cursor: aiInput.trim() && !aiLoading ? "pointer" : "default" }}
+                >Send</button>
+              </div>
+            </div>
           </div>
         )}
       </div>
