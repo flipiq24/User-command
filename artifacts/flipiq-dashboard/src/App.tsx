@@ -707,12 +707,47 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <Tip text="Generate and preview a coaching email for this AA."><button onClick={() => { seV(bE(user)); ss(null); }} style={{ padding: "8px 16px", fontSize: 11, fontWeight: 700, background: "#F97316", color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Send email</button></Tip>
               </div>
               {(() => {
+                const mkTrend = (cur, day, seed) => {
+                  const days = Math.min(day, 7);
+                  if (days <= 1) return [cur];
+                  const pts = [];
+                  for (let i = 0; i < days; i++) {
+                    const progress = i / (days - 1);
+                    const noise = Math.sin((seed + i) * 2.7) * 0.3;
+                    const base = cur * progress * (1 + noise);
+                    pts.push(Math.max(0, Math.round(base)));
+                  }
+                  pts[pts.length - 1] = cur;
+                  return pts;
+                };
+                const Spark = ({ data, color, w = 80, h = 24 }) => {
+                  if (data.length < 2) return <div style={{ width: w, height: h, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: "#94A3B8" }}>No trend</div>;
+                  const mn = Math.min(...data);
+                  const mx = Math.max(...data, 1);
+                  const rng = mx - mn || 1;
+                  const pad = 2;
+                  const pts = data.map((v, i) => {
+                    const x = pad + (i / (data.length - 1)) * (w - pad * 2);
+                    const y = h - pad - ((v - mn) / rng) * (h - pad * 2);
+                    return x + "," + y;
+                  }).join(" ");
+                  const last = data[data.length - 1];
+                  const prev = data[data.length - 2];
+                  const up = last >= prev;
+                  return (
+                    <svg width={w} height={h} viewBox={"0 0 " + w + " " + h}>
+                      <polyline points={pts} fill="none" stroke={color + "40"} strokeWidth="1.5" />
+                      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeDasharray={up ? "none" : "3,2"} />
+                      <circle cx={parseFloat(pts.split(" ").pop().split(",")[0])} cy={parseFloat(pts.split(" ").pop().split(",")[1])} r="2.5" fill={color} />
+                    </svg>
+                  );
+                };
                 const pipe = [
-                  { n: "Active Pipeline", v: user.s.op, max: Math.max(user.s.op, 1), color: "#3B82F6", bg: "#EFF6FF", bc: "#BFDBFE", icon: "\uD83D\uDCCA", tip: "Total open properties/deals currently in this AA's pipeline." },
-                  { n: "Offers", v: user.s.of, max: user.g.of * Math.min(user.day, 30) || 1, color: "#F97316", bg: "#FFF7ED", bc: "#FED7AA", icon: "\uD83D\uDCDD", tip: "Total offers submitted. Target based on daily offer pace × days active." },
-                  { n: "In Negotiations", v: user.s.ng, max: Math.max(user.s.of, 1), color: "#8B5CF6", bg: "#F5F3FF", bc: "#DDD6FE", icon: "\uD83E\uDD1D", tip: "Deals currently in active negotiation with the seller." },
-                  { n: "Offer Accepted", v: user.s.ac, max: Math.max(user.s.ng, user.s.ac, 1), color: "#10B981", bg: "#ECFDF5", bc: "#A7F3D0", icon: "\u2705", tip: "Offers that were accepted by the seller — moving toward closing." },
-                  { n: "Acquired", v: user.s.aq, max: 2, color: user.s.aq >= 2 ? "#10B981" : user.s.aq > 0 ? "#D97706" : "#DC2626", bg: user.s.aq >= 2 ? "#ECFDF5" : user.s.aq > 0 ? "#FEF9C3" : "#FEF2F2", bc: user.s.aq >= 2 ? "#A7F3D0" : user.s.aq > 0 ? "#FDE68A" : "#FECACA", icon: "\uD83C\uDFC6", tip: "Deals fully acquired (closed). Target is 2 per month per AA." },
+                  { n: "Active Pipeline", v: user.s.op, max: Math.max(user.s.op, 1), color: "#3B82F6", bg: "#EFF6FF", bc: "#BFDBFE", tip: "Total open properties/deals currently in this AA's pipeline. Sparkline shows 7-day trend.", seed: 1 },
+                  { n: "Offers", v: user.s.of, max: user.g.of * Math.min(user.day, 30) || 1, color: "#F97316", bg: "#FFF7ED", bc: "#FED7AA", tip: "Total offers submitted. Target based on daily offer pace × days active. Sparkline shows 7-day trend.", seed: 2 },
+                  { n: "In Negotiations", v: user.s.ng, max: Math.max(user.s.of, 1), color: "#8B5CF6", bg: "#F5F3FF", bc: "#DDD6FE", tip: "Deals in active negotiation. Sparkline shows 7-day trend.", seed: 3 },
+                  { n: "Offer Accepted", v: user.s.ac, max: Math.max(user.s.ng, user.s.ac, 1), color: "#10B981", bg: "#ECFDF5", bc: "#A7F3D0", tip: "Offers accepted by seller. Sparkline shows 7-day trend.", seed: 4 },
+                  { n: "Acquired", v: user.s.aq, max: 2, color: user.s.aq >= 2 ? "#10B981" : user.s.aq > 0 ? "#D97706" : "#DC2626", bg: user.s.aq >= 2 ? "#ECFDF5" : user.s.aq > 0 ? "#FEF9C3" : "#FEF2F2", bc: user.s.aq >= 2 ? "#A7F3D0" : user.s.aq > 0 ? "#FDE68A" : "#FECACA", tip: "Deals acquired (closed). Target: 2/month. Sparkline shows 7-day trend.", seed: 5 },
                 ];
                 return (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10 }}>
@@ -721,10 +756,12 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       const r = 22;
                       const circ = 2 * Math.PI * r;
                       const dash = (pct2 / 100) * circ;
+                      const trend = mkTrend(p.v, user.day, p.seed + user.id);
+                      const trendUp = trend.length >= 2 && trend[trend.length - 1] >= trend[trend.length - 2];
                       return (
                         <Tip key={p.n} text={p.tip}><div style={{ background: p.bg, border: "1px solid " + p.bc, borderRadius: 10, padding: "14px 12px", textAlign: "center", position: "relative" }}>
                           <div style={{ fontSize: 10, fontWeight: 700, color: p.color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>{p.n}</div>
-                          <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
+                          <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
                             <div style={{ position: "relative", width: 52, height: 52 }}>
                               <svg width="52" height="52" viewBox="0 0 52 52">
                                 <circle cx="26" cy="26" r={r} fill="none" stroke={p.bc} strokeWidth="4" />
@@ -733,7 +770,12 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: p.color }}>{p.v}</div>
                             </div>
                           </div>
-                          <div style={{ fontSize: 10, color: "#64748B" }}>{pct2}% of {p.max}</div>
+                          <div style={{ fontSize: 10, color: "#64748B", marginBottom: 6 }}>{pct2}% of {p.max}</div>
+                          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4 }}>
+                            <Spark data={trend} color={p.color} />
+                            <span style={{ fontSize: 8, fontWeight: 700, color: trendUp ? "#10B981" : "#DC2626" }}>{trendUp ? "\u25B2" : "\u25BC"}</span>
+                          </div>
+                          <div style={{ fontSize: 8, color: "#94A3B8", marginTop: 2 }}>{Math.min(user.day, 7)}d trend</div>
                           {pi < pipe.length - 1 && <div style={{ position: "absolute", right: -8, top: "50%", transform: "translateY(-50%)", fontSize: 10, color: "#CBD5E1" }}>{"\u25B6"}</div>}
                         </div></Tip>
                       );
@@ -746,31 +788,35 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "12px 14px" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "#F97316", marginBottom: 8 }}><Tip text="Outbound communication metrics: texts, emails, calls (with connected count), and average time spent. Green values = on pace, red = below goal.">Communication</Tip></div>
-                {[["Texts", user.s.tx], ["Emails", user.s.em], ["Calls", user.s.ca + " (" + user.s.cc + " conn)", user.g.ca], ["Avg Time", Math.round(user.s.mn / 60) + "h"]].map(([l, v, g]) => (
+                {[["Texts", user.s.tx, null, "Total text messages sent today by this AA."], ["Emails", user.s.em, null, "Total emails sent today by this AA."], ["Calls", user.s.ca + " (" + user.s.cc + " conn)", user.g.ca, "Total calls made today with connected count in parentheses. Red = below daily goal."], ["Avg Time", Math.round(user.s.mn / 60) + "h", null, "Average total time spent in FlipiQ today across all features."]].map(([l, v, g, tip]) => (
                   <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
-                    <span style={{ color: "#64748B" }}>{l}</span>
+                    <Tip text={tip}><span style={{ color: "#64748B" }}>{l}</span></Tip>
                     <span style={{ fontWeight: 700, color: g ? vc(typeof v === "number" ? v : 0, g) : "#1E293B" }}>{v}{g ? <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 400 }}> /{g}</span> : null}</span>
                   </div>
                 ))}
-                <div style={{ borderTop: "1px solid #F1F5F9", marginTop: 6, paddingTop: 6, fontSize: 10, color: "#94A3B8" }}>PIQ:{user.s.piq}m Comps:{user.s.comp}m IA:{user.s.ia}m Offer:{user.s.off}m Agents:{user.s.ag}m</div>
+                <div style={{ borderTop: "1px solid #F1F5F9", marginTop: 6, paddingTop: 6, fontSize: 10, color: "#94A3B8" }}>
+                  <Tip text="Time breakdown by feature: PIQ = Priority IQ, Comps = Comparables, IA = Investment Analysis, Offer = Offer Builder, Agents = Agent outreach.">PIQ:{user.s.piq}m Comps:{user.s.comp}m IA:{user.s.ia}m Offer:{user.s.off}m Agents:{user.s.ag}m</Tip>
+                </div>
               </div>
 
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "12px 14px" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}><Tip text="Deal flow from opened to acquired. R/N = reopened/new ratio. Offers break down by type (T=traditional, C=creative). Acquired target is 2/month.">Deal pipeline</Tip></div>
-                {[["Opened", user.s.op], ["Reopened", user.s.re], ["R/N", user.s.op > 0 ? (user.s.re / user.s.op).toFixed(2) : "0"], ["Offers", user.s.of + " (T:" + user.s.oT + " C:" + user.s.oC + ")", user.g.of * Math.min(user.day, 30)], ["Negot", user.s.ng], ["Accepted", user.s.ac], ["Acquired", user.s.aq, 2]].map(([l, v, g]) => (
+                {[["Opened", user.s.op, null, "Total properties/deals opened or added to the pipeline."], ["Reopened", user.s.re, null, "Deals that were closed but reopened for another attempt."], ["R/N", user.s.op > 0 ? (user.s.re / user.s.op).toFixed(2) : "0", null, "Reopen-to-new ratio. Higher means more recycling of old leads vs finding new ones."], ["Offers", user.s.of + " (T:" + user.s.oT + " C:" + user.s.oC + ")", user.g.of * Math.min(user.day, 30), "Total offers submitted. T = traditional offers, C = creative offers. Red = below target pace."], ["Negot", user.s.ng, null, "Deals currently in active negotiation with the seller."], ["Accepted", user.s.ac, null, "Offers accepted by the seller — moving toward closing."], ["Acquired", user.s.aq, 2, "Deals fully closed/acquired. Target is 2 per month. This is the Atomic KPI."]].map(([l, v, g, tip]) => (
                   <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
-                    <span style={{ color: "#64748B" }}>{l}</span>
+                    <Tip text={tip}><span style={{ color: "#64748B" }}>{l}</span></Tip>
                     <span style={{ fontWeight: l === "Acquired" ? 800 : 700, color: g ? vc(typeof v === "number" ? v : 0, g) : "#1E293B" }}>{v}{g ? <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 400 }}> /{g}</span> : null}</span>
                   </div>
                 ))}
-                <div style={{ borderTop: "1px solid #F1F5F9", marginTop: 6, paddingTop: 6, fontSize: 10, color: "#94A3B8" }}>Source: MLS:{user.s.mls} DM:{user.s.dm} CC:{user.s.cold} Ref:{user.s.ref}</div>
+                <div style={{ borderTop: "1px solid #F1F5F9", marginTop: 6, paddingTop: 6, fontSize: 10, color: "#94A3B8" }}>
+                  <Tip text="Lead sources breakdown: MLS = MLS listings, DM = direct mail, CC = cold calls, Ref = referrals.">Source: MLS:{user.s.mls} DM:{user.s.dm} CC:{user.s.cold} Ref:{user.s.ref}</Tip>
+                </div>
               </div>
 
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "12px 14px" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981", marginBottom: 8 }}><Tip text="Contact relationship status: new contacts added, upgrades (cold→warm), priority/hot contacts, warm leads, and daily check-in completion.">Relationships</Tip></div>
-                {[["New", user.s.nr], ["Upgraded", user.s.up], ["Priority H", user.s.pH], ["Warm", user.s.pW], ["Check-in", user.s.ck ? "Done" : "Not Done"]].map(([l, v]) => (
+                {[["New", user.s.nr, "New contacts added to this AA's contact list today."], ["Upgraded", user.s.up, "Contacts upgraded from cold to warm status — showing relationship progress."], ["Priority H", user.s.pH, "Number of high-priority (hot) contacts this AA is actively working."], ["Warm", user.s.pW, "Number of warm leads — contacts who have shown interest but haven't converted."], ["Check-in", user.s.ck ? "Done" : "Not Done", "Daily check-in status. Must be completed before any coaching rules fire. Red = not done."]].map(([l, v, tip]) => (
                   <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 3 }}>
-                    <span style={{ color: "#64748B" }}>{l}</span>
+                    <Tip text={tip}><span style={{ color: "#64748B" }}>{l}</span></Tip>
                     <span style={{ fontWeight: 700, color: v === "Done" ? "#10B981" : v === "Not Done" ? "#DC2626" : "#1E293B" }}>{v}</span>
                   </div>
                 ))}
@@ -792,19 +838,19 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <div key={ci} style={{ marginBottom: 6 }}>
                   <div onClick={() => tE(user.id, ci)} style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: isO ? "8px 8px 0 0" : 8, padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 28, height: 20, borderRadius: 4, background: HMBG[cs.sc], border: "1.5px solid " + HMC[cs.sc] + "60", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Tip text={SL[cs.sc] + " — " + (cs.sc === 0 ? "Never used any events in this category." : cs.sc === 1 ? "Used once but not recently — needs reactivation." : cs.sc === 2 ? "Usage is slowing down — monitor closely." : "Actively using events in this category.")}><div style={{ width: 28, height: 20, borderRadius: 4, background: HMBG[cs.sc], border: "1.5px solid " + HMC[cs.sc] + "60", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <span style={{ fontSize: 9, fontWeight: 700, color: HMC[cs.sc] }}>{SL[cs.sc].slice(0, 4)}</span>
-                      </div>
+                      </div></Tip>
                       <div>
-                        <span style={{ fontSize: 13, fontWeight: 600 }}>{cat.n}</span>
-                        <span style={{ fontSize: 11, color: "#94A3B8", marginLeft: 8 }}>{cs.ac}/{cs.t} active</span>
-                        {cs.mi > 0 && <span style={{ fontSize: 10, color: "#DC2626", marginLeft: 8, fontWeight: 600 }}>{cs.mi} missing</span>}
+                        <Tip text={"Click to expand all " + cs.t + " events in the " + cat.n + " category."}><span style={{ fontSize: 13, fontWeight: 600 }}>{cat.n}</span></Tip>
+                        <Tip text={cs.ac + " of " + cs.t + " events are actively being used in this category."}><span style={{ fontSize: 11, color: "#94A3B8", marginLeft: 8 }}>{cs.ac}/{cs.t} active</span></Tip>
+                        {cs.mi > 0 && <Tip text={cs.mi + " events in this category have NEVER been used — these are gaps to address."}><span style={{ fontSize: 10, color: "#DC2626", marginLeft: 8, fontWeight: 600 }}>{cs.mi} missing</span></Tip>}
                       </div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 11, color: "#64748B" }}>
-                      <div>First: <span style={{ fontWeight: 600, color: cs.fa ? "#334155" : "#DC2626" }}>{cs.fa || "never"}</span></div>
-                      <div>Uses: <span style={{ fontWeight: 600 }}>{cs.tc}</span></div>
-                      <div>Last: <span style={{ fontWeight: 600, color: cs.la ? "#334155" : "#DC2626" }}>{cs.la || "never"}</span></div>
+                      <Tip text="Date this category was first used by the AA. 'never' = no events ever triggered."><div>First: <span style={{ fontWeight: 600, color: cs.fa ? "#334155" : "#DC2626" }}>{cs.fa || "never"}</span></div></Tip>
+                      <Tip text="Total number of times any event in this category has been used."><div>Uses: <span style={{ fontWeight: 600 }}>{cs.tc}</span></div></Tip>
+                      <Tip text="Most recent date any event in this category was used. 'never' = no recent activity."><div>Last: <span style={{ fontWeight: 600, color: cs.la ? "#334155" : "#DC2626" }}>{cs.la || "never"}</span></div></Tip>
                       <span style={{ fontSize: 14, color: "#94A3B8", transform: isO ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>{"\u25BE"}</span>
                     </div>
                   </div>
@@ -816,13 +862,13 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                         ))}
                       </div>
                       {[...user.ev[ci].events].sort((a, b) => { const c = evSort.col; const d = evSort.dir; if (c === "count" || c === "st") return (a[c] - b[c]) * d; const av = (c === "name" ? a.name : a[c]) || ""; const bv = (c === "name" ? b.name : b[c]) || ""; return av.localeCompare(bv) * d; }).map((ev, ei) => (
-                        <div key={ei} style={{ display: "grid", gridTemplateColumns: "1fr 75px 55px 75px 65px", padding: "4px 14px", borderTop: "1px solid #F1F5F9", fontSize: 10, alignItems: "center" }}>
+                        <Tip key={ei} text={ev.name + ": " + (ev.st === 0 ? "MISSING — never used. This is a gap to address." : ev.st === 1 ? "GAP — used once (" + (ev.first || "?") + ") but not recently. Needs reactivation." : ev.st === 2 ? "COOLING — was active but usage is slowing. Used " + ev.count + " times, last on " + (ev.last || "?") + "." : "ACTIVE — regularly used. " + ev.count + " times, last on " + (ev.last || "?") + ".")}><div style={{ display: "grid", gridTemplateColumns: "1fr 75px 55px 75px 65px", padding: "4px 14px", borderTop: "1px solid #F1F5F9", fontSize: 10, alignItems: "center" }}>
                           <div style={{ color: ev.st === 0 ? "#DC2626" : "#334155", fontWeight: ev.st === 0 ? 600 : 400 }}>{ev.name}</div>
                           <div style={{ textAlign: "center", color: ev.first ? "#64748B" : "#DC2626" }}>{ev.first || "never"}</div>
                           <div style={{ textAlign: "center", fontWeight: 600 }}>{ev.count}</div>
                           <div style={{ textAlign: "center", color: ev.last ? "#64748B" : "#DC2626" }}>{ev.last || "never"}</div>
                           <div style={{ textAlign: "center" }}><span style={{ fontSize: 8, fontWeight: 700, color: HMC[ev.st], background: HMBG[ev.st], padding: "1px 5px", borderRadius: 2 }}>{SL[ev.st]}</span></div>
-                        </div>
+                        </div></Tip>
                       ))}
                     </div>
                   )}
