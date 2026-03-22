@@ -349,15 +349,6 @@ export default function App() {
       <div style={{ padding: "16px 24px", maxWidth: 1300, margin: "0 auto" }}>
         {tab === "overview" && !sel && !eV && (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
-              {[{ t: "What this is", d: "AI coaching engine. Tracks AAs daily.", c: "#F97316" }, { t: "How it works", d: "5AM: reads activity, 3-Track scoring, fires rules.", c: "#3B82F6" }, { t: "Your role", d: "Review emails. Forward. Log action.", c: "#10B981" }, { t: "The rule", d: "3 emails no response = STOP. Next to AM.", c: "#DC2626" }].map((x, i) => (
-                <div key={i} style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px", borderTop: "3px solid " + x.c }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: x.c, textTransform: "uppercase", letterSpacing: 1 }}>{x.t}</div>
-                  <div style={{ fontSize: 12, color: "#334155", marginTop: 6, lineHeight: 1.5 }}>{x.d}</div>
-                </div>
-              ))}
-            </div>
-
 
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "10px 16px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 12, fontWeight: 700 }}><Tip text="Daily action items for you (CSM). Each non-healthy AA generates a task. Complete by reviewing, forwarding an email, or logging an action.">Tasks</Tip></span><span style={{ fontSize: 11, color: "#64748B" }}>{fin.length}/{tasks.length}</span></div>
