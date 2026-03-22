@@ -278,7 +278,7 @@ export default function App() {
     <div style={{ fontFamily: "'DM Sans',system-ui,sans-serif", background: "#F8FAFB", minHeight: "100vh", color: "#1E293B", position: "relative" }}>
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "10px 24px", display: "flex", alignItems: "center", gap: 24 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-          <img src={import.meta.env.BASE_URL + "flipiq-logo.png"} alt="FlipIQ" style={{ height: 44, width: "auto" }} />
+          <img src={import.meta.env.BASE_URL + "flipiq-logo.png"} alt="FlipIQ" style={{ height: 132, width: "auto" }} />
           <div>
             <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: 0.3 }}>FlipIQ COMMAND CENTER</div>
             <div style={{ fontSize: 11, color: "#94A3B8" }}>Together, We Flip Smarter</div>
