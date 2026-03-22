@@ -52,6 +52,17 @@ The dashboard is a single-page React component with embedded data arrays and inl
 4. **Emails** — Coaching email cards with Generate button, BECAUSE root cause, yesterday/goal stats
 5. **Email logic** — Reference table of all trigger rules across P1/P2/P3 phases
 
+### User Detail View
+- Pipeline stage cards in header: Active Pipeline → Offers → In Negotiations → Offer Accepted → Acquired
+- Each card has a donut/ring chart, value, and percentage with color coding
+- Arrow connectors between cards show the deal flow progression
+- Below: Communication, Deal Pipeline, and Relationships stat cards
+- Root cause analysis section (WHY) when applicable
+- Feature usage accordion with 7 categories and 61 sortable events
+
+### Tooltips
+- Comprehensive tooltips on every interactive element, label, badge, button, tab, filter, column header, legend item, and pipeline card across all tabs
+
 ### Data (Embedded)
 - 5 organizations: Coko Homes, Hegemark, TD Realty, STJ Investments, Fair Close
 - 21 users with full stats, health, phase, gaps, agenda, email count

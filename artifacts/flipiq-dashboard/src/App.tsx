@@ -616,22 +616,49 @@ export default function App() {
           <div>
             <Tip text="Go back to the main list view."><button onClick={() => { ss(null); sE(null); }} style={{ fontSize: 11, color: "#F97316", background: "none", border: "none", cursor: "pointer", fontWeight: 600, marginBottom: 8 }}>&larr; Back</button></Tip>
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "16px 20px", marginBottom: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                 <div>
                   <div style={{ fontSize: 18, fontWeight: 800 }}>{user.n}</div>
                   <div style={{ fontSize: 12, color: "#64748B" }}>{O.find((o) => o.id === user.org)?.n} &mdash; Day {user.day} &mdash; <span style={{ color: PC[user.ph], fontWeight: 700 }}>{PN[user.ph]}</span></div>
                   {user.agenda && <div style={{ fontSize: 11, color: "#EA580C", fontWeight: 600, marginTop: 6 }}>{user.agenda}</div>}
                 </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  {[{ n: "Deals", v: user.s.aq, g: 2, tip: "Deals acquired this month vs the 2/month target." }, { n: "Calls", v: user.s.ca, g: user.g.ca, tip: "Total calls made vs the daily call goal." }, { n: "Offers", v: user.s.of, g: user.g.of * Math.min(user.day, 30), tip: "Total offers submitted vs the monthly offer pace target." }].map((x) => (
-                    <Tip key={x.n} text={x.tip}><div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 20, fontWeight: 800, color: vc(x.v, x.g) }}>{x.v}</div>
-                      <div style={{ fontSize: 9, color: "#94A3B8" }}>{x.n}/{x.g}</div>
-                    </div></Tip>
-                  ))}
-                  <Tip text="Generate and preview a coaching email for this AA."><button onClick={() => { seV(bE(user)); ss(null); }} style={{ padding: "8px 16px", fontSize: 11, fontWeight: 700, background: "#F97316", color: "#fff", border: "none", borderRadius: 7, cursor: "pointer", marginLeft: 8 }}>Send email</button></Tip>
-                </div>
+                <Tip text="Generate and preview a coaching email for this AA."><button onClick={() => { seV(bE(user)); ss(null); }} style={{ padding: "8px 16px", fontSize: 11, fontWeight: 700, background: "#F97316", color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Send email</button></Tip>
               </div>
+              {(() => {
+                const pipe = [
+                  { n: "Active Pipeline", v: user.s.op, max: Math.max(user.s.op, 1), color: "#3B82F6", bg: "#EFF6FF", bc: "#BFDBFE", icon: "\uD83D\uDCCA", tip: "Total open properties/deals currently in this AA's pipeline." },
+                  { n: "Offers", v: user.s.of, max: user.g.of * Math.min(user.day, 30) || 1, color: "#F97316", bg: "#FFF7ED", bc: "#FED7AA", icon: "\uD83D\uDCDD", tip: "Total offers submitted. Target based on daily offer pace × days active." },
+                  { n: "In Negotiations", v: user.s.ng, max: Math.max(user.s.of, 1), color: "#8B5CF6", bg: "#F5F3FF", bc: "#DDD6FE", icon: "\uD83E\uDD1D", tip: "Deals currently in active negotiation with the seller." },
+                  { n: "Offer Accepted", v: user.s.ac, max: Math.max(user.s.ng, user.s.ac, 1), color: "#10B981", bg: "#ECFDF5", bc: "#A7F3D0", icon: "\u2705", tip: "Offers that were accepted by the seller — moving toward closing." },
+                  { n: "Acquired", v: user.s.aq, max: 2, color: user.s.aq >= 2 ? "#10B981" : user.s.aq > 0 ? "#D97706" : "#DC2626", bg: user.s.aq >= 2 ? "#ECFDF5" : user.s.aq > 0 ? "#FEF9C3" : "#FEF2F2", bc: user.s.aq >= 2 ? "#A7F3D0" : user.s.aq > 0 ? "#FDE68A" : "#FECACA", icon: "\uD83C\uDFC6", tip: "Deals fully acquired (closed). Target is 2 per month per AA." },
+                ];
+                return (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10 }}>
+                    {pipe.map((p, pi) => {
+                      const pct2 = Math.min(100, Math.round((p.v / p.max) * 100));
+                      const r = 22;
+                      const circ = 2 * Math.PI * r;
+                      const dash = (pct2 / 100) * circ;
+                      return (
+                        <Tip key={p.n} text={p.tip}><div style={{ background: p.bg, border: "1px solid " + p.bc, borderRadius: 10, padding: "14px 12px", textAlign: "center", position: "relative" }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: p.color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>{p.n}</div>
+                          <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
+                            <div style={{ position: "relative", width: 52, height: 52 }}>
+                              <svg width="52" height="52" viewBox="0 0 52 52">
+                                <circle cx="26" cy="26" r={r} fill="none" stroke={p.bc} strokeWidth="4" />
+                                <circle cx="26" cy="26" r={r} fill="none" stroke={p.color} strokeWidth="4" strokeLinecap="round" strokeDasharray={dash + " " + circ} transform="rotate(-90 26 26)" style={{ transition: "stroke-dasharray 0.5s" }} />
+                              </svg>
+                              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: p.color }}>{p.v}</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: 10, color: "#64748B" }}>{pct2}% of {p.max}</div>
+                          {pi < pipe.length - 1 && <div style={{ position: "absolute", right: -8, top: "50%", transform: "translateY(-50%)", fontSize: 10, color: "#CBD5E1" }}>{"\u25B6"}</div>}
+                        </div></Tip>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
