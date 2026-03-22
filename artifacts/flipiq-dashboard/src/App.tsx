@@ -174,7 +174,7 @@ function gEH(u) {
       ts: dt.getTime(),
       date: dt.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
       time: (7 + (i % 3)) + ":00 AM",
-      subject: escalated ? "ESCALATION: " + u.n + " \u2014 " + u.ec + " emails, 0 response" : trig.su,
+      subject: escalated ? "ESCALATION: " + u.n + " \u2014 " + u.ec + " emails sent, needs AM review" : trig.su,
       type: escalated ? "escalation" : trig.ty,
       to: escalated ? (O.find((o) => o.id === u.org)?.am || "AM") : u.n,
       responded: false,
@@ -257,6 +257,7 @@ export default function App() {
   const [sel, ss] = useState(null);
   const [tab, st] = useState("overview");
   const [eV, seV] = useState(null);
+  const [commLog, setCommLog] = useState(null);
   const [exp, sE] = useState(null);
   const [evSort, setEvSort] = useState({ col: "name", dir: 1 });
   const toggleEvSort = (col) => setEvSort((p) => p.col === col ? { col, dir: -p.dir } : { col, dir: 1 });
@@ -691,7 +692,10 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       <Tip text={"This AA is on day " + u.day + " in the " + PN[u.ph] + " phase."}><span style={{ fontSize: 10, color: "#64748B", background: "#F1F5F9", padding: "2px 6px", borderRadius: 3 }}>Day {u.day} {PN[u.ph]}</span></Tip>
                       {u.ec >= 3 && <Tip text="This AA has received 3+ coaching emails with no response. The email now escalates to their Account Manager."><span style={{ fontSize: 9, color: "#DC2626", background: "#FEF2F2", padding: "2px 8px", borderRadius: 3, border: "1px solid #FECACA", fontWeight: 800 }}>3-STRIKE → Goes to AM</span></Tip>}
                     </div>
-                    <Tip text={u.ec >= 3 ? "Preview the escalation email that will be sent to this AA's Account Manager." : "Preview the coaching email generated for this AA based on their gaps and stats."}><button onClick={() => seV(bE(u))} style={{ fontSize: 11, fontWeight: 700, color: "#FFF", background: u.ec >= 3 ? "#DC2626" : "#F97316", border: "none", borderRadius: 6, padding: "6px 16px", cursor: "pointer", whiteSpace: "nowrap" }}>{u.ec >= 3 ? "Preview AM Email" : "Preview Email"}</button></Tip>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      {u.ec > 0 && <Tip text="View all coaching emails previously sent to this AA."><button onClick={() => setCommLog(u)} style={{ fontSize: 11, fontWeight: 600, color: "#F97316", background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 6, padding: "6px 12px", cursor: "pointer", whiteSpace: "nowrap" }}>Sent ({u.ec})</button></Tip>}
+                      <Tip text={u.ec >= 3 ? "Preview the escalation email that will be sent to this AA's Account Manager." : "Preview the coaching email generated for this AA based on their gaps and stats."}><button onClick={() => seV(bE(u))} style={{ fontSize: 11, fontWeight: 700, color: "#FFF", background: u.ec >= 3 ? "#DC2626" : "#F97316", border: "none", borderRadius: 6, padding: "6px 16px", cursor: "pointer", whiteSpace: "nowrap" }}>{u.ec >= 3 ? "Preview AM Email" : "Preview Email"}</button></Tip>
+                    </div>
                   </div>
                   {ca && <div style={{ fontSize: 12, color: "#EA580C", fontWeight: 600, background: "#FFF7ED", padding: "6px 10px", borderRadius: 6, marginBottom: 8 }}>Why: {ca}</div>}
                   <div style={{ display: "flex", gap: 16, fontSize: 11, color: "#64748B" }}>
@@ -706,25 +710,24 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             })}
 
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, padding: "14px 18px", marginTop: 10 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}><Tip text="Complete log of all coaching emails sent across all AAs. Shows the communication cadence, email types, and response rates to help track outreach effectiveness.">Communication Log</Tip></div>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}><Tip text="Complete log of all coaching emails sent across all AAs. Shows what was sent, when, and to whom.">Communication Log</Tip></div>
               <div style={{ fontSize: 12, color: "#64748B", marginBottom: 10 }}>
-                <b style={{ color: "#F97316" }}>{fU.reduce((s, u) => s + u.ec, 0)}</b> total emails sent &middot; <b style={{ color: "#DC2626" }}>0</b> responses &middot; <b style={{ color: "#DC2626" }}>{fU.filter((u) => u.ec >= 3).length}</b> AAs at 3-strike
+                <b style={{ color: "#F97316" }}>{fU.reduce((s, u) => s + u.ec, 0)}</b> total emails sent &middot; <b style={{ color: "#DC2626" }}>{fU.filter((u) => u.ec >= 3).length}</b> AAs at 3-strike
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "40px 70px 60px 1fr 80px 70px 80px", padding: "5px 10px", background: "#F8FAFB", borderRadius: "6px 6px 0 0", border: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "40px 70px 60px 1fr 80px 1fr", padding: "5px 10px", background: "#F8FAFB", borderRadius: "6px 6px 0 0", border: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
                 <Tip text="Sequential email number for this AA."><div>#</div></Tip>
                 <Tip text="Date the email was sent."><div>Date</div></Tip>
                 <Tip text="Time the email was sent."><div>Time</div></Tip>
                 <Tip text="Email subject line. Escalation emails start with 'ESCALATION:'."><div>Subject</div></Tip>
                 <Tip text="Email type: Coaching (daily), Onboarding (first setup), Reactivation (after inactivity), Reminder, or Escalation (to AM)."><div>Type</div></Tip>
                 <Tip text="Who received the email — the AA name or the Account Manager (for escalations)."><div>To</div></Tip>
-                <Tip text="Whether the recipient responded to the email."><div>Status</div></Tip>
               </div>
               <div style={{ border: "1px solid #E2E8F0", borderTop: "none", borderRadius: "0 0 6px 6px", maxHeight: 340, overflowY: "auto" }}>
                 {fU.filter((u) => u.ec > 0).flatMap((u) => gEH(u).map((e) => ({ ...e, uName: u.n, uHealth: u.health }))).sort((a, b) => b.ts - a.ts || a.uName.localeCompare(b.uName)).map((e, i) => {
                   const tyC = { coaching: "#F97316", onboarding: "#3B82F6", reactivation: "#8B5CF6", reminder: "#D97706", escalation: "#DC2626" };
                   const tyL = { coaching: "Coaching", onboarding: "Onboarding", reactivation: "Reactivation", reminder: "Reminder", escalation: "Escalation" };
                   return (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "40px 70px 60px 1fr 80px 70px 80px", padding: "6px 10px", borderTop: i > 0 ? "1px solid #F1F5F9" : "none", fontSize: 11, alignItems: "center", background: e.escalated ? "#FEF2F2" : "#FFF" }}>
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "40px 70px 60px 1fr 80px 1fr", padding: "6px 10px", borderTop: i > 0 ? "1px solid #F1F5F9" : "none", fontSize: 11, alignItems: "center", background: e.escalated ? "#FEF2F2" : "#FFF" }}>
                       <div style={{ color: "#94A3B8", fontSize: 10 }}>{e.id}</div>
                       <div style={{ color: "#64748B" }}>{e.date}</div>
                       <div style={{ color: "#94A3B8", fontSize: 10 }}>{e.time}</div>
@@ -734,7 +737,6 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       </div>
                       <div><span style={{ fontSize: 8, fontWeight: 700, color: "#FFF", background: tyC[e.type] || "#94A3B8", padding: "1px 6px", borderRadius: 3, textTransform: "uppercase" }}>{tyL[e.type]}</span></div>
                       <div style={{ fontSize: 10, color: "#64748B" }}>{e.to}</div>
-                      <div><span style={{ fontSize: 8, fontWeight: 700, color: e.responded ? "#10B981" : "#DC2626", background: e.responded ? "#ECFDF5" : "#FEF2F2", padding: "1px 6px", borderRadius: 3 }}>{e.responded ? "Responded" : "No response"}</span></div>
                     </div>
                   );
                 })}
@@ -783,6 +785,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   {user.agenda && <div style={{ fontSize: 11, color: "#EA580C", fontWeight: 600, marginTop: 6 }}>{user.agenda}</div>}
                 </div>
                 <Tip text="Generate and preview a coaching email for this AA."><button onClick={() => { seV(bE(user)); ss(null); }} style={{ padding: "8px 16px", fontSize: 11, fontWeight: 700, background: "#F97316", color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Send email</button></Tip>
+                {user.ec > 0 && <Tip text="View all coaching emails previously sent to this AA."><button onClick={() => setCommLog(user)} style={{ padding: "8px 16px", fontSize: 11, fontWeight: 700, background: "#FFF7ED", color: "#F97316", border: "1px solid #FED7AA", borderRadius: 7, cursor: "pointer" }}>Sent emails ({user.ec})</button></Tip>}
               </div>
               {(() => {
                 const mkTrend = (cur, day, seed) => {
@@ -897,41 +900,6 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               </div>
             )}
 
-            {(() => {
-              const eh = gEH(user);
-              if (eh.length === 0) return null;
-              const tyC = { coaching: "#F97316", onboarding: "#3B82F6", reactivation: "#8B5CF6", reminder: "#D97706", escalation: "#DC2626" };
-              const tyL = { coaching: "Coaching", onboarding: "Onboarding", reactivation: "Reactivation", reminder: "Reminder", escalation: "Escalation" };
-              return (
-                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 18px", marginBottom: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Chronological list of all coaching emails sent to this AA. Shows date, subject, type, recipient, and response status. Helps track communication cadence and identify the 3-strike escalation path.">Communication History</Tip></div>
-                      <div style={{ fontSize: 10, color: "#94A3B8" }}>{eh.length} email{eh.length !== 1 ? "s" : ""} sent &middot; {eh.filter((e) => e.responded).length} responded &middot; {eh.filter((e) => e.escalated).length} escalated</div>
-                    </div>
-                    {user.ec >= 3 && <span style={{ fontSize: 9, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "3px 10px", borderRadius: 4, border: "1px solid #FECACA" }}>3-STRIKE REACHED</span>}
-                  </div>
-                  <div style={{ position: "relative", paddingLeft: 20 }}>
-                    <div style={{ position: "absolute", left: 7, top: 4, bottom: 4, width: 2, background: "#E2E8F0" }} />
-                    {eh.map((e) => (
-                      <div key={e.id} style={{ position: "relative", marginBottom: 10, paddingLeft: 16 }}>
-                        <div style={{ position: "absolute", left: -16, top: 5, width: 10, height: 10, borderRadius: "50%", background: e.escalated ? "#DC2626" : tyC[e.type] || "#94A3B8", border: "2px solid #FFF", boxShadow: "0 0 0 1px " + (e.escalated ? "#FECACA" : "#E2E8F0") }} />
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-                          <Tip text={"Sent on " + e.date + " at " + e.time}><span style={{ fontSize: 10, color: "#94A3B8", fontWeight: 600, minWidth: 50 }}>{e.date}</span></Tip>
-                          <span style={{ fontSize: 9, color: "#94A3B8" }}>{e.time}</span>
-                          <Tip text={tyL[e.type] + " email — " + (e.type === "coaching" ? "daily coaching based on gaps" : e.type === "onboarding" ? "first-time setup guidance" : e.type === "reactivation" ? "re-engagement after inactivity" : e.type === "escalation" ? "sent to AM after 3 strikes" : "daily reminder")}><span style={{ fontSize: 8, fontWeight: 700, color: "#FFF", background: tyC[e.type] || "#94A3B8", padding: "1px 6px", borderRadius: 3, textTransform: "uppercase" }}>{tyL[e.type]}</span></Tip>
-                        </div>
-                        <Tip text={e.escalated ? "This email was escalated to the Account Manager because the AA didn't respond to previous emails." : "Coaching email sent to " + e.to + ". " + (e.responded ? "AA responded." : "No response received.")}><div style={{ fontSize: 12, fontWeight: 600, color: e.escalated ? "#DC2626" : "#334155" }}>{e.subject}</div></Tip>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
-                          <Tip text={"Recipient: " + e.to + (e.escalated ? " (Account Manager)" : " (Acquisition Associate)")}><span style={{ fontSize: 10, color: "#64748B" }}>To: {e.to}</span></Tip>
-                          <span style={{ fontSize: 8, fontWeight: 700, color: e.responded ? "#10B981" : "#DC2626", background: e.responded ? "#ECFDF5" : "#FEF2F2", padding: "1px 6px", borderRadius: 3 }}>{e.responded ? "Responded" : "No response"}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
 
             {(() => {
               const allEv = user.ev.flatMap((c) => c.events);
@@ -1147,6 +1115,42 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               ))}
             </div>
             <div style={{ fontSize: 9, color: "#94A3B8", marginTop: 6 }}>Click to expand</div>
+          </div>
+        );
+      })()}
+
+      {commLog && (() => {
+        const eh = gEH(commLog);
+        const tyC = { coaching: "#F97316", onboarding: "#3B82F6", reactivation: "#8B5CF6", reminder: "#D97706", escalation: "#DC2626" };
+        const tyL = { coaching: "Coaching", onboarding: "Onboarding", reactivation: "Reactivation", reminder: "Reminder", escalation: "Escalation" };
+        return (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }} onClick={() => setCommLog(null)}>
+            <div style={{ background: "#FFF", borderRadius: 12, padding: 0, width: 480, maxHeight: "80vh", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", display: "flex", flexDirection: "column" }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ padding: "16px 20px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 15, fontWeight: 700 }}>Emails sent to {commLog.n}</div>
+                  <div style={{ fontSize: 11, color: "#94A3B8" }}>{eh.length} email{eh.length !== 1 ? "s" : ""} sent {commLog.ec >= 3 ? " \u2014 3-strike reached" : ""}</div>
+                </div>
+                <button onClick={() => setCommLog(null)} style={{ background: "none", border: "none", fontSize: 18, color: "#94A3B8", cursor: "pointer", padding: "4px 8px" }}>{"\u2715"}</button>
+              </div>
+              <div style={{ padding: "12px 20px", overflowY: "auto", flex: 1 }}>
+                <div style={{ position: "relative", paddingLeft: 20 }}>
+                  <div style={{ position: "absolute", left: 7, top: 4, bottom: 4, width: 2, background: "#E2E8F0" }} />
+                  {eh.map((e) => (
+                    <div key={e.id} style={{ position: "relative", marginBottom: 14, paddingLeft: 16 }}>
+                      <div style={{ position: "absolute", left: -16, top: 5, width: 10, height: 10, borderRadius: "50%", background: e.escalated ? "#DC2626" : tyC[e.type] || "#94A3B8", border: "2px solid #FFF", boxShadow: "0 0 0 1px " + (e.escalated ? "#FECACA" : "#E2E8F0") }} />
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                        <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>{e.date}</span>
+                        <span style={{ fontSize: 10, color: "#94A3B8" }}>{e.time}</span>
+                        <span style={{ fontSize: 8, fontWeight: 700, color: "#FFF", background: tyC[e.type] || "#94A3B8", padding: "2px 7px", borderRadius: 3, textTransform: "uppercase" }}>{tyL[e.type]}</span>
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: e.escalated ? "#DC2626" : "#334155" }}>{e.subject}</div>
+                      <div style={{ fontSize: 10, color: "#64748B", marginTop: 2 }}>To: {e.to}{e.escalated ? " (Account Manager)" : ""}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         );
       })()}

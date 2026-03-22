@@ -60,7 +60,7 @@ The dashboard is a single-page React component with embedded data arrays and inl
 - Root cause analysis section (WHY) when applicable
 - **Feature Adoption chart**: progress ring showing adoption %, color legend (Active/Cooling/Gap/Unused), 7 horizontal stacked bars per category, "New this week" callout for recently adopted events
 - Feature usage accordion with 7 categories and 61 sortable events
-- **Communication History** timeline: chronological log of all coaching emails sent, with type badges (Coaching/Onboarding/Reactivation/Escalation), response status, and 3-strike indicator
+- **Sent Emails popup**: button next to "Send email" opens a modal showing all coaching emails sent to this AA — date, time, type badge, subject, recipient (no response tracking)
 - **AI Assistant panel** at the bottom: auto-generated summary + top 3 priorities + interactive chat
 
 ### Tooltips
