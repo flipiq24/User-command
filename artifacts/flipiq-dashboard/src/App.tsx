@@ -390,44 +390,74 @@ export default function App() {
 
         {tab === "leaderboard" && !sel && (
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
-            <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div><div style={{ fontSize: 14, fontWeight: 700 }}>Team leaderboard</div><div style={{ fontSize: 11, color: "#94A3B8" }}>My Stats KPIs. Click name for detail.</div></div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <select value={dR} onChange={(e) => sDR(e.target.value)} style={{ padding: "5px 28px 5px 10px", fontSize: 12, border: "1px solid #E2E8F0", borderRadius: 6, background: "#FFF", appearance: "none", WebkitAppearance: "none", cursor: "pointer", backgroundImage: sel0, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div><div style={{ fontSize: 16, fontWeight: 800 }}>Team Leaderboard</div><div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>My Stats KPIs. Click name for detail.</div></div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <select value={dR} onChange={(e) => sDR(e.target.value)} style={{ padding: "6px 30px 6px 12px", fontSize: 12, border: "1px solid #E2E8F0", borderRadius: 8, background: "#FFF", appearance: "none", WebkitAppearance: "none", cursor: "pointer", backgroundImage: sel0, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
                   {DR.map((d) => <option key={d}>{d}</option>)}
                 </select>
                 <span style={{ fontSize: 11, color: "#64748B" }}>Mar 21 &middot; Pacific</span>
               </div>
             </div>
             <div style={{ overflowX: "auto" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "28px 120px 62px 62px 68px 50px 50px 50px 50px 44px 50px 50px 50px 50px 55px", padding: "3px 8px", background: "#F1F5F9", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#64748B", textTransform: "uppercase", minWidth: 950 }}>
-                <div></div><div></div><div style={{ textAlign: "center" }}>Comms</div><div></div><div></div><div></div><div style={{ textAlign: "center" }}>Rels</div><div></div><div style={{ textAlign: "center" }}>Deal Progress</div><div></div><div></div><div></div><div></div><div></div><div></div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "28px 120px 62px 62px 68px 50px 50px 50px 50px 44px 50px 50px 50px 50px 55px", padding: "3px 8px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", minWidth: 950 }}>
-                <div>#</div><div>Name</div><div style={{ textAlign: "center" }}>Texts</div><div style={{ textAlign: "center" }}>Emails</div><div style={{ textAlign: "center" }}>Calls</div><div style={{ textAlign: "center" }}>New</div><div style={{ textAlign: "center" }}>Upgr</div><div style={{ textAlign: "center" }}>New</div><div style={{ textAlign: "center" }}>Reop</div><div style={{ textAlign: "center" }}>R/N</div><div style={{ textAlign: "center" }}>Offers</div><div style={{ textAlign: "center" }}>Neg</div><div style={{ textAlign: "center" }}>Acc</div><div style={{ textAlign: "center" }}>Acq</div><div style={{ textAlign: "center" }}>Time</div>
-              </div>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1100 }}>
+                <thead>
+                  <tr style={{ background: "#F1F5F9", borderBottom: "1px solid #E2E8F0" }}>
+                    <th colSpan={2} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "left", borderRight: "1px solid #E2E8F0" }}></th>
+                    <th colSpan={3} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#0C447C", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", borderRight: "1px solid #E2E8F0", background: "#EEF5FC" }}>Communication</th>
+                    <th colSpan={2} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#085041", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", borderRight: "1px solid #E2E8F0", background: "#E8F8F2" }}>Relationships</th>
+                    <th colSpan={4} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#854F0B", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", borderRight: "1px solid #E2E8F0", background: "#FEF7E8" }}>Pipeline</th>
+                    <th colSpan={3} style={{ padding: "4px 12px", fontSize: 9, fontWeight: 700, color: "#7C2D12", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "center", background: "#FFF1EC" }}>Deal Progress</th>
+                  </tr>
+                  <tr style={{ background: "#F8FAFB", borderBottom: "2px solid #E2E8F0" }}>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "left", width: 36 }}>#</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "left", minWidth: 140, borderRight: "1px solid #E2E8F0" }}>Name</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 65 }}>Texts</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 65 }}>Emails</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 75, borderRight: "1px solid #E2E8F0" }}>Calls</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 55 }}>New</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 55, borderRight: "1px solid #E2E8F0" }}>Upgr</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 55 }}>Open</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 55 }}>Reop</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 50 }}>R/N</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 65, borderRight: "1px solid #E2E8F0" }}>Offers</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 50 }}>Neg</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 50 }}>Acc</th>
+                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 55 }}>Acq</th>
+                  </tr>
+                </thead>
+                <tbody>
               {lb.map((u, i) => {
                 const rn = u.s.op > 0 ? (u.s.re / u.s.op).toFixed(2) : "0";
                 return (
-                  <div key={u.id} onClick={() => ss(u.id)} style={{ display: "grid", gridTemplateColumns: "28px 120px 62px 62px 68px 50px 50px 50px 50px 44px 50px 50px 50px 50px 55px", padding: "6px 8px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", cursor: "pointer", minWidth: 950, fontSize: 11, alignItems: "center" }}>
-                    <div style={{ fontWeight: 800, color: i < 3 ? "#F97316" : "#CBD5E1" }}>{i === 0 ? "\uD83E\uDD47" : i === 1 ? "\uD83E\uDD48" : i === 2 ? "\uD83E\uDD49" : i + 1}</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 6, height: 6, borderRadius: "50%", background: HC[u.health] }} /><span style={{ fontWeight: 600, fontSize: 11 }}>{u.n}</span></div>
-                    <div style={{ textAlign: "center", color: "#64748B" }}>{u.s.tx}</div>
-                    <div style={{ textAlign: "center", color: "#64748B" }}>{u.s.em}</div>
-                    <div style={{ textAlign: "center", fontWeight: 600, color: vc(u.s.ca, u.g.ca) }}>{u.s.ca}<span style={{ fontSize: 8, color: "#94A3B8" }}>({u.s.cc})</span></div>
-                    <div style={{ textAlign: "center", color: "#64748B" }}>{u.s.nr}</div>
-                    <div style={{ textAlign: "center", color: "#64748B" }}>{u.s.up}</div>
-                    <div style={{ textAlign: "center", color: "#64748B" }}>{u.s.op}</div>
-                    <div style={{ textAlign: "center", color: "#64748B" }}>{u.s.re}</div>
-                    <div style={{ textAlign: "center", color: "#64748B", fontSize: 10 }}>{rn}</div>
-                    <div style={{ textAlign: "center", fontWeight: 600, color: vc(u.s.of, u.g.of * Math.min(u.day, 30)) }}>{u.s.of}</div>
-                    <div style={{ textAlign: "center", color: "#64748B" }}>{u.s.ng}</div>
-                    <div style={{ textAlign: "center", color: "#64748B" }}>{u.s.ac}</div>
-                    <div style={{ textAlign: "center", fontWeight: 800, color: u.s.aq >= 2 ? "#10B981" : u.s.aq > 0 ? "#D97706" : "#DC2626" }}>{u.s.aq}</div>
-                    <div style={{ textAlign: "center", fontSize: 10, color: "#64748B" }}>{u.s.mn}m</div>
-                  </div>
+                  <tr key={u.id} onClick={() => ss(u.id)} style={{ borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", cursor: "pointer", transition: "background 0.15s" }} onMouseEnter={(e) => e.currentTarget.style.background = "#F0F7FF"} onMouseLeave={(e) => e.currentTarget.style.background = i % 2 === 0 ? "#FFF" : "#FAFBFC"}>
+                    <td style={{ padding: "10px 12px", fontWeight: 800, fontSize: 13, color: i < 3 ? "#F97316" : "#CBD5E1" }}>{i === 0 ? "\uD83E\uDD47" : i === 1 ? "\uD83E\uDD48" : i === 2 ? "\uD83E\uDD49" : i + 1}</td>
+                    <td style={{ padding: "10px 12px", borderRight: "1px solid #F1F5F9" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: HC[u.health], flexShrink: 0 }} />
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 12 }}>{u.n}</div>
+                          <div style={{ fontSize: 9, color: "#94A3B8" }}>{O.find((o) => o.id === u.org)?.n} &middot; D{u.day} &middot; P{u.ph}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 12, color: "#64748B" }}>{u.s.tx}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 12, color: "#64748B" }}>{u.s.em}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 12, fontWeight: 600, color: vc(u.s.ca, u.g.ca), borderRight: "1px solid #F1F5F9" }}>{u.s.ca} <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 400 }}>({u.s.cc}c)</span></td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 12, color: "#64748B" }}>{u.s.nr}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 12, color: "#64748B", borderRight: "1px solid #F1F5F9" }}>{u.s.up}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 12, color: "#64748B" }}>{u.s.op}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 12, color: "#64748B" }}>{u.s.re}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 11, color: "#64748B" }}>{rn}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 12, fontWeight: 600, color: vc(u.s.of, u.g.of * Math.min(u.day, 30)), borderRight: "1px solid #F1F5F9" }}>{u.s.of}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 12, color: "#64748B" }}>{u.s.ng}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 12, color: "#64748B" }}>{u.s.ac}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", fontSize: 13, fontWeight: 800, color: u.s.aq >= 2 ? "#10B981" : u.s.aq > 0 ? "#D97706" : "#DC2626" }}>{u.s.aq}</td>
+                  </tr>
                 );
               })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
