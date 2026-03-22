@@ -49,7 +49,7 @@ The dashboard is a single-page React component with embedded data arrays and inl
 1. **Overview** — Info cards, Atomic KPI (2 deals/month/person), task list with checkboxes, WHY root cause
 2. **Leaderboard** — Full stats table with medals for top 3, date range dropdown
 3. **Heat map** — 7 category columns (Plan/Find/Comms/Prop/Analysis/Offers/Tools), color-coded cells, tooltips
-4. **Emails** — Coaching email cards with Generate button, BECAUSE root cause, yesterday/goal stats
+4. **Emails** — Coaching email cards with Generate button, BECAUSE root cause, yesterday/goal stats, plus Communication Log table at bottom
 5. **Email logic** — Reference table of all trigger rules across P1/P2/P3 phases
 
 ### User Detail View
@@ -59,6 +59,7 @@ The dashboard is a single-page React component with embedded data arrays and inl
 - Below: Communication, Deal Pipeline, and Relationships stat cards
 - Root cause analysis section (WHY) when applicable
 - Feature usage accordion with 7 categories and 61 sortable events
+- **Communication History** timeline: chronological log of all coaching emails sent, with type badges (Coaching/Onboarding/Reactivation/Escalation), response status, and 3-strike indicator
 - **AI Assistant panel** at the bottom: auto-generated summary + top 3 priorities + interactive chat
 
 ### Tooltips

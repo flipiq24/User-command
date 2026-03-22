@@ -142,6 +142,48 @@ function gc(u) {
   return null;
 }
 
+function gEH(u) {
+  if (u.ec === 0) return [];
+  const hist = [];
+  const today = new Date(2026, 2, 21);
+  const triggers = [
+    { gap: "NEVER LOGGED IN", su: "Getting Started with FlipIQ", ty: "onboarding" },
+    { gap: "Zero calls", su: "Your Calls Matter — Here's Why", ty: "coaching" },
+    { gap: "2 days inactive", su: "We Noticed You've Been Away", ty: "reactivation" },
+    { gap: "3 days inactive", su: "Time to Jump Back In", ty: "reactivation" },
+    { gap: "No micro-skills", su: "Unlock Your FlipIQ Skills", ty: "coaching" },
+    { gap: "Micro-skills incomplete", su: "Complete Your Training Modules", ty: "coaching" },
+    { gap: "No offers", su: "Let's Get Your First Offer Out", ty: "coaching" },
+    { gap: "Offers < target", su: "Offer Pace Check-In", ty: "coaching" },
+    { gap: "3 days offline", su: "Missing You — Let's Reconnect", ty: "reactivation" },
+    { gap: "Campaigns cold 12d", su: "Reactivate Your Campaigns", ty: "coaching" },
+    { gap: "Notes empty", su: "Notes = Follow-Up Power", ty: "coaching" },
+    { gap: "Calls < target", su: "Call Volume Below Target", ty: "coaching" },
+  ];
+  for (let i = 0; i < u.ec; i++) {
+    const daysAgo = Math.min(u.ec - i, u.day - 1);
+    const dt = new Date(today);
+    dt.setDate(dt.getDate() - daysAgo);
+    const matched = triggers.find((t) => u.gaps.some((g) => g.includes(t.gap)));
+    const fallback = !u.s.ck ? { su: "Complete Your Daily Check-In", ty: "reminder" } : { su: "FlipIQ Daily Update", ty: "coaching" };
+    const trig = i === 0 && matched ? matched : fallback;
+    const isLast = i === u.ec - 1;
+    const escalated = u.ec >= 3 && isLast;
+    hist.push({
+      id: i + 1,
+      ts: dt.getTime(),
+      date: dt.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      time: (7 + (i % 3)) + ":00 AM",
+      subject: escalated ? "ESCALATION: " + u.n + " \u2014 " + u.ec + " emails, 0 response" : trig.su,
+      type: escalated ? "escalation" : trig.ty,
+      to: escalated ? (O.find((o) => o.id === u.org)?.am || "AM") : u.n,
+      responded: false,
+      escalated,
+    });
+  }
+  return hist;
+}
+
 function bE(u) {
   const o = O.find((x) => x.id === u.org);
   const nm = u.n.split(" ")[0];
@@ -662,6 +704,42 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 </div>
               );
             })}
+
+            <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, padding: "14px 18px", marginTop: 10 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}><Tip text="Complete log of all coaching emails sent across all AAs. Shows the communication cadence, email types, and response rates to help track outreach effectiveness.">Communication Log</Tip></div>
+              <div style={{ fontSize: 12, color: "#64748B", marginBottom: 10 }}>
+                <b style={{ color: "#F97316" }}>{fU.reduce((s, u) => s + u.ec, 0)}</b> total emails sent &middot; <b style={{ color: "#DC2626" }}>0</b> responses &middot; <b style={{ color: "#DC2626" }}>{fU.filter((u) => u.ec >= 3).length}</b> AAs at 3-strike
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "40px 70px 60px 1fr 80px 70px 80px", padding: "5px 10px", background: "#F8FAFB", borderRadius: "6px 6px 0 0", border: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
+                <Tip text="Sequential email number for this AA."><div>#</div></Tip>
+                <Tip text="Date the email was sent."><div>Date</div></Tip>
+                <Tip text="Time the email was sent."><div>Time</div></Tip>
+                <Tip text="Email subject line. Escalation emails start with 'ESCALATION:'."><div>Subject</div></Tip>
+                <Tip text="Email type: Coaching (daily), Onboarding (first setup), Reactivation (after inactivity), Reminder, or Escalation (to AM)."><div>Type</div></Tip>
+                <Tip text="Who received the email — the AA name or the Account Manager (for escalations)."><div>To</div></Tip>
+                <Tip text="Whether the recipient responded to the email."><div>Status</div></Tip>
+              </div>
+              <div style={{ border: "1px solid #E2E8F0", borderTop: "none", borderRadius: "0 0 6px 6px", maxHeight: 340, overflowY: "auto" }}>
+                {fU.filter((u) => u.ec > 0).flatMap((u) => gEH(u).map((e) => ({ ...e, uName: u.n, uHealth: u.health }))).sort((a, b) => b.ts - a.ts || a.uName.localeCompare(b.uName)).map((e, i) => {
+                  const tyC = { coaching: "#F97316", onboarding: "#3B82F6", reactivation: "#8B5CF6", reminder: "#D97706", escalation: "#DC2626" };
+                  const tyL = { coaching: "Coaching", onboarding: "Onboarding", reactivation: "Reactivation", reminder: "Reminder", escalation: "Escalation" };
+                  return (
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "40px 70px 60px 1fr 80px 70px 80px", padding: "6px 10px", borderTop: i > 0 ? "1px solid #F1F5F9" : "none", fontSize: 11, alignItems: "center", background: e.escalated ? "#FEF2F2" : "#FFF" }}>
+                      <div style={{ color: "#94A3B8", fontSize: 10 }}>{e.id}</div>
+                      <div style={{ color: "#64748B" }}>{e.date}</div>
+                      <div style={{ color: "#94A3B8", fontSize: 10 }}>{e.time}</div>
+                      <div>
+                        <div style={{ fontWeight: 600, color: e.escalated ? "#DC2626" : "#334155", fontSize: 11 }}>{e.subject}</div>
+                        <div style={{ fontSize: 9, color: "#94A3B8" }}>{e.uName}</div>
+                      </div>
+                      <div><span style={{ fontSize: 8, fontWeight: 700, color: "#FFF", background: tyC[e.type] || "#94A3B8", padding: "1px 6px", borderRadius: 3, textTransform: "uppercase" }}>{tyL[e.type]}</span></div>
+                      <div style={{ fontSize: 10, color: "#64748B" }}>{e.to}</div>
+                      <div><span style={{ fontSize: 8, fontWeight: 700, color: e.responded ? "#10B981" : "#DC2626", background: e.responded ? "#ECFDF5" : "#FEF2F2", padding: "1px 6px", borderRadius: 3 }}>{e.responded ? "Responded" : "No response"}</span></div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
@@ -829,6 +907,42 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.6 }}>{gc(user)}</div>
               </div>
             )}
+
+            {(() => {
+              const eh = gEH(user);
+              if (eh.length === 0) return null;
+              const tyC = { coaching: "#F97316", onboarding: "#3B82F6", reactivation: "#8B5CF6", reminder: "#D97706", escalation: "#DC2626" };
+              const tyL = { coaching: "Coaching", onboarding: "Onboarding", reactivation: "Reactivation", reminder: "Reminder", escalation: "Escalation" };
+              return (
+                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 18px", marginBottom: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Chronological list of all coaching emails sent to this AA. Shows date, subject, type, recipient, and response status. Helps track communication cadence and identify the 3-strike escalation path.">Communication History</Tip></div>
+                      <div style={{ fontSize: 10, color: "#94A3B8" }}>{eh.length} email{eh.length !== 1 ? "s" : ""} sent &middot; {eh.filter((e) => e.responded).length} responded &middot; {eh.filter((e) => e.escalated).length} escalated</div>
+                    </div>
+                    {user.ec >= 3 && <span style={{ fontSize: 9, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "3px 10px", borderRadius: 4, border: "1px solid #FECACA" }}>3-STRIKE REACHED</span>}
+                  </div>
+                  <div style={{ position: "relative", paddingLeft: 20 }}>
+                    <div style={{ position: "absolute", left: 7, top: 4, bottom: 4, width: 2, background: "#E2E8F0" }} />
+                    {eh.map((e) => (
+                      <div key={e.id} style={{ position: "relative", marginBottom: 10, paddingLeft: 16 }}>
+                        <div style={{ position: "absolute", left: -16, top: 5, width: 10, height: 10, borderRadius: "50%", background: e.escalated ? "#DC2626" : tyC[e.type] || "#94A3B8", border: "2px solid #FFF", boxShadow: "0 0 0 1px " + (e.escalated ? "#FECACA" : "#E2E8F0") }} />
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                          <Tip text={"Sent on " + e.date + " at " + e.time}><span style={{ fontSize: 10, color: "#94A3B8", fontWeight: 600, minWidth: 50 }}>{e.date}</span></Tip>
+                          <span style={{ fontSize: 9, color: "#94A3B8" }}>{e.time}</span>
+                          <Tip text={tyL[e.type] + " email — " + (e.type === "coaching" ? "daily coaching based on gaps" : e.type === "onboarding" ? "first-time setup guidance" : e.type === "reactivation" ? "re-engagement after inactivity" : e.type === "escalation" ? "sent to AM after 3 strikes" : "daily reminder")}><span style={{ fontSize: 8, fontWeight: 700, color: "#FFF", background: tyC[e.type] || "#94A3B8", padding: "1px 6px", borderRadius: 3, textTransform: "uppercase" }}>{tyL[e.type]}</span></Tip>
+                        </div>
+                        <Tip text={e.escalated ? "This email was escalated to the Account Manager because the AA didn't respond to previous emails." : "Coaching email sent to " + e.to + ". " + (e.responded ? "AA responded." : "No response received.")}><div style={{ fontSize: 12, fontWeight: 600, color: e.escalated ? "#DC2626" : "#334155" }}>{e.subject}</div></Tip>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
+                          <Tip text={"Recipient: " + e.to + (e.escalated ? " (Account Manager)" : " (Acquisition Associate)")}><span style={{ fontSize: 10, color: "#64748B" }}>To: {e.to}</span></Tip>
+                          <span style={{ fontSize: 8, fontWeight: 700, color: e.responded ? "#10B981" : "#DC2626", background: e.responded ? "#ECFDF5" : "#FEF2F2", padding: "1px 6px", borderRadius: 3 }}>{e.responded ? "Responded" : "No response"}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}><Tip text="3-Track scoring of 61 FlipIQ features across 7 categories. Each event is scored: First use (ever used?), Recency (used recently?), Frequency (how often?). Colors: red=missing, orange=gap, yellow=cooling, green=active.">Feature usage</Tip> &mdash; 61 events</div>
             {C.map((cat, ci) => {
