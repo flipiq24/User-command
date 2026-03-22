@@ -58,6 +58,7 @@ The dashboard is a single-page React component with embedded data arrays and inl
 - Arrow connectors between cards show the deal flow progression
 - Below: Communication, Deal Pipeline, and Relationships stat cards
 - Root cause analysis section (WHY) when applicable
+- **Feature Adoption chart**: progress ring showing adoption %, color legend (Active/Cooling/Gap/Unused), 7 horizontal stacked bars per category, "New this week" callout for recently adopted events
 - Feature usage accordion with 7 categories and 61 sortable events
 - **Communication History** timeline: chronological log of all coaching emails sent, with type badges (Coaching/Onboarding/Reactivation/Escalation), response status, and 3-strike indicator
 - **AI Assistant panel** at the bottom: auto-generated summary + top 3 priorities + interactive chat

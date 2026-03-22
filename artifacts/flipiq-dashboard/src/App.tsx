@@ -944,6 +944,90 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               );
             })()}
 
+            {(() => {
+              const allEv = user.ev.flatMap((c) => c.events);
+              const total = allEv.length;
+              const active = allEv.filter((e) => e.st === 3).length;
+              const cooling = allEv.filter((e) => e.st === 2).length;
+              const gap = allEv.filter((e) => e.st === 1).length;
+              const unused = allEv.filter((e) => e.st === 0).length;
+              const adopted = active + cooling;
+              const pct = Math.round((adopted / total) * 100);
+              const newEv = allEv.filter((e) => e.st >= 1 && e.first && parseInt(e.first.replace("Mar ", "")) >= 19);
+              const r = 38; const cx = 48; const cy = 48; const stroke = 8;
+              const circ = 2 * Math.PI * r;
+              const dash = circ * (pct / 100);
+              const legend = [
+                { label: "Active", color: "#10B981", count: active },
+                { label: "Cooling", color: "#D97706", count: cooling },
+                { label: "Gap", color: "#EA580C", count: gap },
+                { label: "Unused", color: "#DC2626", count: unused },
+              ];
+              return (
+                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, padding: "16px 18px", marginBottom: 12 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>
+                    <Tip text="Visual breakdown of feature adoption across 61 events in 7 categories. Shows what's actively used, cooling off, has gaps, or is completely unused. The progress ring shows the overall adoption rate (Active + Cooling events).">Feature Adoption</Tip>
+                    <span style={{ fontSize: 11, color: "#94A3B8", fontWeight: 400, marginLeft: 8 }}>{adopted}/{total} adopted ({pct}%)</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+                    <div style={{ position: "relative", width: 96, height: 96, flexShrink: 0 }}>
+                      <svg viewBox="0 0 96 96" width={96} height={96}>
+                        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F1F5F9" strokeWidth={stroke} />
+                        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F97316" strokeWidth={stroke} strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={circ / 4} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.5s" }} />
+                      </svg>
+                      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: 22, fontWeight: 800, color: "#F97316" }}>{pct}%</span>
+                        <span style={{ fontSize: 8, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 0.5 }}>adopted</span>
+                      </div>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
+                        {legend.map((l) => (
+                          <Tip key={l.label} text={l.label + ": " + l.count + " of " + total + " events — " + (l.label === "Active" ? "regularly used features" : l.label === "Cooling" ? "usage slowing down" : l.label === "Gap" ? "used once, not recently" : "never used")}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}>
+                              <div style={{ width: 10, height: 10, borderRadius: 2, background: l.color }} />
+                              <span style={{ color: "#64748B" }}>{l.label}</span>
+                              <span style={{ fontWeight: 700, color: l.color }}>{l.count}</span>
+                            </div>
+                          </Tip>
+                        ))}
+                      </div>
+                      {C.map((cat, ci) => {
+                        const evs = user.ev[ci].events;
+                        const t = evs.length;
+                        const a = evs.filter((e) => e.st === 3).length;
+                        const co = evs.filter((e) => e.st === 2).length;
+                        const g2 = evs.filter((e) => e.st === 1).length;
+                        const un = evs.filter((e) => e.st === 0).length;
+                        return (
+                          <Tip key={ci} text={cat.n + ": " + a + " active, " + co + " cooling, " + g2 + " gap, " + un + " unused out of " + t + " events"}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+                              <span style={{ fontSize: 10, color: "#64748B", width: 55, textAlign: "right", flexShrink: 0 }}>{HL[ci]}</span>
+                              <div style={{ flex: 1, height: 16, background: "#F1F5F9", borderRadius: 4, overflow: "hidden", display: "flex" }}>
+                                {a > 0 && <div style={{ width: (a / t * 100) + "%", background: "#10B981", height: "100%" }} />}
+                                {co > 0 && <div style={{ width: (co / t * 100) + "%", background: "#D97706", height: "100%" }} />}
+                                {g2 > 0 && <div style={{ width: (g2 / t * 100) + "%", background: "#EA580C", height: "100%" }} />}
+                                {un > 0 && <div style={{ width: (un / t * 100) + "%", background: "#FEE2E2", height: "100%" }} />}
+                              </div>
+                              <span style={{ fontSize: 10, color: "#94A3B8", width: 30, flexShrink: 0 }}>{a + co}/{t}</span>
+                            </div>
+                          </Tip>
+                        );
+                      })}
+                      {newEv.length > 0 && (
+                        <div style={{ marginTop: 8, padding: "6px 10px", background: "#ECFDF5", borderRadius: 6, border: "1px solid #10B98140" }}>
+                          <Tip text="Events first used in the last few days — newly adopted features showing positive momentum.">
+                            <span style={{ fontSize: 11, fontWeight: 600, color: "#10B981" }}>Recently adopted: </span>
+                            <span style={{ fontSize: 11, color: "#334155" }}>{newEv.map((e) => e.name).join(", ")}</span>
+                          </Tip>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}><Tip text="3-Track scoring of 61 FlipIQ features across 7 categories. Each event is scored: First use (ever used?), Recency (used recently?), Frequency (how often?). Colors: red=missing, orange=gap, yellow=cooling, green=active.">Feature usage</Tip> &mdash; 61 events</div>
             {C.map((cat, ci) => {
               const cs = user.cs[ci];
