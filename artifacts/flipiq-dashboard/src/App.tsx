@@ -994,63 +994,64 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               {(() => {
                 const mkTrend = (cur, day, seed) => {
                   const days = Math.min(day, 7);
-                  if (days <= 1) return [cur];
+                  if (days <= 1) return [{ v: cur, d: today }];
                   const pts = [];
                   for (let i = 0; i < days; i++) {
                     const progress = i / (days - 1);
                     const noise = Math.sin((seed + i) * 2.7) * 0.3;
                     const base = cur * progress * (1 + noise);
-                    pts.push(Math.max(0, Math.round(base)));
+                    const dt = new Date(today);
+                    dt.setDate(dt.getDate() - (days - 1 - i));
+                    pts.push({ v: Math.max(0, Math.round(base)), d: dt });
                   }
-                  pts[pts.length - 1] = cur;
+                  pts[pts.length - 1].v = cur;
                   return pts;
                 };
-                const Spark = ({ data, color, w = 80, h = 24 }) => {
-                  if (data.length < 2) return <div style={{ width: w, height: h, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: "#94A3B8" }}>No trend</div>;
-                  const mn = Math.min(...data);
-                  const mx = Math.max(...data, 1);
+                const ChartLine = ({ data, color }) => {
+                  const [hover, setHover] = useState(null);
+                  if (data.length < 2) return <div style={{ height: 36, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: "#94A3B8" }}>No trend</div>;
+                  const vals = data.map((d) => d.v);
+                  const mn = Math.min(...vals);
+                  const mx = Math.max(...vals, 1);
                   const rng = mx - mn || 1;
-                  const pad = 2;
-                  const pts = data.map((v, i) => {
-                    const x = pad + (i / (data.length - 1)) * (w - pad * 2);
-                    const y = h - pad - ((v - mn) / rng) * (h - pad * 2);
-                    return x + "," + y;
-                  }).join(" ");
-                  const last = data[data.length - 1];
-                  const prev = data[data.length - 2];
-                  const up = last >= prev;
+                  const h = 36;
+                  const padY = 4;
+                  const padX = 0;
                   return (
-                    <svg width={w} height={h} viewBox={"0 0 " + w + " " + h}>
-                      <polyline points={pts} fill="none" stroke={color + "40"} strokeWidth="1.5" />
-                      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeDasharray={up ? "none" : "3,2"} />
-                      <circle cx={parseFloat(pts.split(" ").pop().split(",")[0])} cy={parseFloat(pts.split(" ").pop().split(",")[1])} r="2.5" fill={color} />
-                    </svg>
+                    <div style={{ position: "relative", width: "100%", height: h + 16 }}>
+                      <svg width="100%" height={h} viewBox={"0 0 100 " + h} preserveAspectRatio="none" style={{ display: "block" }}>
+                        <polyline points={data.map((d, i) => { const x = padX + (i / (data.length - 1)) * (100 - padX * 2); const y = h - padY - ((d.v - mn) / rng) * (h - padY * 2); return x + "," + y; }).join(" ")} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                        {data.map((d, i) => { const x = padX + (i / (data.length - 1)) * (100 - padX * 2); const y = h - padY - ((d.v - mn) / rng) * (h - padY * 2); return <circle key={i} cx={x} cy={y} r={hover === i ? "2.5" : "1.5"} fill={hover === i ? color : color + "80"} stroke={hover === i ? "#FFF" : "none"} strokeWidth="1" vectorEffect="non-scaling-stroke" />; })}
+                        {data.map((_, i) => { const x = padX + (i / (data.length - 1)) * (100 - padX * 2); return <rect key={"h" + i} x={x - 100 / data.length / 2} y={0} width={100 / data.length} height={h} fill="transparent" onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} />; })}
+                      </svg>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 7, color: "#94A3B8", marginTop: 1, padding: "0 1px" }}>
+                        {data.map((d, i) => <span key={i} style={{ color: hover === i ? color : "#CBD5E1", fontWeight: hover === i ? 700 : 400 }}>{d.d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>)}
+                      </div>
+                      {hover !== null && (
+                        <div style={{ position: "absolute", top: -18, left: (hover / (data.length - 1)) * 100 + "%", transform: "translateX(-50%)", background: color, color: "#FFF", fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, whiteSpace: "nowrap", pointerEvents: "none" }}>{data[hover].v}</div>
+                      )}
+                    </div>
                   );
                 };
                 const pipe = [
-                  { n: "Active Pipeline", v: user.s.op, max: Math.max(user.s.op, 1), color: "#3B82F6", bg: "#EFF6FF", bc: "#BFDBFE", tip: "Total open properties/deals currently in this AA's pipeline. Sparkline shows 7-day trend.", seed: 1 },
-                  { n: "Offers", v: user.s.of, max: user.g.of * Math.min(user.day, 30) || 1, color: "#F97316", bg: "#FFF7ED", bc: "#FED7AA", tip: "Total offers submitted. Target based on daily offer pace × days active. Sparkline shows 7-day trend.", seed: 2 },
-                  { n: "In Negotiations", v: user.s.ng, max: Math.max(user.s.of, 1), color: "#8B5CF6", bg: "#F5F3FF", bc: "#DDD6FE", tip: "Deals in active negotiation. Sparkline shows 7-day trend.", seed: 3 },
-                  { n: "Offer Accepted", v: user.s.ac, max: Math.max(user.s.ng, user.s.ac, 1), color: "#10B981", bg: "#ECFDF5", bc: "#A7F3D0", tip: "Offers accepted by seller. Sparkline shows 7-day trend.", seed: 4 },
-                  { n: "Acquired", v: user.s.aq, max: 2, color: user.s.aq >= 2 ? "#10B981" : user.s.aq > 0 ? "#D97706" : "#DC2626", bg: user.s.aq >= 2 ? "#ECFDF5" : user.s.aq > 0 ? "#FEF9C3" : "#FEF2F2", bc: user.s.aq >= 2 ? "#A7F3D0" : user.s.aq > 0 ? "#FDE68A" : "#FECACA", tip: "Deals acquired (closed). Target: 2/month. Sparkline shows 7-day trend.", seed: 5 },
+                  { n: "Pipeline", v: user.s.op, color: "#3B82F6", bg: "#EFF6FF", bc: "#BFDBFE", tip: "Total open properties/deals currently in this AA's pipeline.", seed: 1 },
+                  { n: "Offers", v: user.s.of, color: "#F97316", bg: "#FFF7ED", bc: "#FED7AA", tip: "Total offers submitted.", seed: 2 },
+                  { n: "Negotiations", v: user.s.ng, color: "#8B5CF6", bg: "#F5F3FF", bc: "#DDD6FE", tip: "Deals in active negotiation.", seed: 3 },
+                  { n: "Accepted", v: user.s.ac, color: "#10B981", bg: "#ECFDF5", bc: "#A7F3D0", tip: "Offers accepted by seller.", seed: 4 },
+                  { n: "Acquired", v: user.s.aq, color: user.s.aq >= 2 ? "#10B981" : user.s.aq > 0 ? "#D97706" : "#DC2626", bg: user.s.aq >= 2 ? "#ECFDF5" : user.s.aq > 0 ? "#FEF9C3" : "#FEF2F2", bc: user.s.aq >= 2 ? "#A7F3D0" : user.s.aq > 0 ? "#FDE68A" : "#FECACA", tip: "Deals acquired (closed). Target: 2/month.", seed: 5 },
                 ];
                 return (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
                     {pipe.map((p, pi) => {
-                      const pct2 = Math.min(100, Math.round((p.v / p.max) * 100));
                       const trend = mkTrend(p.v, user.day, p.seed + user.id);
-                      const trendUp = trend.length >= 2 && trend[trend.length - 1] >= trend[trend.length - 2];
                       return (
-                        <Tip key={p.n} text={p.tip}><div style={{ background: p.bg, border: "1px solid " + p.bc, borderRadius: 10, padding: "14px 12px", textAlign: "center", position: "relative" }}>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: p.color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>{p.n}</div>
-                          <div style={{ fontSize: 20, fontWeight: 800, color: p.color, marginBottom: 2 }}>{p.v}</div>
-                          <div style={{ fontSize: 10, color: "#64748B", marginBottom: 6 }}>{pct2}% of {p.max}</div>
-                          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4 }}>
-                            <Spark data={trend} color={p.color} w={90} h={32} />
-                            <span style={{ fontSize: 8, fontWeight: 700, color: trendUp ? "#10B981" : "#DC2626" }}>{trendUp ? "\u25B2" : "\u25BC"}</span>
+                        <Tip key={p.n} text={p.tip}><div style={{ background: p.bg, border: "1px solid " + p.bc, borderRadius: 8, padding: "8px 10px", position: "relative" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: p.color, textTransform: "uppercase", letterSpacing: 0.3 }}>{p.n}</span>
+                            <span style={{ fontSize: 18, fontWeight: 800, color: p.color }}>{p.v}</span>
                           </div>
-                          <div style={{ fontSize: 8, color: "#94A3B8", marginTop: 2 }}>{Math.min(user.day, 7)}d trend</div>
-                          {pi < pipe.length - 1 && <div style={{ position: "absolute", right: -8, top: "50%", transform: "translateY(-50%)", fontSize: 10, color: "#CBD5E1" }}>{"\u25B6"}</div>}
+                          <ChartLine data={trend} color={p.color} />
+                          {pi < pipe.length - 1 && <div style={{ position: "absolute", right: -7, top: "50%", transform: "translateY(-50%)", fontSize: 10, color: "#CBD5E1" }}>{"\u25B6"}</div>}
                         </div></Tip>
                       );
                     })}
