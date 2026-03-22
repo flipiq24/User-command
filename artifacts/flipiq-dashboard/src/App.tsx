@@ -276,34 +276,39 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: "'DM Sans',system-ui,sans-serif", background: "#F8FAFB", minHeight: "100vh", color: "#1E293B", position: "relative" }}>
-      <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "8px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <img src={import.meta.env.BASE_URL + "flipiq-logo.png"} alt="FlipIQ" style={{ height: 40, width: "auto" }} />
+      <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "10px 24px", display: "flex", alignItems: "center", gap: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+          <img src={import.meta.env.BASE_URL + "flipiq-logo.png"} alt="FlipIQ" style={{ height: 44, width: "auto" }} />
           <div>
-            <div style={{ fontSize: 16, fontWeight: 800 }}>FlipIQ COMMAND CENTER</div>
-            <div style={{ fontSize: 10, color: "#94A3B8" }}>Together, We Flip Smarter</div>
+            <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: 0.3 }}>FlipIQ COMMAND CENTER</div>
+            <div style={{ fontSize: 11, color: "#94A3B8" }}>Together, We Flip Smarter</div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ background: "linear-gradient(135deg,#FFF7ED,#FFF)", border: "1px solid #FED7AA", borderRadius: 10, padding: "8px 16px", display: "flex", alignItems: "center", gap: 14 }}>
-            <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: "#F97316", textTransform: "uppercase", letterSpacing: 1.5 }}><Tip text="The single North Star metric every AA is measured against. Hit this and everything else follows.">Atomic KPI</Tip></div>
-              <div style={{ fontSize: 15, fontWeight: 800 }}><Tip text="Each AA must close at least 2 deals per month. This is the minimum acquisition target across all orgs.">2 Deals / Month / Person</Tip></div>
-              <div style={{ fontSize: 9, color: "#64748B" }}>= Big Bucks for All <b style={{ color: "#F97316" }}>Ramy, get us to big bucks!!!</b></div>
+
+        <div style={{ flex: 1 }} />
+
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <div style={{ background: "linear-gradient(135deg,#FFF7ED,#FFF)", border: "1px solid #FED7AA", borderRadius: 10, padding: "10px 24px" }}>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#F97316", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 2 }}><Tip text="The single North Star metric every AA is measured against. Hit this and everything else follows.">Atomic KPI</Tip></div>
+            <div style={{ fontSize: 17, fontWeight: 800 }}><Tip text="Each AA must close at least 2 deals per month. This is the minimum acquisition target across all orgs.">2 Deals / Month / Person</Tip></div>
+            <div style={{ fontSize: 10, color: "#64748B", marginTop: 2 }}>= Big Bucks for All <b style={{ color: "#F97316" }}>Ramy, get us to big bucks!!!</b></div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 14, background: "linear-gradient(135deg,#FFF7ED,#FFF)", border: "1px solid #FED7AA", borderRadius: 10, padding: "10px 20px" }}>
+            <div style={{ position: "relative", width: 50, height: 50 }}>
+              <svg width="50" height="50" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="#F1F5F9" strokeWidth="4" /><circle cx="25" cy="25" r="20" fill="none" stroke={pct >= 75 ? "#10B981" : pct >= 50 ? "#D97706" : "#DC2626"} strokeWidth="4" strokeLinecap="round" strokeDasharray={pct * 1.257 + " 125.7"} transform="rotate(-90 25 25)" /></svg>
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800 }}>{pct}%</div>
             </div>
-            <div style={{ width: 1, height: 32, background: "#FED7AA" }} />
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ position: "relative", width: 42, height: 42 }}>
-                <svg width="42" height="42" viewBox="0 0 42 42"><circle cx="21" cy="21" r="17" fill="none" stroke="#F1F5F9" strokeWidth="4" /><circle cx="21" cy="21" r="17" fill="none" stroke={pct >= 75 ? "#10B981" : pct >= 50 ? "#D97706" : "#DC2626"} strokeWidth="4" strokeLinecap="round" strokeDasharray={pct * 1.068 + " 106.8"} transform="rotate(-90 21 21)" /></svg>
-                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800 }}>{pct}%</div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#F97316" }}>{td}</div>
-                <div style={{ fontSize: 9, color: "#94A3B8" }}>deals / {tgt} target</div>
-              </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "#F97316", lineHeight: 1 }}>{td}</div>
+              <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 2 }}>deals / {tgt} target</div>
             </div>
           </div>
-          <div style={{ fontSize: 11, color: "#64748B" }}>Mar 21, 2026</div>
+
+          <div style={{ textAlign: "right", flexShrink: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#334155" }}>Mar 21, 2026</div>
+            <div style={{ fontSize: 10, color: "#94A3B8" }}>Pacific Time</div>
+          </div>
         </div>
       </div>
 
