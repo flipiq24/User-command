@@ -577,20 +577,6 @@ export default function App() {
           </div>
         )}
 
-        {eV && tab === "emails" && !sel && (
-          <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "18px 22px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>{eV.ie ? "AM Escalation" : "Coaching Email"}</div>
-              <button onClick={() => seV(null)} style={{ fontSize: 11, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 5, padding: "4px 12px", cursor: "pointer" }}>Back</button>
-            </div>
-            <div style={{ background: eV.ie ? "#FEF2F2" : "#F8FAFB", borderRadius: 7, padding: 16, border: "1px solid " + (eV.ie ? "#FECACA" : "#E2E8F0") }}>
-              <div style={{ fontSize: 11, color: "#64748B", marginBottom: 3 }}><b>To:</b> {eV.to}</div>
-              <div style={{ fontSize: 11, color: "#64748B", marginBottom: 10 }}><b>Subject:</b> {eV.su}</div>
-              <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.8, whiteSpace: "pre-line" }}>{eV.bo}</div>
-            </div>
-            <button onClick={() => { sm(eV.uid); saT("email"); saN(""); seV(null); }} style={{ marginTop: 12, padding: "7px 18px", fontSize: 12, fontWeight: 700, background: "#F97316", color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Forward and complete</button>
-          </div>
-        )}
 
         {tab === "logic" && (
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
