@@ -251,24 +251,52 @@ function gEH(u) {
     const nm = u.n.split(" ")[0];
     const dayThen = u.day - daysAgo;
     let body;
+    const histSig = "\n\u2014\nRamy | CSM Lead, FlipiQ\nramy@flipiq.com | (555) 412-8800\nBook a call: https://calendly.com/ramy-flipiq/15min";
+    const fakeYCa = Math.max(0, Math.round(u.y.ca * (0.6 + i * 0.15)));
+    const fakeYTx = Math.max(0, Math.round(u.y.tx * (0.5 + i * 0.2)));
+    const fakeYOf = Math.max(0, Math.round(u.y.of * (0.4 + i * 0.25)));
+    const fakeYTotal = fakeYCa + fakeYTx;
     if (escalated) {
       const o = O.find((x) => x.id === u.org);
-      body = "Hi " + (o?.am || "AM") + ",\n\n" + u.n + " received " + u.ec + " coaching emails, needs AM review.\n\nPhase: " + PN[u.ph] + ", Day " + dayThen + "\nCalls: " + u.s.ca + " (goal: " + u.g.ca + ")\nOffers: " + u.s.of + "\nGaps: " + u.gaps.join(", ") + "\n\nPlease intervene.\n\n\u2014 Ramy";
+      body = "Hi " + (o?.am || "AM") + ",\n\n" + u.n + " has received " + u.ec + " coaching emails without improvement.\n\n";
+      body += "\u2500\u2500\u2500 YESTERDAY'S REPORT \u2500\u2500\u2500\n";
+      body += "Calls: " + fakeYCa + " | Texts: " + fakeYTx + " | Offers: " + fakeYOf + "\n\n";
+      body += "\u2500\u2500\u2500 CURRENT STATUS \u2500\u2500\u2500\n";
+      body += "Phase: " + PN[u.ph] + " | Day " + dayThen + "\n";
+      body += "Calls: " + u.s.ca + "/" + u.g.ca + " | Offers: " + u.s.of + "/" + u.g.of + "\n";
+      body += "Gaps: " + u.gaps.join(", ") + "\n\n";
+      body += "Please intervene directly." + histSig;
     } else {
-      body = "Good morning " + nm + ",\n\n";
-      if (acted.length > 0) { body += "PROGRESS:\n"; acted.forEach((a) => (body += "\u2713 " + a.name + " \u2014 done!\n")); body += "\n"; }
-      body += "Day " + dayThen + " " + PN[u.ph] + ".\n\n";
+      body = "Hi " + nm + ",\n\n";
+      body += "\u2500\u2500\u2500 YESTERDAY'S REPORT \u2500\u2500\u2500\n";
+      if (fakeYTotal > 0) {
+        if (fakeYCa > 0) body += "\u2022 " + fakeYCa + " call" + (fakeYCa !== 1 ? "s" : "") + "\n";
+        if (fakeYTx > 0) body += "\u2022 " + fakeYTx + " text" + (fakeYTx !== 1 ? "s" : "") + "\n";
+        if (fakeYOf > 0) body += "\u2022 " + fakeYOf + " offer" + (fakeYOf !== 1 ? "s" : "") + "\n";
+        body += "Total: " + fakeYTotal + " touches\n";
+      } else { body += "No activity logged.\n"; }
+      body += "\n";
+      if (acted.length > 0) { body += "\u2500\u2500\u2500 PROGRESS \u2500\u2500\u2500\n"; acted.forEach((a) => (body += "\u2713 " + a.name + " \u2014 done!\n")); body += "\n"; }
+      body += "\u2500\u2500\u2500 TOP 3 PRIORITIES \u2500\u2500\u2500\n";
+      const histPri = [];
+      if (!u.s.ck) histPri.push("Complete daily check-in");
+      if (u.s.ca < u.g.ca) histPri.push("Make " + u.g.ca + " calls today");
+      if (targets.length > 0) histPri.push("Start using " + targets[0].name);
+      if (histPri.length < 3 && u.s.of < u.g.of) histPri.push("Submit " + u.g.of + " offers");
+      if (histPri.length < 3) histPri.push("Review My Stats");
+      histPri.slice(0, 3).forEach((p, pi) => (body += (pi + 1) + ". " + p + "\n"));
+      body += "\nDay " + dayThen + " " + PN[u.ph] + ".\n\n";
       if (targets.length > 0) {
-        body += "FOCUS (" + targets.length + " events):\n";
+        body += "\u2500\u2500\u2500 TODAY'S FOCUS \u2500\u2500\u2500\n";
         targets.forEach((t, ti) => {
           const stLabel = t.st === 0 ? "Never used" : t.st === 1 ? "Used once, dropped" : "Gone cold";
-          body += (ti + 1) + ". " + t.name + " (" + t.cat + ") \u2014 " + stLabel + "\n   " + t.tip + "\n";
+          body += (ti + 1) + ". " + t.name + " (" + t.cat + ") \u2014 " + stLabel + "\n   \u2192 " + t.tip + "\n";
         });
         body += "\n";
       }
-      if (ignored.length > 0) body += "STILL PENDING:\n" + ignored.map((a) => "\u2022 " + a.name).join("\n") + "\n\n";
+      if (ignored.length > 0) body += "\u2500\u2500\u2500 STILL PENDING \u2500\u2500\u2500\n" + ignored.map((a) => "\u2022 " + a.name).join("\n") + "\n\n";
       if (vObj) body += "\u25B6 WATCH (" + vObj[1] + "): " + vObj[0] + "\n\n";
-      body += "TARGETS: " + u.g.ca + "C " + u.g.of + "O " + u.g.ct + "ct\n\niQ Help Bot \u2014 chat icon in COMMAND.\n\n\u2014 Ramy";
+      body += "Need help? Use the iQ Help Bot \u2014 chat icon in COMMAND." + histSig;
     }
     hist.push({
       id: i + 1,
@@ -305,51 +333,79 @@ function bE(u) {
   const todayTargets = priority.slice(0, 3);
   const topVidKey = todayTargets.length > 0 ? todayTargets[0].vid : u.vid;
   const topVid = topVidKey ? V[topVidKey] : null;
+  const sig = "\n\u2014\nRamy | CSM Lead, FlipiQ\nramy@flipiq.com | (555) 412-8800\nBook a call: https://calendly.com/ramy-flipiq/15min";
+  const top3 = [];
+  if (!s.ck) top3.push({ action: "Complete your daily check-in in iQ", why: "Nothing fires until check-in is done", link: "Open COMMAND \u2192 iQ Check-In" });
+  if (s.ca < u.g.ca) top3.push({ action: "Make " + (u.g.ca - s.ca) + " more calls today (goal: " + u.g.ca + ")", why: "Calls drive pipeline \u2014 " + s.ca + " of " + u.g.ca + " so far", link: "Open Daily Outreach \u2192 Call from Outreach" });
+  if (s.of < u.g.of) top3.push({ action: "Submit " + (u.g.of - s.of) + " more offers (goal: " + u.g.of + ")", why: s.of + " offers vs " + u.g.of + " target", link: "Deal Review \u2192 Offer Terms \u2192 Submit" });
+  if (top3.length < 3 && missing.length > 0) top3.push({ action: "Start using " + missing[0].name, why: "Never used \u2014 " + missing[0].tip, link: missing[0].cat + " \u2192 " + missing[0].name });
+  if (top3.length < 3 && gaps.length > 0) top3.push({ action: "Re-open " + gaps[0].name, why: "Used once, then dropped", link: gaps[0].cat + " \u2192 " + gaps[0].name });
+  if (top3.length < 3 && cooling.length > 0) top3.push({ action: "Keep up " + cooling[0].name, why: "Usage slowing", link: cooling[0].cat + " \u2192 " + cooling[0].name });
+  if (top3.length < 3) top3.push({ action: "Review your My Stats dashboard", why: "Track your progress", link: "Tools \u2192 My Stats" });
+  const top3List = top3.slice(0, 3);
   if (ie) {
-    const escalBody = "Hi " + o.am + ",\n\n" + u.n + " received " + u.ec + " coaching emails, needs AM review.\n\nPhase: " + PN[u.ph] + ", Day " + u.day + "\nCalls: " + s.ca + " (goal: " + u.g.ca + ")\nOffers: " + s.of + "\nDeals: " + s.aq + "\n\nEvents sent but not used:\n" + prevIgnored.slice(0, 5).map((n) => "\u2022 " + n).join("\n") + "\n\nGaps: " + u.gaps.join(", ") + "\n\nPlease intervene.\n\n\u2014 Ramy";
-    return { to: o.am + " (AM)", su: "ACTION: " + u.n + " \u2014 " + u.ec + " emails, needs AM review", bo: escalBody, ie: true, uid: u.id, targets: todayTargets, video: topVid ? { key: topVidKey, title: topVid[0], dur: topVid[1] } : null };
+    let escalBody = "Hi " + o.am + ",\n\n" + u.n + " has received " + u.ec + " coaching emails without improvement and needs your direct attention.\n\n";
+    escalBody += "\u2500\u2500\u2500 YESTERDAY'S REPORT \u2500\u2500\u2500\n";
+    escalBody += "Calls: " + ys.ca + " | Texts: " + ys.tx + " | Emails: " + ys.em + " | Offers: " + ys.of + "\n";
+    escalBody += "Total activity: " + (ys.ca + ys.tx + ys.em) + " touches\n\n";
+    escalBody += "\u2500\u2500\u2500 CURRENT STATUS \u2500\u2500\u2500\n";
+    escalBody += "Phase: " + PN[u.ph] + " | Day " + u.day + "\n";
+    escalBody += "Calls: " + s.ca + "/" + u.g.ca + " | Offers: " + s.of + "/" + u.g.of + " | Deals: " + s.aq + "/2\n";
+    escalBody += "Gaps: " + u.gaps.join(", ") + "\n\n";
+    escalBody += "Events sent but not acted on:\n" + prevIgnored.slice(0, 5).map((n) => "\u2022 " + n).join("\n") + "\n\n";
+    escalBody += "Please intervene directly." + sig;
+    return { to: o.am + " (AM)", su: "ACTION NEEDED: " + u.n + " \u2014 " + u.ec + " emails, needs AM review", bo: escalBody, ie: true, uid: u.id, targets: todayTargets, video: topVid ? { key: topVidKey, title: topVid[0], dur: topVid[1] } : null };
   }
-  let b = "Good morning " + nm + ",\n\n";
+  let b = "Hi " + nm + ",\n\n";
   const yT = ys.tx + ys.em + ys.ca;
+  b += "\u2500\u2500\u2500 YESTERDAY'S REPORT \u2500\u2500\u2500\n";
+  if (yT > 0) {
+    if (ys.ca > 0) b += "\u2022 " + ys.ca + " call" + (ys.ca !== 1 ? "s" : "") + (ys.ca >= u.g.ca ? " \u2714 hit goal!" : "") + "\n";
+    if (ys.tx > 0) b += "\u2022 " + ys.tx + " text" + (ys.tx !== 1 ? "s" : "") + "\n";
+    if (ys.em > 0) b += "\u2022 " + ys.em + " email" + (ys.em !== 1 ? "s" : "") + "\n";
+    if (ys.of > 0) b += "\u2022 " + ys.of + " offer" + (ys.of !== 1 ? "s" : "") + " submitted!\n";
+    if (ys.op > 0) b += "\u2022 " + ys.op + " new propert" + (ys.op !== 1 ? "ies" : "y") + "\n";
+    b += "Total: " + yT + " touches\n";
+  } else {
+    b += "No activity logged yesterday.\n";
+  }
+  b += "\n";
   if (prevActed.length > 0) {
-    const recent = prevActed.slice(-3);
-    b += "PROGRESS UPDATE:\n";
-    recent.forEach((a) => (b += "\u2713 " + a + " \u2014 done!\n"));
+    b += "\u2500\u2500\u2500 PROGRESS \u2500\u2500\u2500\n";
+    prevActed.slice(-3).forEach((a) => (b += "\u2713 " + a + " \u2014 done!\n"));
     b += "\n";
   }
-  if (yT > 0) {
-    b += "YESTERDAY:\n";
-    if (ys.ca > 0) b += "\u2022 " + ys.ca + " calls" + (ys.ca >= 6 ? " \u2014 solid!" : "") + "\n";
-    if (ys.tx > 0) b += "\u2022 " + ys.tx + " texts\n";
-    if (ys.of > 0) b += "\u2022 " + ys.of + " offers!\n";
-    if (ys.op > 0) b += "\u2022 " + ys.op + " properties\n";
-    b += "\n";
-  } else if (u.health === "red") b += "No activity yesterday. Let's fix that.\n\n";
   if (u.ph >= 2 && yT > 0) {
     const avg = u.day > 0 ? Math.round(s.ca / u.day) : 0;
-    if (ys.ca > avg) b += "TREND: Calls (" + ys.ca + ") above avg (" + avg + "). Keep going.\n\n";
+    if (ys.ca > avg) b += "\u2191 Calls (" + ys.ca + ") above your avg (" + avg + "). Keep it up.\n\n";
   }
-  if (!s.ck) b += "FIRST: Complete check-in. Open iQ.\n\n";
-  b += "Day " + u.day + " " + PN[u.ph] + ". " + (u.ph === 3 ? s.aq + " deal" + (s.aq !== 1 ? "s" : "") + "/2 target. " + (s.aq >= 2 ? "On pace!" : "Push offers.") : "") + (u.ph <= 2 ? s.of + " offers vs " + u.g.of + "/day." : "") + "\n\n";
-  if (ca) b += "KEY: " + ca + "\n\n";
+  b += "\u2500\u2500\u2500 TOP 3 PRIORITIES TODAY \u2500\u2500\u2500\n";
+  top3List.forEach((p, i) => {
+    b += (i + 1) + ". " + p.action + "\n   Why: " + p.why + "\n   How: " + p.link + "\n";
+  });
+  b += "\n";
+  b += "Day " + u.day + " " + PN[u.ph] + ". " + (u.ph === 3 ? s.aq + " deal" + (s.aq !== 1 ? "s" : "") + "/2 target. " + (s.aq >= 2 ? "On pace!" : "Push offers.") : "") + (u.ph <= 2 ? s.of + " offers vs " + u.g.of + "/day target." : "") + "\n\n";
+  if (ca) b += "\u26A0 ROOT CAUSE: " + ca + "\n\n";
   if (todayTargets.length > 0) {
-    b += "TODAY'S FOCUS (" + todayTargets.length + " events):\n";
+    b += "\u2500\u2500\u2500 TODAY'S FOCUS: " + todayTargets.length + " EVENTS \u2500\u2500\u2500\n";
     todayTargets.forEach((t, i) => {
       const stLabel = t.st === 0 ? "Never used" : t.st === 1 ? "Used once, dropped" : "Gone cold";
-      b += (i + 1) + ". " + t.name + " (" + t.cat + ") \u2014 " + stLabel + "\n   " + t.tip + "\n";
+      b += (i + 1) + ". " + t.name + " (" + t.cat + ") \u2014 " + stLabel + "\n   \u2192 " + t.tip + "\n";
     });
     b += "\n";
   }
   if (prevIgnored.length > 0) {
     const still = prevIgnored.filter((n) => todayTargets.some((t) => t.name === n));
-    if (still.length > 0) b += "STILL PENDING (sent before, not used yet):\n" + still.map((n) => "\u2022 " + n).join("\n") + "\n\n";
+    if (still.length > 0) b += "\u2500\u2500\u2500 STILL PENDING \u2500\u2500\u2500\n" + still.map((n) => "\u2022 " + n).join("\n") + "\n\n";
   }
   if (topVid) b += "\u25B6 WATCH (" + topVid[1] + "): " + topVid[0] + "\n   Short video tied to " + todayTargets[0]?.name + "\n\n";
-  b += "TARGETS: " + u.g.ca + "C " + u.g.of + "O " + u.g.ct + "ct\nYesterday: " + ys.ca + "C " + ys.of + "O " + (ys.tx + ys.em + ys.ca) + "ct\n\n";
   const totalEv = C.reduce((s, c) => s + c.ev.length, 0);
-  b += "Event adoption: " + (totalEv - missing.length - gaps.length - cooling.length) + "/" + totalEv + " active, " + missing.length + " missing, " + gaps.length + " gaps, " + cooling.length + " cooling\n\n";
-  b += "iQ Help Bot \u2014 chat icon in COMMAND.\n\n\u2014 Ramy";
-  const su = todayTargets.length > 0 ? "Day " + u.day + ": " + todayTargets[0].name + (todayTargets.length > 1 ? " + " + (todayTargets.length - 1) + " more" : "") + (topVid ? " [" + topVid[1] + " video]" : "") : "FlipiQ Daily Update \u2014 Day " + u.day;
+  b += "\u2500\u2500\u2500 YOUR NUMBERS \u2500\u2500\u2500\n";
+  b += "Targets: " + u.g.ca + " calls | " + u.g.of + " offers | " + u.g.ct + " contacts\n";
+  b += "Current: " + s.ca + "C | " + s.of + "O | " + (s.nr + s.up) + " contacts\n";
+  b += "Adoption: " + (totalEv - missing.length - gaps.length - cooling.length) + "/" + totalEv + " active\n\n";
+  b += "Need help? Use the iQ Help Bot \u2014 chat icon in COMMAND." + sig;
+  const su = top3List.length > 0 ? "Day " + u.day + ": " + top3List[0].action + (top3List.length > 1 ? " + " + (top3List.length - 1) + " more" : "") + (topVid ? " [\u25B6 " + topVid[1] + "]" : "") : "FlipiQ Daily Update \u2014 Day " + u.day;
   return { to: u.n, su, bo: b, ie: false, uid: u.id, targets: todayTargets, video: topVid ? { key: topVidKey, title: topVid[0], dur: topVid[1] } : null };
 }
 
@@ -1200,19 +1256,39 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                         const co = evs.filter((e) => e.st === 2).length;
                         const g2 = evs.filter((e) => e.st === 1).length;
                         const un = evs.filter((e) => e.st === 0).length;
+                        const isAdoptOpen = exp && exp.u === user.id && exp.c === ci;
                         return (
-                          <Tip key={ci} text={cat.n + ": " + a + " active, " + co + " cooling, " + g2 + " gap, " + un + " unused out of " + t + " events"}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                              <span style={{ fontSize: 10, color: "#64748B", width: 55, textAlign: "right", flexShrink: 0 }}>{HL[ci]}</span>
-                              <div style={{ flex: 1, height: 16, background: "#F1F5F9", borderRadius: 4, overflow: "hidden", display: "flex" }}>
-                                {a > 0 && <div style={{ width: (a / t * 100) + "%", background: "#10B981", height: "100%" }} />}
-                                {co > 0 && <div style={{ width: (co / t * 100) + "%", background: "#D97706", height: "100%" }} />}
-                                {g2 > 0 && <div style={{ width: (g2 / t * 100) + "%", background: "#EA580C", height: "100%" }} />}
-                                {un > 0 && <div style={{ width: (un / t * 100) + "%", background: "#FEE2E2", height: "100%" }} />}
+                          <div key={ci}>
+                            <Tip text={cat.n + ": " + a + " active, " + co + " cooling, " + g2 + " gap, " + un + " unused. Click to expand."}>
+                              <div onClick={() => tE(user.id, ci)} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: isAdoptOpen ? 0 : 5, cursor: "pointer", padding: "3px 0", borderRadius: 4, transition: "background 0.15s" }}>
+                                <span style={{ fontSize: 10, color: isAdoptOpen ? "#F97316" : "#64748B", fontWeight: isAdoptOpen ? 700 : 400, width: 55, textAlign: "right", flexShrink: 0 }}>{HL[ci]}</span>
+                                <div style={{ flex: 1, height: 16, background: "#F1F5F9", borderRadius: 4, overflow: "hidden", display: "flex" }}>
+                                  {a > 0 && <div style={{ width: (a / t * 100) + "%", background: "#10B981", height: "100%" }} />}
+                                  {co > 0 && <div style={{ width: (co / t * 100) + "%", background: "#D97706", height: "100%" }} />}
+                                  {g2 > 0 && <div style={{ width: (g2 / t * 100) + "%", background: "#EA580C", height: "100%" }} />}
+                                  {un > 0 && <div style={{ width: (un / t * 100) + "%", background: "#FEE2E2", height: "100%" }} />}
+                                </div>
+                                <span style={{ fontSize: 10, color: "#94A3B8", width: 30, flexShrink: 0 }}>{a + co}/{t}</span>
+                                <span style={{ fontSize: 10, color: "#94A3B8", width: 14, flexShrink: 0, transform: isAdoptOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>{"\u25BE"}</span>
                               </div>
-                              <span style={{ fontSize: 10, color: "#94A3B8", width: 30, flexShrink: 0 }}>{a + co}/{t}</span>
-                            </div>
-                          </Tip>
+                            </Tip>
+                            {isAdoptOpen && (
+                              <div style={{ background: "#FAFBFC", border: "1px solid #E2E8F0", borderRadius: 6, padding: "4px 0", marginBottom: 6, marginLeft: 63 }}>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 60px 44px 60px 52px", padding: "3px 10px", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
+                                  <div>Event</div><div style={{ textAlign: "center" }}>First</div><div style={{ textAlign: "center" }}>Cnt</div><div style={{ textAlign: "center" }}>Last</div><div style={{ textAlign: "center" }}>Status</div>
+                                </div>
+                                {evs.map((ev, ei) => (
+                                  <div key={ei} style={{ display: "grid", gridTemplateColumns: "1fr 60px 44px 60px 52px", padding: "3px 10px", borderTop: "1px solid #F1F5F9", fontSize: 9, alignItems: "center" }}>
+                                    <div style={{ color: ev.st === 0 ? "#DC2626" : "#334155", fontWeight: ev.st === 0 ? 600 : 400 }}>{ev.name}</div>
+                                    <div style={{ textAlign: "center", color: ev.first ? "#64748B" : "#DC2626", fontSize: 8 }}>{ev.first || "never"}</div>
+                                    <div style={{ textAlign: "center", fontWeight: 600, fontSize: 9 }}>{ev.count}</div>
+                                    <div style={{ textAlign: "center", color: ev.last ? "#64748B" : "#DC2626", fontSize: 8 }}>{ev.last || "never"}</div>
+                                    <div style={{ textAlign: "center" }}><span style={{ fontSize: 7, fontWeight: 700, color: HMC[ev.st], background: HMBG[ev.st], padding: "1px 4px", borderRadius: 2 }}>{SL[ev.st]}</span></div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
                       {newEv.length > 0 && (
