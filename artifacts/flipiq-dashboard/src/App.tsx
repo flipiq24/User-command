@@ -534,22 +534,43 @@ export default function App() {
         )}
 
         {tab === "emails" && !eV && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}><Tip text="Pre-written coaching emails for each non-healthy AA. Generated based on their root cause, gaps, and current stats vs goals. Click Generate to preview the full email.">Coaching emails</Tip> ({fU.filter((u) => u.health !== "green").length})</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, padding: "14px 18px", marginBottom: 4 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}><Tip text="Pre-written coaching emails for each non-healthy AA. Generated based on their root cause, gaps, and current stats vs goals. Click Generate to preview the full email.">Coaching Emails</Tip></div>
+              <div style={{ fontSize: 12, color: "#64748B", lineHeight: 1.6 }}>
+                <b style={{ color: "#F97316" }}>Goal:</b> Review each AA below and send them a personalized coaching email.
+                <span style={{ margin: "0 8px", color: "#E2E8F0" }}>|</span>
+                <b style={{ color: "#3B82F6" }}>Task:</b> Click "Preview Email" to see what to send, then "Forward and Complete" to mark done.
+                <span style={{ margin: "0 8px", color: "#E2E8F0" }}>|</span>
+                <b style={{ color: "#DC2626" }}>3-Strike:</b> If an AA has 3+ ignored emails, it escalates to their Account Manager instead.
+              </div>
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#94A3B8", marginBottom: 2 }}>{fU.filter((u) => u.health !== "green").length} AAs need coaching today</div>
             {fU.filter((u) => u.health !== "green").map((u) => {
               const ca = gc(u);
+              const yAct = u.y.ca + u.y.tx + u.y.em;
+              const hc = { red: "#DC2626", orange: "#EA580C", yellow: "#D97706" };
+              const hn = { red: "Critical", orange: "Gap", yellow: "Cooling" };
               return (
-                <div key={u.id} style={{ background: "#FFF", border: "1px solid " + (u.ec >= 3 ? "#FECACA" : "#E2E8F0"), borderRadius: 7, padding: "10px 12px", borderLeft: "3px solid " + PLC[u.ps] }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 8, fontWeight: 800, color: "#fff", background: PLC[u.ps], padding: "1px 5px", borderRadius: 2 }}>{PL[u.ps]}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700 }}>{u.n}</span>
-                    <span style={{ fontSize: 10, color: "#94A3B8" }}>{O.find((o) => o.id === u.org)?.n}</span>
-                    {u.ec >= 3 && <span style={{ fontSize: 7, color: "#DC2626", background: "#FEF2F2", padding: "1px 4px", borderRadius: 2, border: "1px solid #FECACA", fontWeight: 800 }}>3-STRIKE</span>}
-                    {u.vid && <span style={{ fontSize: 7, color: "#0369A1", background: "#F0F9FF", padding: "1px 4px", borderRadius: 2 }}>{V[u.vid]?.[0]}</span>}
-                    <button onClick={() => seV(bE(u))} style={{ marginLeft: "auto", fontSize: 9, fontWeight: 600, color: "#F97316", background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 4, padding: "3px 10px", cursor: "pointer" }}>Generate</button>
+                <div key={u.id} style={{ background: "#FFF", border: "1px solid " + (u.ec >= 3 ? "#FECACA" : "#E2E8F0"), borderRadius: 10, padding: "14px 16px", borderLeft: "4px solid " + (hc[u.health] || "#94A3B8") }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", background: hc[u.health] || "#94A3B8", padding: "2px 8px", borderRadius: 3 }}>{hn[u.health] || "Unknown"}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700 }}>{u.n}</span>
+                      <span style={{ fontSize: 11, color: "#94A3B8" }}>{O.find((o) => o.id === u.org)?.n}</span>
+                      <span style={{ fontSize: 10, color: "#64748B", background: "#F1F5F9", padding: "2px 6px", borderRadius: 3 }}>Day {u.day} {PN[u.ph]}</span>
+                      {u.ec >= 3 && <span style={{ fontSize: 9, color: "#DC2626", background: "#FEF2F2", padding: "2px 8px", borderRadius: 3, border: "1px solid #FECACA", fontWeight: 800 }}>3-STRIKE → Goes to AM</span>}
+                    </div>
+                    <button onClick={() => seV(bE(u))} style={{ fontSize: 11, fontWeight: 700, color: "#FFF", background: u.ec >= 3 ? "#DC2626" : "#F97316", border: "none", borderRadius: 6, padding: "6px 16px", cursor: "pointer", whiteSpace: "nowrap" }}>{u.ec >= 3 ? "Preview AM Email" : "Preview Email"}</button>
                   </div>
-                  {ca && <div style={{ marginTop: 3, fontSize: 10, color: "#EA580C", fontWeight: 600 }}>BECAUSE: {ca}</div>}
-                  <div style={{ marginTop: 3, fontSize: 10, color: "#64748B" }}>Y: {u.y.ca}C {u.y.of}O {u.y.tx + u.y.em + u.y.ca}ct | G: {u.g.ca}C {u.g.of}O {u.g.ct}ct</div>
+                  {ca && <div style={{ fontSize: 12, color: "#EA580C", fontWeight: 600, background: "#FFF7ED", padding: "6px 10px", borderRadius: 6, marginBottom: 8 }}>Why: {ca}</div>}
+                  <div style={{ display: "flex", gap: 16, fontSize: 11, color: "#64748B" }}>
+                    <div><span style={{ color: "#94A3B8" }}>Yesterday:</span> <b style={{ color: yAct > 0 ? "#334155" : "#DC2626" }}>{u.y.ca} calls, {u.y.of} offers, {yAct} total touches</b></div>
+                    <div style={{ color: "#E2E8F0" }}>|</div>
+                    <div><span style={{ color: "#94A3B8" }}>Daily goal:</span> <b style={{ color: "#334155" }}>{u.g.ca} calls, {u.g.of} offers</b></div>
+                    <div style={{ color: "#E2E8F0" }}>|</div>
+                    <div><span style={{ color: "#94A3B8" }}>Emails sent:</span> <b style={{ color: u.ec >= 3 ? "#DC2626" : "#334155" }}>{u.ec}</b>{u.ec > 0 && <span style={{ color: "#DC2626" }}> (no response)</span>}</div>
+                  </div>
                 </div>
               );
             })}
