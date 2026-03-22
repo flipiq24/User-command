@@ -376,7 +376,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
     setAiSummary(null);
     setAiSumLoading(true);
     const ctx = buildCtx(user);
-    aiCall([{ role: "user", content: "Give me a brief 2-3 sentence summary of this AA's current situation. Then list the TOP 3 most important things I should do TODAY for this AA, numbered 1-2-3. Be specific and actionable." }], ctx)
+    aiCall([{ role: "user", content: "Give me a brief 2-3 sentence summary of this AA's current situation. Then list the TOP 3 things this AA needs to do TODAY to improve, numbered 1-2-3. Frame each as an action for the AA (e.g. 'Complete your daily check-in', 'Make 15 calls'), not what the CSM should do." }], ctx)
       .then((reply) => { setAiSummary(reply); setAiSumLoading(false); })
       .catch(() => { setAiSummary("Failed to load summary."); setAiSumLoading(false); });
   }, [sel, prevAiUser, buildCtx, aiCall]);
@@ -392,7 +392,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
     setAiLoading(true);
     const ctx = buildCtx(user);
     const allMsgs = aiSummary
-      ? [{ role: "user", content: "Give me a summary and top 3 for today." }, { role: "assistant", content: aiSummary }, ...newMsgs]
+      ? [{ role: "user", content: "Give me a summary of this AA and the top 3 things this AA needs to do today based on their data and gaps." }, { role: "assistant", content: aiSummary }, ...newMsgs]
       : newMsgs;
     const reply = await aiCall(allMsgs, ctx);
     setAiMsgs([...newMsgs, { role: "assistant", content: reply }]);
@@ -1079,7 +1079,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #F97316, #F59E0B)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🤖</div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>FlipiQ AI Assistant</div>
-                  <div style={{ fontSize: 10, color: "#94A3B8" }}>Powered by AI &middot; Knows everything about {user.n}</div>
+                  <div style={{ fontSize: 10, color: "#94A3B8" }}>Summary &amp; what {user.n} needs to do today</div>
                 </div>
               </div>
 
