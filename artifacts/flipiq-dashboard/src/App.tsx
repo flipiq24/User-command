@@ -709,7 +709,7 @@ export default function App() {
         )}
       </div>
 
-      {hC && !sel && (() => {
+      {hC && !sel && tab === "heatmap" && (() => {
         const u = U.find((x) => x.id === hC.uid);
         const cs = u?.cs[hC.ci];
         if (!u || !cs) return null;
