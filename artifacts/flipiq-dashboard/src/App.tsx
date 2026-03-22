@@ -1316,37 +1316,18 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                         const un = evs.filter((e) => e.st === 0).length;
                         const isAdoptOpen = exp && exp.u === user.id && exp.c === ci;
                         return (
-                          <div key={ci}>
-                            <Tip text={cat.n + ": " + a + " active, " + co + " cooling, " + g2 + " gap, " + un + " unused. Click to expand."}>
-                              <div onClick={() => tE(user.id, ci)} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: isAdoptOpen ? 0 : 5, cursor: "pointer", padding: "3px 0", borderRadius: 4, transition: "background 0.15s" }}>
-                                <span style={{ fontSize: 10, color: isAdoptOpen ? "#F97316" : "#64748B", fontWeight: isAdoptOpen ? 700 : 400, width: 55, textAlign: "right", flexShrink: 0 }}>{HL[ci]}</span>
-                                <div style={{ flex: 1, height: 16, background: "#F1F5F9", borderRadius: 4, overflow: "hidden", display: "flex" }}>
-                                  {a > 0 && <div style={{ width: (a / t * 100) + "%", background: "#10B981", height: "100%" }} />}
-                                  {co > 0 && <div style={{ width: (co / t * 100) + "%", background: "#D97706", height: "100%" }} />}
-                                  {g2 > 0 && <div style={{ width: (g2 / t * 100) + "%", background: "#EA580C", height: "100%" }} />}
-                                  {un > 0 && <div style={{ width: (un / t * 100) + "%", background: "#FEE2E2", height: "100%" }} />}
-                                </div>
-                                <span style={{ fontSize: 10, color: "#94A3B8", width: 30, flexShrink: 0 }}>{a + co}/{t}</span>
-                                <span style={{ fontSize: 10, color: "#94A3B8", width: 14, flexShrink: 0, transform: isAdoptOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>{"\u25BE"}</span>
+                          <Tip key={ci} text={cat.n + ": " + a + " active, " + co + " cooling, " + g2 + " gap, " + un + " unused. Click to open in table below."}>
+                            <div onClick={() => { tE(user.id, ci); setTimeout(() => { const el = document.getElementById("fu-cat-" + ci); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50); }} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5, cursor: "pointer", padding: "3px 0", borderRadius: 4, transition: "background 0.15s" }}>
+                              <span style={{ fontSize: 10, color: isAdoptOpen ? "#F97316" : "#64748B", fontWeight: isAdoptOpen ? 700 : 400, width: 55, textAlign: "right", flexShrink: 0 }}>{HL[ci]}</span>
+                              <div style={{ flex: 1, height: 16, background: "#F1F5F9", borderRadius: 4, overflow: "hidden", display: "flex" }}>
+                                {a > 0 && <div style={{ width: (a / t * 100) + "%", background: "#10B981", height: "100%" }} />}
+                                {co > 0 && <div style={{ width: (co / t * 100) + "%", background: "#D97706", height: "100%" }} />}
+                                {g2 > 0 && <div style={{ width: (g2 / t * 100) + "%", background: "#EA580C", height: "100%" }} />}
+                                {un > 0 && <div style={{ width: (un / t * 100) + "%", background: "#FEE2E2", height: "100%" }} />}
                               </div>
-                            </Tip>
-                            {isAdoptOpen && (
-                              <div style={{ background: "#FAFBFC", border: "1px solid #E2E8F0", borderRadius: 6, padding: "4px 0", marginBottom: 6, marginLeft: 63 }}>
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 60px 44px 60px 52px", padding: "3px 10px", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-                                  <div>Event</div><div style={{ textAlign: "center" }}>First</div><div style={{ textAlign: "center" }}>Cnt</div><div style={{ textAlign: "center" }}>Last</div><div style={{ textAlign: "center" }}>Status</div>
-                                </div>
-                                {evs.map((ev, ei) => (
-                                  <div key={ei} style={{ display: "grid", gridTemplateColumns: "1fr 60px 44px 60px 52px", padding: "3px 10px", borderTop: "1px solid #F1F5F9", fontSize: 9, alignItems: "center" }}>
-                                    <div style={{ color: ev.st === 0 ? "#DC2626" : "#334155", fontWeight: ev.st === 0 ? 600 : 400 }}>{ev.name}</div>
-                                    <div style={{ textAlign: "center", color: ev.first ? "#64748B" : "#DC2626", fontSize: 8 }}>{ev.first || "never"}</div>
-                                    <div style={{ textAlign: "center", fontWeight: 600, fontSize: 9 }}>{ev.count}</div>
-                                    <div style={{ textAlign: "center", color: ev.last ? "#64748B" : "#DC2626", fontSize: 8 }}>{ev.last || "never"}</div>
-                                    <div style={{ textAlign: "center" }}><span style={{ fontSize: 7, fontWeight: 700, color: HMC[ev.st], background: HMBG[ev.st], padding: "1px 4px", borderRadius: 2 }}>{SL[ev.st]}</span></div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                              <span style={{ fontSize: 10, color: "#94A3B8", width: 30, flexShrink: 0 }}>{a + co}/{t}</span>
+                            </div>
+                          </Tip>
                         );
                       })}
                       {newEv.length > 0 && (
@@ -1368,7 +1349,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               const cs = user.cs[ci];
               const isO = exp && exp.u === user.id && exp.c === ci;
               return (
-                <div key={ci} style={{ marginBottom: 6 }}>
+                <div key={ci} id={"fu-cat-" + ci} style={{ marginBottom: 6 }}>
                   <div onClick={() => tE(user.id, ci)} style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: isO ? "8px 8px 0 0" : 8, padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <Tip text={SL[cs.sc] + " — " + (cs.sc === 0 ? "Never used any events in this category." : cs.sc === 1 ? "Used once but not recently — needs reactivation." : cs.sc === 2 ? "Usage is slowing down — monitor closely." : "Actively using events in this category.")}><div style={{ width: 28, height: 20, borderRadius: 4, background: HMBG[cs.sc], border: "1.5px solid " + HMC[cs.sc] + "60", display: "flex", alignItems: "center", justifyContent: "center" }}>
