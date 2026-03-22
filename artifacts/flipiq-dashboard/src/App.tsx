@@ -497,7 +497,7 @@ export default function App() {
                     <div key={ci} style={{ display: "flex", justifyContent: "center" }}
                       onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); sHC({ uid: u.id, ci, x: r.left, y: r.bottom + 4 }); }}
                       onMouseLeave={() => sHC(null)}
-                      onClick={() => { ss(u.id); sE({ u: u.id, c: ci }); }}>
+                      onClick={() => { ss(u.id); sE({ u: u.id, c: ci }); sHC(null); }}>
                       <div style={{ width: 50, height: 22, borderRadius: 4, background: HMBG[cs.sc], border: "1.5px solid " + HMC[cs.sc] + "60", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
                         <span style={{ fontSize: 9, fontWeight: 700, color: HMC[cs.sc] }}>{cs.ac}/{cs.t}</span>
                       </div>
@@ -685,7 +685,7 @@ export default function App() {
         )}
       </div>
 
-      {hC && (() => {
+      {hC && !sel && (() => {
         const u = U.find((x) => x.id === hC.uid);
         const cs = u?.cs[hC.ci];
         if (!u || !cs) return null;
