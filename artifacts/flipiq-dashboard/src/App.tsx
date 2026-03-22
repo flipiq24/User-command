@@ -216,6 +216,8 @@ export default function App() {
   const [tab, st] = useState("overview");
   const [eV, seV] = useState(null);
   const [exp, sE] = useState(null);
+  const [evSort, setEvSort] = useState({ col: "name", dir: 1 });
+  const toggleEvSort = (col) => setEvSort((p) => p.col === col ? { col, dir: -p.dir } : { col, dir: 1 });
   const [hC, sHC] = useState(null);
   const [dR, sDR] = useState("Today");
   const [sortCol, setSortCol] = useState(null);
@@ -689,9 +691,11 @@ export default function App() {
                   {isO && (
                     <div style={{ background: "#FAFBFC", border: "1px solid #E2E8F0", borderTop: "none", borderRadius: "0 0 8px 8px", padding: "4px 0" }}>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 75px 55px 75px 65px", padding: "4px 14px", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-                        <div>Event</div><div style={{ textAlign: "center" }}>First</div><div style={{ textAlign: "center" }}>Count</div><div style={{ textAlign: "center" }}>Last</div><div style={{ textAlign: "center" }}>Status</div>
+                        {[["name", "Event", "left"], ["first", "First", "center"], ["count", "Count", "center"], ["last", "Last", "center"], ["st", "Status", "center"]].map(([k, label, align]) => (
+                          <div key={k} onClick={() => toggleEvSort(k)} style={{ textAlign: align, cursor: "pointer", userSelect: "none", color: evSort.col === k ? "#F97316" : "#94A3B8" }}>{label} {evSort.col === k ? (evSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div>
+                        ))}
                       </div>
-                      {user.ev[ci].events.map((ev, ei) => (
+                      {[...user.ev[ci].events].sort((a, b) => { const c = evSort.col; const d = evSort.dir; if (c === "count" || c === "st") return (a[c] - b[c]) * d; const av = (c === "name" ? a.name : a[c]) || ""; const bv = (c === "name" ? b.name : b[c]) || ""; return av.localeCompare(bv) * d; }).map((ev, ei) => (
                         <div key={ei} style={{ display: "grid", gridTemplateColumns: "1fr 75px 55px 75px 65px", padding: "4px 14px", borderTop: "1px solid #F1F5F9", fontSize: 10, alignItems: "center" }}>
                           <div style={{ color: ev.st === 0 ? "#DC2626" : "#334155", fontWeight: ev.st === 0 ? 600 : 400 }}>{ev.name}</div>
                           <div style={{ textAlign: "center", color: ev.first ? "#64748B" : "#DC2626" }}>{ev.first || "never"}</div>
