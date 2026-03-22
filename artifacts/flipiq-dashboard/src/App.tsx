@@ -453,6 +453,7 @@ export default function App() {
   const seV = (v) => { seV_(v); setExpHist({}); };
   const [commLog, setCommLog] = useState(null);
   const [exp, sE] = useState(null);
+  const [trendRange, setTrendRange] = useState(30);
   const [evSort, setEvSort] = useState({ col: "name", dir: 1 });
   const toggleEvSort = (col) => setEvSort((p) => p.col === col ? { col, dir: -p.dir } : { col, dir: 1 });
   const [hmSort, setHmSort] = useState({ col: null, dir: 1 });
@@ -1090,26 +1091,27 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 {user.ec > 0 && <Tip text="View all coaching emails previously sent to this AA."><button onClick={() => setCommLog(user)} style={{ padding: "8px 16px", fontSize: 11, fontWeight: 700, background: "#FFF7ED", color: "#F97316", border: "1px solid #FED7AA", borderRadius: 7, cursor: "pointer" }}>Sent emails ({user.ec})</button></Tip>}
               </div>
               {(() => {
+                const trOpts = [{ v: 30, l: "30 days" }, { v: 90, l: "90 days" }, { v: 180, l: "6 months" }, { v: 365, l: "12 months" }];
+                const sampleCount = trendRange <= 30 ? trendRange : trendRange <= 90 ? 30 : trendRange <= 180 ? 24 : 24;
                 const mkTrend = (cur, day, seed) => {
-                  const days = Math.min(day, 7);
-                  if (days <= 1) return [cur];
                   const pts = [];
-                  for (let i = 0; i < days; i++) {
-                    const progress = i / (days - 1);
-                    const noise = Math.sin((seed + i) * 2.7) * 0.3;
-                    const base = cur * progress * (1 + noise);
+                  for (let i = 0; i < sampleCount; i++) {
+                    const progress = i / (sampleCount - 1);
+                    const noise = Math.sin((seed + i) * 2.7 + i * 0.37) * 0.25 + Math.cos((seed * 3 + i) * 1.3) * 0.15;
+                    const ramp = Math.pow(progress, 0.7);
+                    const base = cur * ramp * (1 + noise);
                     pts.push(Math.max(0, Math.round(base)));
                   }
                   pts[pts.length - 1] = cur;
                   return pts;
                 };
-                const mkDates = (day) => {
-                  const days = Math.min(day, 7);
+                const mkDates = () => {
                   const dates = [];
                   const today = new Date(2026, 2, 21);
-                  for (let i = days - 1; i >= 0; i--) {
+                  const step = Math.max(1, Math.round(trendRange / sampleCount));
+                  for (let i = sampleCount - 1; i >= 0; i--) {
                     const d = new Date(today);
-                    d.setDate(d.getDate() - i);
+                    d.setDate(d.getDate() - i * step);
                     dates.push(d.toLocaleDateString("en-US", { month: "short", day: "numeric" }));
                   }
                   return dates;
@@ -1171,7 +1173,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     </div>
                   );
                 };
-                const trendDates = mkDates(user.day);
+                const trendDates = mkDates();
                 const pipe = [
                   { n: "Active Pipeline", v: user.s.op, max: Math.max(user.s.op, 1), color: "#3B82F6", bg: "#EFF6FF", bc: "#BFDBFE", tip: "Total open properties/deals currently in this AA's pipeline.", seed: 1 },
                   { n: "Offers", v: user.s.of, max: user.g.of * Math.min(user.day, 30) || 1, color: "#F97316", bg: "#FFF7ED", bc: "#FED7AA", tip: "Total offers submitted. Target based on daily offer pace × days active.", seed: 2 },
@@ -1180,6 +1182,12 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   { n: "Acquired", v: user.s.aq, max: 2, color: user.s.aq >= 2 ? "#10B981" : user.s.aq > 0 ? "#D97706" : "#DC2626", bg: user.s.aq >= 2 ? "#ECFDF5" : user.s.aq > 0 ? "#FEF9C3" : "#FEF2F2", bc: user.s.aq >= 2 ? "#A7F3D0" : user.s.aq > 0 ? "#FDE68A" : "#FECACA", tip: "Deals acquired (closed). Target: 2/month.", seed: 5 },
                 ];
                 return (
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 6 }}>
+                      <select value={trendRange} onChange={(e) => setTrendRange(+e.target.value)} style={{ padding: "4px 24px 4px 8px", fontSize: 10, border: "1px solid #E2E8F0", borderRadius: 6, background: "#FFF", appearance: "none", WebkitAppearance: "none", cursor: "pointer", color: "#64748B", backgroundImage: sel0, backgroundRepeat: "no-repeat", backgroundPosition: "right 6px center" }}>
+                        {trOpts.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
+                      </select>
+                    </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10 }}>
                     {pipe.map((p, pi) => {
                       const pct2 = Math.min(100, Math.round((p.v / p.max) * 100));
@@ -1203,6 +1211,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                         </div></Tip>
                       );
                     })}
+                  </div>
                   </div>
                 );
               })()}
