@@ -246,7 +246,7 @@ export default function App() {
     g: base.filter((x) => x.health === "green").length,
   };
   const td = base.reduce((a, x) => a + x.s.aq, 0);
-  const tgt = base.filter((x) => x.ph === 3).length * 2;
+  const tgt = base.length * 2;
   const pct = tgt > 0 ? Math.round((td / tgt) * 100) : 0;
   const tasks = fU.filter((u) => u.health !== "green");
   const pend = tasks.filter((t) => !done[t.id]);
@@ -301,7 +301,7 @@ export default function App() {
             </div>
             <div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1 }}><span style={{ color: "#F97316" }}>{td}</span><span style={{ color: "#94A3B8", fontSize: 18, fontWeight: 600 }}> / {tgt}</span></div>
-              <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 4 }}>deals closed / target</div>
+              <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 4 }}>{base.length} AAs x 2 = {tgt} target</div>
             </div>
           </div>
 
