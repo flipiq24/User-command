@@ -239,12 +239,31 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: "'DM Sans',system-ui,sans-serif", background: "#F8FAFB", minHeight: "100vh", color: "#1E293B", position: "relative" }}>
-      <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ background: "linear-gradient(135deg,#FFF7ED,#FFF)", borderBottom: "1px solid #FED7AA", padding: "10px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 32, height: 32, borderRadius: 7, background: "linear-gradient(135deg,#F97316,#EA580C)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: 13 }}>iQ</div>
           <div><div style={{ fontSize: 15, fontWeight: 700 }}>FlipIQ COMMAND</div><div style={{ fontSize: 10, color: "#94A3B8" }}>CSM Dashboard</div></div>
         </div>
-        <div style={{ fontSize: 11, color: "#64748B" }}>Mar 21, 2026</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#F97316", textTransform: "uppercase", letterSpacing: 1.5 }}>Atomic KPI</div>
+            <div style={{ fontSize: 16, fontWeight: 800 }}>2 Deals / Month / Person</div>
+            <div style={{ fontSize: 10, color: "#64748B" }}>= Big Bucks for All <b style={{ color: "#F97316" }}>Ramy, get us to big bucks!!!</b></div>
+          </div>
+          <div style={{ width: 1, height: 32, background: "#FED7AA" }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ position: "relative", width: 44, height: 44 }}>
+              <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#F1F5F9" strokeWidth="4" /><circle cx="22" cy="22" r="18" fill="none" stroke={pct >= 75 ? "#10B981" : pct >= 50 ? "#D97706" : "#DC2626"} strokeWidth="4" strokeLinecap="round" strokeDasharray={pct * 1.131 + " 113.1"} transform="rotate(-90 22 22)" /></svg>
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800 }}>{pct}%</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "#F97316" }}>{td}</div>
+              <div style={{ fontSize: 9, color: "#94A3B8" }}>deals / {tgt} target</div>
+            </div>
+          </div>
+          <div style={{ width: 1, height: 32, background: "#FED7AA" }} />
+          <div style={{ fontSize: 11, color: "#64748B" }}>Mar 21, 2026</div>
+        </div>
       </div>
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0" }}>
@@ -300,23 +319,6 @@ export default function App() {
               ))}
             </div>
 
-            <div style={{ background: "linear-gradient(135deg,#FFF7ED,#FFF)", border: "1px solid #FED7AA", borderRadius: 11, padding: "16px 20px", marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: "#F97316", textTransform: "uppercase", letterSpacing: 1.5 }}>Atomic KPI</div>
-                <div style={{ fontSize: 24, fontWeight: 800 }}>2 Deals / Month / Person</div>
-                <div style={{ fontSize: 12, color: "#64748B" }}>= Big Bucks for All <b style={{ color: "#F97316" }}>Ramy, get us to big bucks!!!</b></div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <div style={{ position: "relative", width: 60, height: 60 }}>
-                  <svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="25" fill="none" stroke="#F1F5F9" strokeWidth="5" /><circle cx="30" cy="30" r="25" fill="none" stroke={pct >= 75 ? "#10B981" : pct >= 50 ? "#D97706" : "#DC2626"} strokeWidth="5" strokeLinecap="round" strokeDasharray={pct * 1.571 + " 157.1"} transform="rotate(-90 30 30)" /></svg>
-                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800 }}>{pct}%</div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 34, fontWeight: 800, color: "#F97316" }}>{td}</div>
-                  <div style={{ fontSize: 10, color: "#94A3B8" }}>deals / {tgt} target</div>
-                </div>
-              </div>
-            </div>
 
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "10px 16px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 12, fontWeight: 700 }}>Tasks</span><span style={{ fontSize: 11, color: "#64748B" }}>{fin.length}/{tasks.length}</span></div>
