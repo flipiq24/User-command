@@ -194,8 +194,11 @@ export default function App() {
   const [exp, sE] = useState(null);
   const [hC, sHC] = useState(null);
   const [dR, sDR] = useState("Today");
+  const [sortCol, setSortCol] = useState(null);
+  const [sortDir, setSortDir] = useState("desc");
 
   const tog = (k, v) => sf((f) => ({ ...f, [k]: f[k] === v ? null : v }));
+  const toggleSort = (col) => { if (sortCol === col) { setSortDir(d => d === "desc" ? "asc" : "desc"); } else { setSortCol(col); setSortDir("desc"); } };
 
   const fU = useMemo(() => {
     let u = [...U];
@@ -223,7 +226,17 @@ export default function App() {
   const pend = tasks.filter((t) => !done[t.id]);
   const fin = tasks.filter((t) => done[t.id]);
   const cp = tasks.length > 0 ? Math.round((fin.length / tasks.length) * 100) : 100;
-  const lb = [...fU].sort((a, b) => b.s.aq - a.s.aq || b.s.of - a.s.of || b.s.ca - a.s.ca);
+  const lb = useMemo(() => {
+    const sorted = [...fU];
+    const colMap = { tx: u => u.s.tx, em: u => u.s.em, ca: u => u.s.ca, nr: u => u.s.nr, up: u => u.s.up, op: u => u.s.op, re: u => u.s.re, rn: u => u.s.op > 0 ? u.s.re / u.s.op : 0, of: u => u.s.of, ng: u => u.s.ng, ac: u => u.s.ac, aq: u => u.s.aq, mn: u => u.s.mn };
+    if (sortCol && colMap[sortCol]) {
+      const fn = colMap[sortCol];
+      sorted.sort((a, b) => sortDir === "desc" ? fn(b) - fn(a) : fn(a) - fn(b));
+    } else {
+      sorted.sort((a, b) => b.s.aq - a.s.aq || b.s.of - a.s.of || b.s.ca - a.s.ca);
+    }
+    return sorted;
+  }, [fU, sortCol, sortDir]);
 
   const doC = () => {
     if (!aT) return;
@@ -412,18 +425,14 @@ export default function App() {
                   <tr style={{ background: "#F8FAFB", borderBottom: "2px solid #E2E8F0" }}>
                     <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "left", width: 36 }}>#</th>
                     <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "left", minWidth: 140, borderRight: "1px solid #E2E8F0" }}>Name</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 65 }}>Texts</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 65 }}>Emails</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 75, borderRight: "1px solid #E2E8F0" }}>Calls</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 55 }}>New</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 55, borderRight: "1px solid #E2E8F0" }}>Upgr</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 55 }}>Open</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 55 }}>Reop</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 50 }}>R/N</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 65, borderRight: "1px solid #E2E8F0" }}>Offers</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 50 }}>Neg</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 50 }}>Acc</th>
-                    <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: 55 }}>Acq</th>
+                    {[["tx","Texts",65,false],["em","Emails",65,false],["ca","Calls",75,true],["nr","New",55,false],["up","Upgr",55,true],["op","Open",55,false],["re","Reop",55,false],["rn","R/N",50,false],["of","Offers",65,true],["ng","Neg",50,false],["ac","Acc",50,false],["aq","Acq",55,false]].map(([k,label,w,br]) => (
+                      <th key={k} onClick={() => toggleSort(k)} style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: sortCol === k ? "#F97316" : "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: w, cursor: "pointer", userSelect: "none", borderRight: br ? "1px solid #E2E8F0" : "none", background: sortCol === k ? "#FFF7ED" : "transparent", transition: "color 0.15s" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
+                          {label}
+                          <span style={{ fontSize: 8, opacity: sortCol === k ? 1 : 0.3 }}>{sortCol === k ? (sortDir === "desc" ? "\u25BC" : "\u25B2") : "\u25BC"}</span>
+                        </div>
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
