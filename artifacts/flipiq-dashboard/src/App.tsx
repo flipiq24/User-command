@@ -256,7 +256,7 @@ export default function App() {
           </select>
         </div>
 
-        <div style={{ padding: "10px 24px", borderBottom: "1px solid #F1F5F9", display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8", minWidth: 48 }}>PHASE</span>
           <div style={{ display: "flex", gap: 8 }}>
             {[{ p: 1, n: "Onboarding", d: "Days 1-7", c: "#0C447C", bc: "#85B7EB", bg: "#E6F1FB" }, { p: 2, n: "Activation", d: "Days 8-21", c: "#854F0B", bc: "#EF9F27", bg: "#FAEEDA" }, { p: 3, n: "Performance", d: "Day 22+", c: "#085041", bc: "#5DCAA5", bg: "#E1F5EE" }].map((x) => (
@@ -266,10 +266,8 @@ export default function App() {
               </div>
             ))}
           </div>
-        </div>
-
-        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8", minWidth: 48 }}>HEALTH</span>
+          <div style={{ width: 1, height: 28, background: "#E2E8F0", margin: "0 4px" }} />
+          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}>HEALTH</span>
           <div style={{ display: "flex", gap: 8 }}>
             {[{ h: "red", n: "Critical", c: "#791F1F", bc: "#F09595", bg: "#FCEBEB", dot: "#E24B4A", k: "r" }, { h: "orange", n: "Gap", c: "#712B13", bc: "#F0997B", bg: "#FAECE7", dot: "#D85A30", k: "o" }, { h: "yellow", n: "Cooling", c: "#854F0B", bc: "#FAC775", bg: "#FAEEDA", dot: "#EF9F27", k: "y" }, { h: "green", n: "Healthy", c: "#085041", bc: "#9FE1CB", bg: "#E1F5EE", dot: "#1D9E75", k: "g" }].map((x) => (
               <div key={x.h} onClick={() => tog("health", x.h)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: flt.health === x.h ? "1.5px solid " + x.bc : "1px solid #E2E8F0", background: flt.health === x.h ? x.bg : "#FAFBFC", cursor: "pointer", minWidth: 110 }}>
