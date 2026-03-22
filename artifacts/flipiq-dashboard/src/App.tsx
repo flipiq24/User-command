@@ -218,6 +218,8 @@ export default function App() {
   const [exp, sE] = useState(null);
   const [evSort, setEvSort] = useState({ col: "name", dir: 1 });
   const toggleEvSort = (col) => setEvSort((p) => p.col === col ? { col, dir: -p.dir } : { col, dir: 1 });
+  const [hmSort, setHmSort] = useState({ col: null, dir: 1 });
+  const toggleHmSort = (col) => setHmSort((p) => p.col === col ? { col, dir: -p.dir } : { col, dir: 1 });
   const [hC, sHC] = useState(null);
   const [dR, sDR] = useState("Today");
   const [sortCol, setSortCol] = useState(null);
@@ -506,9 +508,13 @@ export default function App() {
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "24px 140px 48px repeat(7,1fr)", padding: "5px 10px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", alignItems: "center" }}>
-              <div></div><div>User</div><div>Ph</div>{HL.map((h) => <div key={h} style={{ textAlign: "center" }}>{h}</div>)}
+              <div></div>
+              {[["user", "User"], ["ph", "Ph"]].map(([k, l]) => (
+                <div key={k} onClick={() => toggleHmSort(k)} style={{ cursor: "pointer", userSelect: "none", color: hmSort.col === k ? "#F97316" : "#94A3B8" }}>{l} {hmSort.col === k ? (hmSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div>
+              ))}
+              {HL.map((h, i) => <div key={h} onClick={() => toggleHmSort("c" + i)} style={{ textAlign: "center", cursor: "pointer", userSelect: "none", color: hmSort.col === "c" + i ? "#F97316" : "#94A3B8" }}>{h} {hmSort.col === "c" + i ? (hmSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div>)}
             </div>
-            {fU.map((u, ri) => (
+            {[...fU].sort((a, b) => { if (!hmSort.col) return 0; const d = hmSort.dir; if (hmSort.col === "user") return a.n.localeCompare(b.n) * d; if (hmSort.col === "ph") return (a.ph - b.ph) * d; const ci = parseInt(hmSort.col.slice(1)); return (a.cs[ci].sc - b.cs[ci].sc) * d; }).map((u, ri) => (
               <div key={u.id}>
                 <div style={{ display: "grid", gridTemplateColumns: "24px 140px 48px repeat(7,1fr)", padding: "5px 10px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", alignItems: "center" }}>
                   <div style={{ width: 16, height: 16, borderRadius: 3, background: PLC[u.ps] + "15", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 800, color: PLC[u.ps] }}>{u.ps}</div>
