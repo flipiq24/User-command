@@ -1187,14 +1187,12 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       const trendUp = trend.length >= 2 && trend[trend.length - 1] >= trend[trend.length - 2];
                       return (
                         <Tip key={p.n} text={p.tip}><div style={{ background: p.bg, border: "1px solid " + p.bc, borderRadius: 10, padding: "12px 10px 8px", position: "relative" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                            <div style={{ fontSize: 9, fontWeight: 700, color: p.color, textTransform: "uppercase", letterSpacing: 0.5 }}>{p.n}</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                            <span style={{ fontSize: 9, fontWeight: 700, color: p.color, textTransform: "uppercase", letterSpacing: 0.5 }}>{p.n}</span>
                             <span style={{ fontSize: 8, fontWeight: 700, color: trendUp ? "#10B981" : "#DC2626" }}>{trendUp ? "\u25B2" : "\u25BC"}</span>
-                          </div>
-                          <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 4 }}>
-                            <span style={{ fontSize: 22, fontWeight: 800, color: p.color }}>{p.v}</span>
+                            <span style={{ fontSize: 18, fontWeight: 800, color: p.color, marginLeft: "auto" }}>{p.v}</span>
                             <span style={{ fontSize: 9, color: "#94A3B8" }}>/ {p.max}</span>
-                            <span style={{ fontSize: 9, color: "#94A3B8", marginLeft: "auto" }}>{pct2}%</span>
+                            <span style={{ fontSize: 9, color: "#94A3B8" }}>{pct2}%</span>
                           </div>
                           <TrendChart data={trend} dates={trendDates} color={p.color} h={56} />
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 7, color: "#94A3B8", marginTop: 2, padding: "0 2px" }}>
