@@ -282,9 +282,9 @@ export default function App() {
     <div style={{ fontFamily: "'DM Sans',system-ui,sans-serif", background: "#F8FAFB", minHeight: "100vh", color: "#1E293B", position: "relative" }}>
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "16px 32px", display: "flex", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
-          <img src={import.meta.env.BASE_URL + "flipiq-logo.png"} alt="FlipiQ" style={{ height: 132, width: "auto", cursor: "pointer" }} onClick={() => { st("overview"); ss(null); seV(null); }} />
+          <Tip text="Click to go back to the Overview tab."><img src={import.meta.env.BASE_URL + "flipiq-logo.png"} alt="FlipiQ" style={{ height: 132, width: "auto", cursor: "pointer" }} onClick={() => { st("overview"); ss(null); seV(null); }} /></Tip>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.4 }}>FlipiQ USER COMMAND</div>
+            <Tip text="FlipiQ CSM Dashboard — your daily command center for monitoring all Acquisition Associates."><div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.4 }}>FlipiQ USER COMMAND</div></Tip>
           </div>
         </div>
 
@@ -297,20 +297,20 @@ export default function App() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-            <div style={{ position: "relative", width: 60, height: 60 }}>
+            <Tip text="Monthly deal progress. Ring fills as total team deals approach the target. Green = 75%+, yellow = 50%+, red = below 50%."><div style={{ position: "relative", width: 60, height: 60 }}>
               <svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="#F1F5F9" strokeWidth="5" /><circle cx="30" cy="30" r="24" fill="none" stroke={pct >= 75 ? "#10B981" : pct >= 50 ? "#D97706" : "#DC2626"} strokeWidth="5" strokeLinecap="round" strokeDasharray={pct * 1.508 + " 150.8"} transform="rotate(-90 30 30)" /></svg>
               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800 }}>{pct}%</div>
-            </div>
-            <div style={{ textAlign: "center" }}>
+            </div></Tip>
+            <Tip text="Total deals acquired this month across all AAs vs the team target. Target = number of AAs × 2 deals each."><div style={{ textAlign: "center" }}>
               <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1 }}><span style={{ color: "#F97316" }}>{td}</span><span style={{ color: "#94A3B8", fontSize: 18, fontWeight: 600 }}> / {tgt}</span></div>
               <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 4 }}>{base.length} AAs x 2 = {tgt} target</div>
-            </div>
+            </div></Tip>
           </div>
 
-          <div style={{ textAlign: "right", flexShrink: 0 }}>
+          <Tip text="Current reporting date. All stats and goals shown are for this day."><div style={{ textAlign: "right", flexShrink: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>Mar 21, 2026</div>
             <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>Pacific Time</div>
-          </div>
+          </div></Tip>
         </div>
       </div>
 
@@ -324,32 +324,32 @@ export default function App() {
           <div style={{ width: 1, height: 28, background: "#E2E8F0", margin: "0 4px" }} />
           <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}><Tip text="AA lifecycle phase. P1 Onboarding (Days 1-7): learn the tool. P2 Activation (Days 8-21): build habits. P3 Performance (Day 22+): hit targets.">PHASE</Tip></span>
           <div style={{ display: "flex", gap: 8 }}>
-            {[{ p: 1, n: "Onboarding", d: "Days 1-7", c: "#0C447C", bc: "#85B7EB", bg: "#E6F1FB" }, { p: 2, n: "Activation", d: "Days 8-21", c: "#854F0B", bc: "#EF9F27", bg: "#FAEEDA" }, { p: 3, n: "Performance", d: "Day 22+", c: "#085041", bc: "#5DCAA5", bg: "#E1F5EE" }].map((x) => (
-              <div key={x.p} onClick={() => tog("phase", x.p)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", borderRadius: 8, border: flt.phase === x.p ? "1.5px solid " + x.bc : "1px solid #E2E8F0", background: flt.phase === x.p ? x.bg : "#FAFBFC", cursor: "pointer", minWidth: 150 }}>
+            {[{ p: 1, n: "Onboarding", d: "Days 1-7", c: "#0C447C", bc: "#85B7EB", bg: "#E6F1FB", tip: "Phase 1: First 7 days. AAs are learning the tool, setting up, and making first calls." }, { p: 2, n: "Activation", d: "Days 8-21", c: "#854F0B", bc: "#EF9F27", bg: "#FAEEDA", tip: "Phase 2: Days 8-21. AAs should be building habits — consistent calls, offers, and pipeline activity." }, { p: 3, n: "Performance", d: "Day 22+", c: "#085041", bc: "#5DCAA5", bg: "#E1F5EE", tip: "Phase 3: Day 22+. AAs should be hitting targets — 2 deals/month, strong call volume, steady offers." }].map((x) => (
+              <Tip key={x.p} text={x.tip}><div onClick={() => tog("phase", x.p)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", borderRadius: 8, border: flt.phase === x.p ? "1.5px solid " + x.bc : "1px solid #E2E8F0", background: flt.phase === x.p ? x.bg : "#FAFBFC", cursor: "pointer", minWidth: 150 }}>
                 <div style={{ fontSize: 22, fontWeight: 500, color: x.c }}>{sts["p" + x.p]}</div>
                 <div><div style={{ fontSize: 12, fontWeight: 500, color: x.c }}>{x.n}</div><div style={{ fontSize: 11, color: "#94A3B8" }}>{x.d}</div></div>
-              </div>
+              </div></Tip>
             ))}
           </div>
           <div style={{ width: 1, height: 28, background: "#E2E8F0", margin: "0 4px" }} />
           <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}><Tip text="Overall health score based on 3-Track scoring. Critical = needs immediate attention. Gap = falling behind. Cooling = slowing down. Healthy = on track.">HEALTH</Tip></span>
           <div style={{ display: "flex", gap: 8 }}>
-            {[{ h: "red", n: "Critical", c: "#791F1F", bc: "#F09595", bg: "#FCEBEB", dot: "#E24B4A", k: "r" }, { h: "orange", n: "Gap", c: "#712B13", bc: "#F0997B", bg: "#FAECE7", dot: "#D85A30", k: "o" }, { h: "yellow", n: "Cooling", c: "#854F0B", bc: "#FAC775", bg: "#FAEEDA", dot: "#EF9F27", k: "y" }, { h: "green", n: "Healthy", c: "#085041", bc: "#9FE1CB", bg: "#E1F5EE", dot: "#1D9E75", k: "g" }].map((x) => (
-              <div key={x.h} onClick={() => tog("health", x.h)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: flt.health === x.h ? "1.5px solid " + x.bc : "1px solid #E2E8F0", background: flt.health === x.h ? x.bg : "#FAFBFC", cursor: "pointer", minWidth: 110 }}>
+            {[{ h: "red", n: "Critical", c: "#791F1F", bc: "#F09595", bg: "#FCEBEB", dot: "#E24B4A", k: "r", tip: "Critical: AA is inactive, never logged in, or has zero activity. Needs immediate intervention." }, { h: "orange", n: "Gap", c: "#712B13", bc: "#F0997B", bg: "#FAECE7", dot: "#D85A30", k: "o", tip: "Gap: AA is falling behind — missing calls, low offers, or incomplete training." }, { h: "yellow", n: "Cooling", c: "#854F0B", bc: "#FAC775", bg: "#FAEEDA", dot: "#EF9F27", k: "y", tip: "Cooling: AA was active but is slowing down. Watch for continued decline." }, { h: "green", n: "Healthy", c: "#085041", bc: "#9FE1CB", bg: "#E1F5EE", dot: "#1D9E75", k: "g", tip: "Healthy: AA is on track — meeting call, offer, and deal targets." }].map((x) => (
+              <Tip key={x.h} text={x.tip}><div onClick={() => tog("health", x.h)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: flt.health === x.h ? "1.5px solid " + x.bc : "1px solid #E2E8F0", background: flt.health === x.h ? x.bg : "#FAFBFC", cursor: "pointer", minWidth: 110 }}>
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: x.dot }} />
                 <div style={{ fontSize: 22, fontWeight: 500, color: x.c }}>{sts[x.k]}</div>
                 <div style={{ fontSize: 12, fontWeight: 500, color: x.c }}>{x.n}</div>
-              </div>
+              </div></Tip>
             ))}
           </div>
         </div>
       </div>
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "0 24px", display: "flex" }}>
-        {["overview", "leaderboard", "heatmap", "emails", "logic"].map((t) => (
-          <button key={t} onClick={() => { st(t); ss(null); seV(null); sE(null); }} style={{ padding: "10px 14px", fontSize: 12, fontWeight: tab === t ? 700 : 500, color: tab === t ? "#F97316" : "#64748B", background: "none", border: "none", borderBottom: tab === t ? "2px solid #F97316" : "2px solid transparent", cursor: "pointer" }}>
-            {t === "logic" ? "Email logic" : t === "heatmap" ? "Heat map" : t[0].toUpperCase() + t.slice(1)}
-          </button>
+        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 61 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."]].map(([t, label, tip]) => (
+          <Tip key={t} text={tip}><button onClick={() => { st(t); ss(null); seV(null); sE(null); }} style={{ padding: "10px 14px", fontSize: 12, fontWeight: tab === t ? 700 : 500, color: tab === t ? "#F97316" : "#64748B", background: "none", border: "none", borderBottom: tab === t ? "2px solid #F97316" : "2px solid transparent", cursor: "pointer" }}>
+            {label}
+          </button></Tip>
         ))}
       </div>
 
@@ -359,10 +359,10 @@ export default function App() {
 
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "10px 16px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 12, fontWeight: 700 }}><Tip text="Daily action items for you (CSM). Each non-healthy AA generates a task. Complete by reviewing, forwarding an email, or logging an action.">Tasks</Tip></span><span style={{ fontSize: 11, color: "#64748B" }}>{fin.length}/{tasks.length}</span></div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Tip text="Your daily progress. Complete all tasks by reviewing each AA and taking action (email, call, text, or escalate)."><div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{ width: 160, height: 6, background: "#F1F5F9", borderRadius: 3 }}><div style={{ height: 6, background: cp === 100 ? "#10B981" : "#F97316", borderRadius: 3, width: cp + "%" }} /></div>
                 <span style={{ fontSize: 12, fontWeight: 800, color: cp === 100 ? "#10B981" : "#F97316" }}>{cp}%</span>
-              </div>
+              </div></Tip>
             </div>
 
             {pend.map((u) => {
@@ -370,10 +370,10 @@ export default function App() {
               return (
                 <div key={u.id} style={{ background: "#FFF", border: "1px solid " + (u.ec >= 3 ? "#FECACA" : "#E2E8F0"), borderRadius: 8, padding: "10px 12px", marginBottom: 4, borderLeft: "4px solid " + PLC[u.ps] }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                    <button onClick={() => { sm(u.id); saT(null); saN(""); }} style={{ width: 18, height: 18, borderRadius: 4, border: "2px solid " + PLC[u.ps], background: "none", cursor: "pointer", flexShrink: 0 }} />
-                    <span style={{ fontSize: 8, fontWeight: 800, color: "#fff", background: PLC[u.ps], padding: "1px 6px", borderRadius: 3 }}>{PL[u.ps]}</span>
-                    <span onClick={() => ss(u.id)} style={{ fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "underline", textDecorationColor: "#E2E8F0" }}>{u.n}</span>
-                    <span style={{ fontSize: 10, color: "#94A3B8" }}>{O.find((o) => o.id === u.org)?.n} D{u.day} {PN[u.ph]}</span>
+                    <Tip text="Click to mark this task as complete. You'll choose what action you took (call, email, text, etc.)."><button onClick={() => { sm(u.id); saT(null); saN(""); }} style={{ width: 18, height: 18, borderRadius: 4, border: "2px solid " + PLC[u.ps], background: "none", cursor: "pointer", flexShrink: 0 }} /></Tip>
+                    <Tip text={"Priority " + PL[u.ps] + ". " + (u.ps === 1 ? "Needs immediate attention today." : u.ps === 2 ? "Address before end of day." : u.ps === 3 ? "Monitor and coach when time allows." : "Low urgency — check in periodically.")}><span style={{ fontSize: 8, fontWeight: 800, color: "#fff", background: PLC[u.ps], padding: "1px 6px", borderRadius: 3 }}>{PL[u.ps]}</span></Tip>
+                    <Tip text="Click to view this AA's full profile — stats, feature usage, and root cause."><span onClick={() => ss(u.id)} style={{ fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "underline", textDecorationColor: "#E2E8F0" }}>{u.n}</span></Tip>
+                    <Tip text={"Organization: " + (O.find((o) => o.id === u.org)?.n || "") + ". Day " + u.day + " in " + PN[u.ph] + " phase."}><span style={{ fontSize: 10, color: "#94A3B8" }}>{O.find((o) => o.id === u.org)?.n} D{u.day} {PN[u.ph]}</span></Tip>
                     {u.ec >= 3 && <Tip text="This AA has been emailed 3 times with no response. STOP emailing — escalate to their Account Manager instead."><span style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 5px", borderRadius: 2, border: "1px solid #FECACA" }}>3-STRIKE</span></Tip>}
                     {!u.s.ck && <Tip text="This AA hasn't completed their daily iQ Check-In. No check-in = no coaching triggers fire. This is the first thing to fix."><span style={{ fontSize: 7, fontWeight: 800, color: "#EA580C", background: "#FFF7ED", padding: "1px 5px", borderRadius: 2, border: "1px solid #FED7AA" }}>NO CHECK-IN</span></Tip>}
                     <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
@@ -389,7 +389,7 @@ export default function App() {
 
             {fin.length > 0 && (
               <>
-                <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1, margin: "12px 0 4px" }}>Done ({fin.length})</div>
+                <Tip text="Tasks you've already completed today. These AAs have been addressed."><div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1, margin: "12px 0 4px" }}>Done ({fin.length})</div></Tip>
                 {fin.map((u) => {
                   const a = done[u.id];
                   return (
@@ -413,7 +413,7 @@ export default function App() {
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "18px 22px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
               <div style={{ fontSize: 14, fontWeight: 700 }}>{eV.ie ? "AM Escalation" : "Coaching Email"}</div>
-              <button onClick={() => seV(null)} style={{ fontSize: 11, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 5, padding: "4px 12px", cursor: "pointer" }}>Back</button>
+              <Tip text="Close the email preview and return to the previous view."><button onClick={() => seV(null)} style={{ fontSize: 11, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 5, padding: "4px 12px", cursor: "pointer" }}>Back</button></Tip>
             </div>
             <div style={{ background: eV.ie ? "#FEF2F2" : "#F8FAFB", borderRadius: 7, padding: 16, border: "1px solid " + (eV.ie ? "#FECACA" : "#E2E8F0") }}>
               <div style={{ fontSize: 11, color: "#64748B", marginBottom: 3 }}><b>To:</b> {eV.to}</div>
@@ -421,8 +421,8 @@ export default function App() {
               <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.8, whiteSpace: "pre-line" }}>{eV.bo}</div>
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-              <button onClick={() => { sm(eV.uid); saT("email"); saN(""); seV(null); }} style={{ padding: "8px 20px", fontSize: 12, fontWeight: 700, background: "#F97316", color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Forward and complete</button>
-              <button onClick={() => seV(null)} style={{ padding: "8px 20px", fontSize: 12, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 7, cursor: "pointer" }}>Cancel</button>
+              <Tip text="Mark this AA's task as done with action type 'email' and close the preview."><button onClick={() => { sm(eV.uid); saT("email"); saN(""); seV(null); }} style={{ padding: "8px 20px", fontSize: 12, fontWeight: 700, background: "#F97316", color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Forward and complete</button></Tip>
+              <Tip text="Close the email preview without taking action."><button onClick={() => seV(null)} style={{ padding: "8px 20px", fontSize: 12, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 7, cursor: "pointer" }}>Cancel</button></Tip>
             </div>
           </div>
         )}
@@ -432,10 +432,10 @@ export default function App() {
             <div style={{ padding: "16px 20px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div><div style={{ fontSize: 16, fontWeight: 800 }}><Tip text="Ranked list of all AAs sorted by deals acquired. Compare performance across all metrics. Click any name to see detailed breakdown.">Team Leaderboard</Tip></div><div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>My Stats KPIs. Click name for detail.</div></div>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <select value={dR} onChange={(e) => sDR(e.target.value)} style={{ padding: "6px 30px 6px 12px", fontSize: 12, border: "1px solid #E2E8F0", borderRadius: 8, background: "#FFF", appearance: "none", WebkitAppearance: "none", cursor: "pointer", backgroundImage: sel0, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
+                <Tip text="Select the time range for leaderboard stats. Today, 7-day, 30-day, or all-time."><select value={dR} onChange={(e) => sDR(e.target.value)} style={{ padding: "6px 30px 6px 12px", fontSize: 12, border: "1px solid #E2E8F0", borderRadius: 8, background: "#FFF", appearance: "none", WebkitAppearance: "none", cursor: "pointer", backgroundImage: sel0, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
                   {DR.map((d) => <option key={d}>{d}</option>)}
-                </select>
-                <span style={{ fontSize: 11, color: "#64748B" }}>Mar 21 &middot; Pacific</span>
+                </select></Tip>
+                <Tip text="Data as of this date and timezone."><span style={{ fontSize: 11, color: "#64748B" }}>Mar 21 &middot; Pacific</span></Tip>
               </div>
             </div>
             <div style={{ overflowX: "auto" }}>
@@ -451,10 +451,10 @@ export default function App() {
                   <tr style={{ background: "#F8FAFB", borderBottom: "2px solid #E2E8F0" }}>
                     <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "left", width: 36 }}>#</th>
                     <th style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", textAlign: "left", minWidth: 140, borderRight: "1px solid #E2E8F0" }}>Name</th>
-                    {[["tx","Texts",65,false],["em","Emails",65,false],["ca","Calls",75,true],["nr","New",55,false],["up","Upgr",55,true],["op","Open",55,false],["re","Reop",55,false],["rn","R/N",50,false],["of","Offers",65,true],["ng","Neg",50,false],["ac","Acc",50,false],["aq","Acq",55,false]].map(([k,label,w,br]) => (
+                    {[["tx","Texts",65,false,"Total text messages sent by this AA."],["em","Emails",65,false,"Total emails sent by this AA."],["ca","Calls",75,true,"Total calls made. Number in parentheses = connected calls."],["nr","New",55,false,"New contacts added to their pipeline."],["up","Upgr",55,true,"Contacts upgraded from cold to warm status."],["op","Open",55,false,"Properties/deals currently open in their pipeline."],["re","Reop",55,false,"Previously closed deals that were reopened."],["rn","R/N",50,false,"Reopened-to-New ratio. Higher = reusing old leads instead of finding new ones."],["of","Offers",65,true,"Total offers submitted. Green = on pace for monthly target."],["ng","Neg",50,false,"Deals currently in negotiation stage."],["ac","Acc",50,false,"Offers that were accepted by the seller."],["aq","Acq",55,false,"Deals fully acquired (closed). Target is 2 per month."]].map(([k,label,w,br,tip]) => (
                       <th key={k} onClick={() => toggleSort(k)} style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, color: sortCol === k ? "#F97316" : "#94A3B8", textTransform: "uppercase", textAlign: "center", minWidth: w, cursor: "pointer", userSelect: "none", borderRight: br ? "1px solid #E2E8F0" : "none", background: sortCol === k ? "#FFF7ED" : "transparent", transition: "color 0.15s" }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3 }}>
-                          {label}
+                          <Tip text={tip}>{label}</Tip>
                           <span style={{ fontSize: 8, opacity: sortCol === k ? 1 : 0.3 }}>{sortCol === k ? (sortDir === "desc" ? "\u25BC" : "\u25B2") : "\u25BC"}</span>
                         </div>
                       </th>
@@ -502,17 +502,17 @@ export default function App() {
             <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between" }}>
               <div><div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Visual grid showing every AA's feature usage across 7 categories. Colors indicate activity level — red is missing, green is active. Click any cell to see full event breakdown.">Heat map</Tip></div><div style={{ fontSize: 11, color: "#94A3B8" }}>61 events. Hover for 3-Track. Click to expand.</div></div>
               <div style={{ display: "flex", gap: 10 }}>
-                {[["#DC2626", "Miss"], ["#EA580C", "Gap"], ["#D97706", "Cool"], ["#10B981", "Active"]].map(([c, l]) => (
-                  <div key={l} style={{ display: "flex", alignItems: "center", gap: 3 }}><div style={{ width: 9, height: 9, borderRadius: 2, background: c }} /><span style={{ fontSize: 10, color: "#64748B" }}>{l}</span></div>
+                {[["#DC2626", "Miss", "Feature never used. AA hasn't tried this at all."], ["#EA580C", "Gap", "Feature used once or twice but not recently. Training gap."], ["#D97706", "Cool", "Feature was used but activity is cooling off."], ["#10B981", "Active", "Feature is being used regularly. On track."]].map(([c, l, tip]) => (
+                  <Tip key={l} text={tip}><div style={{ display: "flex", alignItems: "center", gap: 3 }}><div style={{ width: 9, height: 9, borderRadius: 2, background: c }} /><span style={{ fontSize: 10, color: "#64748B" }}>{l}</span></div></Tip>
                 ))}
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "24px 140px 48px repeat(7,1fr)", padding: "5px 10px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", alignItems: "center" }}>
               <div></div>
-              {[["user", "User"], ["ph", "Ph"]].map(([k, l]) => (
-                <div key={k} onClick={() => toggleHmSort(k)} style={{ cursor: "pointer", userSelect: "none", color: hmSort.col === k ? "#F97316" : "#94A3B8" }}>{l} {hmSort.col === k ? (hmSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div>
+              {[["user", "User", "Sort by AA name alphabetically."], ["ph", "Ph", "Sort by lifecycle phase (Onboarding → Activation → Performance)."]].map(([k, l, tip]) => (
+                <Tip key={k} text={tip}><div onClick={() => toggleHmSort(k)} style={{ cursor: "pointer", userSelect: "none", color: hmSort.col === k ? "#F97316" : "#94A3B8" }}>{l} {hmSort.col === k ? (hmSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div></Tip>
               ))}
-              {HL.map((h, i) => <div key={h} onClick={() => toggleHmSort("c" + i)} style={{ textAlign: "center", cursor: "pointer", userSelect: "none", color: hmSort.col === "c" + i ? "#F97316" : "#94A3B8" }}>{h} {hmSort.col === "c" + i ? (hmSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div>)}
+              {[["Plan", "Today's plan events — daily check-in, deal review, priorities, outreach."], ["Find", "Deal sourcing — MLS search, agent search, campaigns."], ["Comms", "Communication — calls, texts, emails, AI Connect, bulk actions."], ["Prop", "Property actions — notes, reminders, AI reports, favorites, to-dos."], ["Analysis", "Analysis tools — PIQ detail, comps matrix, investment analysis."], ["Offers", "Offer process — terms, contracts, negotiations, offer vs goal."], ["Tools", "Utility tools — My Stats, DispoPro, Quick Links, Script Practice, EOD Stats."]].map(([h, tip], i) => <Tip key={h} text={tip}><div onClick={() => toggleHmSort("c" + i)} style={{ textAlign: "center", cursor: "pointer", userSelect: "none", color: hmSort.col === "c" + i ? "#F97316" : "#94A3B8" }}>{h} {hmSort.col === "c" + i ? (hmSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div></Tip>)}
             </div>
             {[...fU].sort((a, b) => { if (!hmSort.col) return 0; const d = hmSort.dir; if (hmSort.col === "user") return a.n.localeCompare(b.n) * d; if (hmSort.col === "ph") return (a.ph - b.ph) * d; const ci = parseInt(hmSort.col.slice(1)); return (a.cs[ci].sc - b.cs[ci].sc) * d; }).map((u, ri) => (
               <div key={u.id}>
@@ -561,21 +561,21 @@ export default function App() {
                 <div key={u.id} style={{ background: "#FFF", border: "1px solid " + (u.ec >= 3 ? "#FECACA" : "#E2E8F0"), borderRadius: 10, padding: "14px 16px", borderLeft: "4px solid " + (hc[u.health] || "#94A3B8") }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 9, fontWeight: 800, color: "#fff", background: hc[u.health] || "#94A3B8", padding: "2px 8px", borderRadius: 3 }}>{hn[u.health] || "Unknown"}</span>
-                      <span style={{ fontSize: 14, fontWeight: 700 }}>{u.n}</span>
-                      <span style={{ fontSize: 11, color: "#94A3B8" }}>{O.find((o) => o.id === u.org)?.n}</span>
-                      <span style={{ fontSize: 10, color: "#64748B", background: "#F1F5F9", padding: "2px 6px", borderRadius: 3 }}>Day {u.day} {PN[u.ph]}</span>
-                      {u.ec >= 3 && <span style={{ fontSize: 9, color: "#DC2626", background: "#FEF2F2", padding: "2px 8px", borderRadius: 3, border: "1px solid #FECACA", fontWeight: 800 }}>3-STRIKE → Goes to AM</span>}
+                      <Tip text={"Health: " + (hn[u.health] || "Unknown") + ". " + (u.health === "red" ? "Needs immediate intervention." : u.health === "orange" ? "Falling behind on key metrics." : "Activity slowing — monitor closely.")}><span style={{ fontSize: 9, fontWeight: 800, color: "#fff", background: hc[u.health] || "#94A3B8", padding: "2px 8px", borderRadius: 3 }}>{hn[u.health] || "Unknown"}</span></Tip>
+                      <Tip text="Click the Preview button to see the coaching email for this AA."><span style={{ fontSize: 14, fontWeight: 700 }}>{u.n}</span></Tip>
+                      <Tip text={"Organization: " + (O.find((o) => o.id === u.org)?.n || "") + ". AM: " + (O.find((o) => o.id === u.org)?.am || "")}><span style={{ fontSize: 11, color: "#94A3B8" }}>{O.find((o) => o.id === u.org)?.n}</span></Tip>
+                      <Tip text={"This AA is on day " + u.day + " in the " + PN[u.ph] + " phase."}><span style={{ fontSize: 10, color: "#64748B", background: "#F1F5F9", padding: "2px 6px", borderRadius: 3 }}>Day {u.day} {PN[u.ph]}</span></Tip>
+                      {u.ec >= 3 && <Tip text="This AA has received 3+ coaching emails with no response. The email now escalates to their Account Manager."><span style={{ fontSize: 9, color: "#DC2626", background: "#FEF2F2", padding: "2px 8px", borderRadius: 3, border: "1px solid #FECACA", fontWeight: 800 }}>3-STRIKE → Goes to AM</span></Tip>}
                     </div>
-                    <button onClick={() => seV(bE(u))} style={{ fontSize: 11, fontWeight: 700, color: "#FFF", background: u.ec >= 3 ? "#DC2626" : "#F97316", border: "none", borderRadius: 6, padding: "6px 16px", cursor: "pointer", whiteSpace: "nowrap" }}>{u.ec >= 3 ? "Preview AM Email" : "Preview Email"}</button>
+                    <Tip text={u.ec >= 3 ? "Preview the escalation email that will be sent to this AA's Account Manager." : "Preview the coaching email generated for this AA based on their gaps and stats."}><button onClick={() => seV(bE(u))} style={{ fontSize: 11, fontWeight: 700, color: "#FFF", background: u.ec >= 3 ? "#DC2626" : "#F97316", border: "none", borderRadius: 6, padding: "6px 16px", cursor: "pointer", whiteSpace: "nowrap" }}>{u.ec >= 3 ? "Preview AM Email" : "Preview Email"}</button></Tip>
                   </div>
                   {ca && <div style={{ fontSize: 12, color: "#EA580C", fontWeight: 600, background: "#FFF7ED", padding: "6px 10px", borderRadius: 6, marginBottom: 8 }}>Why: {ca}</div>}
                   <div style={{ display: "flex", gap: 16, fontSize: 11, color: "#64748B" }}>
-                    <div><span style={{ color: "#94A3B8" }}>Yesterday:</span> <b style={{ color: yAct > 0 ? "#334155" : "#DC2626" }}>{u.y.ca} calls, {u.y.of} offers, {yAct} total touches</b></div>
+                    <Tip text="What this AA did yesterday. Red = zero activity. Includes calls, offers, and total touches (calls + texts + emails)."><div><span style={{ color: "#94A3B8" }}>Yesterday:</span> <b style={{ color: yAct > 0 ? "#334155" : "#DC2626" }}>{u.y.ca} calls, {u.y.of} offers, {yAct} total touches</b></div></Tip>
                     <div style={{ color: "#E2E8F0" }}>|</div>
-                    <div><span style={{ color: "#94A3B8" }}>Daily goal:</span> <b style={{ color: "#334155" }}>{u.g.ca} calls, {u.g.of} offers</b></div>
+                    <Tip text="The daily targets this AA should be hitting based on their phase. Calls and offers per day."><div><span style={{ color: "#94A3B8" }}>Daily goal:</span> <b style={{ color: "#334155" }}>{u.g.ca} calls, {u.g.of} offers</b></div></Tip>
                     <div style={{ color: "#E2E8F0" }}>|</div>
-                    <div><span style={{ color: "#94A3B8" }}>Emails sent:</span> <b style={{ color: u.ec >= 3 ? "#DC2626" : "#334155" }}>{u.ec}</b>{u.ec > 0 && <span style={{ color: "#DC2626" }}> (no response)</span>}</div>
+                    <Tip text={"Number of coaching emails sent to this AA with no response. At 3 strikes, emails go to the Account Manager instead." + (u.ec >= 3 ? " THIS AA HAS HIT 3 STRIKES." : "")}><div><span style={{ color: "#94A3B8" }}>Emails sent:</span> <b style={{ color: u.ec >= 3 ? "#DC2626" : "#334155" }}>{u.ec}</b>{u.ec > 0 && <span style={{ color: "#DC2626" }}> (no response)</span>}</div></Tip>
                   </div>
                 </div>
               );
@@ -614,7 +614,7 @@ export default function App() {
 
         {sel && user && (
           <div>
-            <button onClick={() => { ss(null); sE(null); }} style={{ fontSize: 11, color: "#F97316", background: "none", border: "none", cursor: "pointer", fontWeight: 600, marginBottom: 8 }}>&larr; Back</button>
+            <Tip text="Go back to the main list view."><button onClick={() => { ss(null); sE(null); }} style={{ fontSize: 11, color: "#F97316", background: "none", border: "none", cursor: "pointer", fontWeight: 600, marginBottom: 8 }}>&larr; Back</button></Tip>
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "16px 20px", marginBottom: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                 <div>
@@ -623,13 +623,13 @@ export default function App() {
                   {user.agenda && <div style={{ fontSize: 11, color: "#EA580C", fontWeight: 600, marginTop: 6 }}>{user.agenda}</div>}
                 </div>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  {[{ n: "Deals", v: user.s.aq, g: 2 }, { n: "Calls", v: user.s.ca, g: user.g.ca }, { n: "Offers", v: user.s.of, g: user.g.of * Math.min(user.day, 30) }].map((x) => (
-                    <div key={x.n} style={{ textAlign: "center" }}>
+                  {[{ n: "Deals", v: user.s.aq, g: 2, tip: "Deals acquired this month vs the 2/month target." }, { n: "Calls", v: user.s.ca, g: user.g.ca, tip: "Total calls made vs the daily call goal." }, { n: "Offers", v: user.s.of, g: user.g.of * Math.min(user.day, 30), tip: "Total offers submitted vs the monthly offer pace target." }].map((x) => (
+                    <Tip key={x.n} text={x.tip}><div style={{ textAlign: "center" }}>
                       <div style={{ fontSize: 20, fontWeight: 800, color: vc(x.v, x.g) }}>{x.v}</div>
                       <div style={{ fontSize: 9, color: "#94A3B8" }}>{x.n}/{x.g}</div>
-                    </div>
+                    </div></Tip>
                   ))}
-                  <button onClick={() => { seV(bE(user)); ss(null); }} style={{ padding: "8px 16px", fontSize: 11, fontWeight: 700, background: "#F97316", color: "#fff", border: "none", borderRadius: 7, cursor: "pointer", marginLeft: 8 }}>Send email</button>
+                  <Tip text="Generate and preview a coaching email for this AA."><button onClick={() => { seV(bE(user)); ss(null); }} style={{ padding: "8px 16px", fontSize: 11, fontWeight: 700, background: "#F97316", color: "#fff", border: "none", borderRadius: 7, cursor: "pointer", marginLeft: 8 }}>Send email</button></Tip>
                 </div>
               </div>
             </div>
@@ -702,8 +702,8 @@ export default function App() {
                   {isO && (
                     <div style={{ background: "#FAFBFC", border: "1px solid #E2E8F0", borderTop: "none", borderRadius: "0 0 8px 8px", padding: "4px 0" }}>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 75px 55px 75px 65px", padding: "4px 14px", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-                        {[["name", "Event", "left"], ["first", "First", "center"], ["count", "Count", "center"], ["last", "Last", "center"], ["st", "Status", "center"]].map(([k, label, align]) => (
-                          <div key={k} onClick={() => toggleEvSort(k)} style={{ textAlign: align, cursor: "pointer", userSelect: "none", color: evSort.col === k ? "#F97316" : "#94A3B8" }}>{label} {evSort.col === k ? (evSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div>
+                        {[["name", "Event", "left", "Name of the feature event tracked in FlipIQ."], ["first", "First", "center", "Date this feature was first used by the AA. 'never' = never tried."], ["count", "Count", "center", "Total number of times this feature has been used."], ["last", "Last", "center", "Most recent date this feature was used. 'never' = never tried."], ["st", "Status", "center", "3-Track score: Missing (never used), Gap (used once, not recently), Cooling (used but slowing), Active (regular use)."]].map(([k, label, align, tip]) => (
+                          <Tip key={k} text={tip}><div onClick={() => toggleEvSort(k)} style={{ textAlign: align, cursor: "pointer", userSelect: "none", color: evSort.col === k ? "#F97316" : "#94A3B8" }}>{label} {evSort.col === k ? (evSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div></Tip>
                         ))}
                       </div>
                       {[...user.ev[ci].events].sort((a, b) => { const c = evSort.col; const d = evSort.dir; if (c === "count" || c === "st") return (a[c] - b[c]) * d; const av = (c === "name" ? a.name : a[c]) || ""; const bv = (c === "name" ? b.name : b[c]) || ""; return av.localeCompare(bv) * d; }).map((ev, ei) => (
@@ -754,8 +754,8 @@ export default function App() {
             <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2 }}>Complete task</div>
             <div style={{ fontSize: 11, color: "#64748B", marginBottom: 12 }}>{U.find((u) => u.id === modal)?.n}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
-              {[["call", "Made a phone call"], ["text", "Sent a text"], ["email", "Sent coaching email"], ["notify_am", "Notified AM"], ["walkthrough", "Scheduled walkthrough"], ["other", "Other"]].map(([k, l]) => (
-                <button key={k} onClick={() => saT(k)} style={{ padding: "7px 10px", borderRadius: 6, border: aT === k ? "2px solid #F97316" : "1px solid #E2E8F0", background: aT === k ? "#FFF7ED" : "#FFF", cursor: "pointer", fontSize: 12, fontWeight: aT === k ? 700 : 500, textAlign: "left" }}>{l}</button>
+              {[["call", "Made a phone call", "You called this AA directly to coach them."], ["text", "Sent a text", "You sent a coaching text message to this AA."], ["email", "Sent coaching email", "You forwarded the generated coaching email to this AA."], ["notify_am", "Notified AM", "You escalated this AA to their Account Manager."], ["walkthrough", "Scheduled walkthrough", "You scheduled a screen-share walkthrough with this AA."], ["other", "Other", "Any other action you took for this AA."]].map(([k, l, tip]) => (
+                <Tip key={k} text={tip}><button onClick={() => saT(k)} style={{ padding: "7px 10px", borderRadius: 6, border: aT === k ? "2px solid #F97316" : "1px solid #E2E8F0", background: aT === k ? "#FFF7ED" : "#FFF", cursor: "pointer", fontSize: 12, fontWeight: aT === k ? 700 : 500, textAlign: "left" }}>{l}</button></Tip>
               ))}
             </div>
             <div style={{ marginBottom: 12 }}>
@@ -763,8 +763,8 @@ export default function App() {
               <textarea value={aN} onChange={(e) => saN(e.target.value)} placeholder="What happened?" style={{ width: "100%", minHeight: 55, padding: 8, borderRadius: 6, border: "1px solid #E2E8F0", fontSize: 12, fontFamily: "inherit", resize: "vertical", outline: "none" }} />
             </div>
             <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
-              <button onClick={() => { sm(null); saT(null); saN(""); }} style={{ padding: "6px 14px", fontSize: 12, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 6, cursor: "pointer" }}>Cancel</button>
-              <button onClick={doC} disabled={!aT} style={{ padding: "6px 14px", fontSize: 12, fontWeight: 700, color: "#fff", background: aT ? "#F97316" : "#CBD5E1", border: "none", borderRadius: 6, cursor: aT ? "pointer" : "default" }}>Complete</button>
+              <Tip text="Close without completing the task."><button onClick={() => { sm(null); saT(null); saN(""); }} style={{ padding: "6px 14px", fontSize: 12, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 6, cursor: "pointer" }}>Cancel</button></Tip>
+              <Tip text="Mark this task as done with the selected action."><button onClick={doC} disabled={!aT} style={{ padding: "6px 14px", fontSize: 12, fontWeight: 700, color: "#fff", background: aT ? "#F97316" : "#CBD5E1", border: "none", borderRadius: 6, cursor: aT ? "pointer" : "default" }}>Complete</button></Tip>
             </div>
           </div>
         </div>
