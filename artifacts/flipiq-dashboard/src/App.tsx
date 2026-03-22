@@ -399,9 +399,6 @@ export default function App() {
   const [exp, sE] = useState(null);
   const [evSort, setEvSort] = useState({ col: "name", dir: 1 });
   const toggleEvSort = (col) => setEvSort((p) => p.col === col ? { col, dir: -p.dir } : { col, dir: 1 });
-  const [hmSort, setHmSort] = useState({ col: null, dir: 1 });
-  const toggleHmSort = (col) => setHmSort((p) => p.col === col ? { col, dir: -p.dir } : { col, dir: 1 });
-  const [hC, sHC] = useState(null);
   const [dR, sDR] = useState("Today");
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState("desc");
@@ -610,7 +607,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
       </div>
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "0 24px", display: "flex" }}>
-        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 61 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."]].map(([t, label, tip]) => (
+        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."]].map(([t, label, tip]) => (
           <Tip key={t} text={tip}><button onClick={() => { st(t); ss(null); seV(null); sE(null); }} style={{ padding: "10px 14px", fontSize: 12, fontWeight: tab === t ? 700 : 500, color: tab === t ? "#F97316" : "#64748B", background: "none", border: "none", borderBottom: tab === t ? "2px solid #F97316" : "2px solid transparent", cursor: "pointer" }}>
             {label}
           </button></Tip>
@@ -853,47 +850,6 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           </div>
         )}
 
-        {tab === "heatmap" && !sel && (
-          <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
-            <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between" }}>
-              <div><div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Visual grid showing every AA's feature usage across 7 categories. Colors indicate activity level — red is missing, green is active. Click any cell to see full event breakdown.">Heat map</Tip></div><div style={{ fontSize: 11, color: "#94A3B8" }}>61 events. Hover for 3-Track. Click to expand.</div></div>
-              <div style={{ display: "flex", gap: 10 }}>
-                {[["#DC2626", "Miss", "Feature never used. AA hasn't tried this at all."], ["#EA580C", "Gap", "Feature used once or twice but not recently. Training gap."], ["#D97706", "Cool", "Feature was used but activity is cooling off."], ["#10B981", "Active", "Feature is being used regularly. On track."]].map(([c, l, tip]) => (
-                  <Tip key={l} text={tip}><div style={{ display: "flex", alignItems: "center", gap: 3 }}><div style={{ width: 9, height: 9, borderRadius: 2, background: c }} /><span style={{ fontSize: 10, color: "#64748B" }}>{l}</span></div></Tip>
-                ))}
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "24px 140px 48px repeat(7,1fr)", padding: "5px 10px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", alignItems: "center" }}>
-              <div></div>
-              {[["user", "User", "Sort by AA name alphabetically."], ["ph", "Ph", "Sort by lifecycle phase (Onboarding → Activation → Performance)."]].map(([k, l, tip]) => (
-                <Tip key={k} text={tip}><div onClick={() => toggleHmSort(k)} style={{ cursor: "pointer", userSelect: "none", color: hmSort.col === k ? "#F97316" : "#94A3B8" }}>{l} {hmSort.col === k ? (hmSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div></Tip>
-              ))}
-              {[["Plan", "Today's plan events — daily check-in, deal review, priorities, outreach."], ["Find", "Deal sourcing — MLS search, agent search, campaigns."], ["Comms", "Communication — calls, texts, emails, AI Connect, bulk actions."], ["Prop", "Property actions — notes, reminders, AI reports, favorites, to-dos."], ["Analysis", "Analysis tools — PIQ detail, comps matrix, investment analysis."], ["Offers", "Offer process — terms, contracts, negotiations, offer vs goal."], ["Tools", "Utility tools — My Stats, DispoPro, Quick Links, Script Practice, EOD Stats."]].map(([h, tip], i) => <Tip key={h} text={tip}><div onClick={() => toggleHmSort("c" + i)} style={{ textAlign: "center", cursor: "pointer", userSelect: "none", color: hmSort.col === "c" + i ? "#F97316" : "#94A3B8" }}>{h} {hmSort.col === "c" + i ? (hmSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div></Tip>)}
-            </div>
-            {[...fU].sort((a, b) => { if (!hmSort.col) return 0; const d = hmSort.dir; if (hmSort.col === "user") return a.n.localeCompare(b.n) * d; if (hmSort.col === "ph") return (a.ph - b.ph) * d; const ci = parseInt(hmSort.col.slice(1)); return (a.cs[ci].sc - b.cs[ci].sc) * d; }).map((u, ri) => (
-              <div key={u.id}>
-                <div style={{ display: "grid", gridTemplateColumns: "24px 140px 48px repeat(7,1fr)", padding: "5px 10px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", alignItems: "center" }}>
-                  <div style={{ width: 16, height: 16, borderRadius: 3, background: PLC[u.ps] + "15", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 800, color: PLC[u.ps] }}>{u.ps}</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }} onClick={() => ss(u.id)}>
-                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: HC[u.health] }} />
-                    <span style={{ fontSize: 11, fontWeight: 600 }}>{u.n}</span>
-                  </div>
-                  <div style={{ fontSize: 9, fontWeight: 600, color: PC[u.ph] }}>{PN[u.ph].slice(0, 3)}</div>
-                  {u.cs.map((cs, ci) => (
-                    <div key={ci} style={{ display: "flex", justifyContent: "center" }}
-                      onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); sHC({ uid: u.id, ci, x: r.left, y: r.bottom + 4 }); }}
-                      onMouseLeave={() => sHC(null)}
-                      onClick={() => { ss(u.id); sE({ u: u.id, c: ci }); sHC(null); }}>
-                      <div style={{ width: 50, height: 22, borderRadius: 4, background: HMBG[cs.sc], border: "1.5px solid " + HMC[cs.sc] + "60", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                        <span style={{ fontSize: 9, fontWeight: 700, color: HMC[cs.sc] }}>{cs.ac}/{cs.t}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
         {tab === "emails" && !eV && (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -1343,29 +1299,6 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         )}
       </div>
 
-      {hC && !sel && tab === "heatmap" && (() => {
-        const u = U.find((x) => x.id === hC.uid);
-        const cs = u?.cs[hC.ci];
-        if (!u || !cs) return null;
-        return (
-          <div style={{ position: "fixed", left: Math.min(hC.x, 900), top: hC.y, width: 250, background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "10px 12px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", zIndex: 100, pointerEvents: "none" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{C[hC.ci].n}</div>
-            <div style={{ display: "flex", gap: 12, marginBottom: 6, fontSize: 11 }}>
-              <div>Active: <span style={{ fontWeight: 600, color: "#10B981" }}>{cs.ac}</span>/{cs.t}</div>
-              <div>Missing: <span style={{ fontWeight: 600, color: cs.mi > 0 ? "#DC2626" : "#64748B" }}>{cs.mi}</span></div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
-              {[{ l: "First", v: cs.fa }, { l: "Uses", v: cs.tc }, { l: "Last", v: cs.la }].map((x) => (
-                <div key={x.l} style={{ background: "#F8FAFB", borderRadius: 4, padding: "4px 6px", textAlign: "center" }}>
-                  <div style={{ fontSize: 9, color: "#94A3B8" }}>{x.l}</div>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: x.v ? "#334155" : "#DC2626" }}>{x.v || "never"}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ fontSize: 9, color: "#94A3B8", marginTop: 6 }}>Click to expand</div>
-          </div>
-        );
-      })()}
 
       {commLog && (() => {
         const eh = gEH(commLog);
