@@ -248,6 +248,28 @@ function gEH(u) {
     else if (targets.length > 0) su = "Today's focus: " + targets.map((t) => t.name).slice(0, 2).join(" + ") + (vObj ? " [" + vObj[1] + " video]" : "");
     else su = "FlipiQ Daily Update \u2014 Day " + (u.day - daysAgo);
     const ty = escalated ? "escalation" : u.health === "red" ? "onboarding" : acted.length > 0 ? "coaching" : gaps.length > 0 || cooling.length > 0 ? "reactivation" : "coaching";
+    const nm = u.n.split(" ")[0];
+    const dayThen = u.day - daysAgo;
+    let body;
+    if (escalated) {
+      const o = O.find((x) => x.id === u.org);
+      body = "Hi " + (o?.am || "AM") + ",\n\n" + u.n + " received " + u.ec + " coaching emails, needs AM review.\n\nPhase: " + PN[u.ph] + ", Day " + dayThen + "\nCalls: " + u.s.ca + " (goal: " + u.g.ca + ")\nOffers: " + u.s.of + "\nGaps: " + u.gaps.join(", ") + "\n\nPlease intervene.\n\n\u2014 Ramy";
+    } else {
+      body = "Good morning " + nm + ",\n\n";
+      if (acted.length > 0) { body += "PROGRESS:\n"; acted.forEach((a) => (body += "\u2713 " + a.name + " \u2014 done!\n")); body += "\n"; }
+      body += "Day " + dayThen + " " + PN[u.ph] + ".\n\n";
+      if (targets.length > 0) {
+        body += "FOCUS (" + targets.length + " events):\n";
+        targets.forEach((t, ti) => {
+          const stLabel = t.st === 0 ? "Never used" : t.st === 1 ? "Used once, dropped" : "Gone cold";
+          body += (ti + 1) + ". " + t.name + " (" + t.cat + ") \u2014 " + stLabel + "\n   " + t.tip + "\n";
+        });
+        body += "\n";
+      }
+      if (ignored.length > 0) body += "STILL PENDING:\n" + ignored.map((a) => "\u2022 " + a.name).join("\n") + "\n\n";
+      if (vObj) body += "\u25B6 WATCH (" + vObj[1] + "): " + vObj[0] + "\n\n";
+      body += "TARGETS: " + u.g.ca + "C " + u.g.of + "O " + u.g.ct + "ct\n\niQ Help Bot \u2014 chat icon in COMMAND.\n\n\u2014 Ramy";
+    }
     hist.push({
       id: i + 1,
       ts: dt.getTime(),
@@ -261,6 +283,7 @@ function gEH(u) {
       video: vObj ? { key: vidKey, title: vObj[0], dur: vObj[1] } : null,
       acted: acted.map((a) => a.name),
       ignored: ignored.map((a) => a.name),
+      body,
     });
   }
   return hist;
@@ -370,7 +393,8 @@ export default function App() {
   const [aN, saN] = useState("");
   const [sel, ss] = useState(null);
   const [tab, st] = useState("overview");
-  const [eV, seV] = useState(null);
+  const [eV, seV_] = useState(null);
+  const seV = (v) => { seV_(v); setExpHist({}); };
   const [commLog, setCommLog] = useState(null);
   const [exp, sE] = useState(null);
   const [evSort, setEvSort] = useState({ col: "name", dir: 1 });
@@ -387,6 +411,7 @@ export default function App() {
   const [aiSummary, setAiSummary] = useState(null);
   const [aiSumLoading, setAiSumLoading] = useState(false);
   const [prevAiUser, setPrevAiUser] = useState(null);
+  const [expHist, setExpHist] = useState({});
   const aiEndRef = useRef(null);
 
   const tog = (k, v) => sf((f) => ({ ...f, [k]: f[k] === v ? null : v }));
@@ -676,6 +701,85 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               <Tip text="Mark this AA's task as done with action type 'email' and close the preview."><button onClick={() => { sm(eV.uid); saT("email"); saN(""); seV(null); }} style={{ padding: "8px 20px", fontSize: 12, fontWeight: 700, background: "#F97316", color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Forward and complete</button></Tip>
               <Tip text="Close the email preview without taking action."><button onClick={() => seV(null)} style={{ padding: "8px 20px", fontSize: 12, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 7, cursor: "pointer" }}>Cancel</button></Tip>
             </div>
+            {(() => {
+              const usr = U.find((u) => u.id === eV.uid);
+              if (!usr) return null;
+              const allHist = gEH(usr);
+              const tyC = { coaching: "#F97316", onboarding: "#3B82F6", reactivation: "#8B5CF6", reminder: "#D97706", escalation: "#DC2626" };
+              const tyL = { coaching: "Coaching", onboarding: "Onboarding", reactivation: "Reactivation", reminder: "Reminder", escalation: "Escalation" };
+              const stC = { 0: { bg: "#FEE2E2", c: "#DC2626", l: "Missing" }, 1: { bg: "#FFF7ED", c: "#EA580C", l: "Gap" }, 2: { bg: "#FEFCE8", c: "#CA8A04", l: "Cooling" } };
+              const todayEmail = bE(usr);
+              const fullList = [{ id: 0, date: "Today", time: "Next send", subject: todayEmail.su, type: eV.ie ? "escalation" : "coaching", to: todayEmail.to, escalated: eV.ie, targets: todayEmail.targets || [], video: todayEmail.video, acted: [], ignored: [], isCurrent: true, body: todayEmail.bo }, ...allHist.sort((a, b) => b.ts - a.ts)];
+              return (
+                <div style={{ marginTop: 18 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
+                    <Tip text="Complete email history for this AA. Shows every email sent with event targets, video, and what was acted on or ignored. Click any row to expand and see the full email body.">
+                      All emails ({fullList.length})
+                    </Tip>
+                  </div>
+                  <div style={{ border: "1px solid #E2E8F0", borderRadius: 8, overflow: "hidden" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "70px 55px 1fr 80px 65px", padding: "6px 12px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
+                      <div>Date</div><div>Time</div><div>Subject</div><div>Type</div><div>Status</div>
+                    </div>
+                    {fullList.map((e) => {
+                      const isExp = expHist[e.id + "_" + (e.isCurrent ? "cur" : "past")];
+                      const hKey = e.id + "_" + (e.isCurrent ? "cur" : "past");
+                      const actedCount = e.acted?.length || 0;
+                      const totalTargets = e.targets?.length || 0;
+                      const statusLabel = e.isCurrent ? "Queued" : actedCount > 0 ? actedCount + "/" + totalTargets + " done" : totalTargets > 0 ? "Sent" : "Sent";
+                      const statusColor = e.isCurrent ? "#3B82F6" : actedCount === totalTargets && totalTargets > 0 ? "#16A34A" : actedCount > 0 ? "#F97316" : "#64748B";
+                      return (
+                        <div key={hKey}>
+                          <div onClick={() => setExpHist((p) => ({ ...p, [hKey]: !p[hKey] }))} style={{ display: "grid", gridTemplateColumns: "70px 55px 1fr 80px 65px", padding: "8px 12px", borderBottom: "1px solid #F1F5F9", background: e.isCurrent ? "#FFFBEB" : isExp ? "#F8FAFB" : "#FFF", cursor: "pointer", fontSize: 11, alignItems: "center", transition: "background 0.15s" }}>
+                            <div style={{ fontWeight: 600, color: e.isCurrent ? "#F97316" : "#64748B" }}>{e.date}</div>
+                            <div style={{ color: "#94A3B8", fontSize: 10 }}>{e.time}</div>
+                            <div style={{ fontWeight: 600, color: e.escalated ? "#DC2626" : "#334155", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 8 }}>
+                              <span style={{ marginRight: 4, fontSize: 9, color: "#94A3B8" }}>{isExp ? "\u25BC" : "\u25B6"}</span>
+                              {e.subject}
+                            </div>
+                            <div><span style={{ fontSize: 8, fontWeight: 700, color: "#FFF", background: tyC[e.type] || "#94A3B8", padding: "2px 6px", borderRadius: 3, textTransform: "uppercase" }}>{tyL[e.type]}</span></div>
+                            <div style={{ fontSize: 10, fontWeight: 600, color: statusColor }}>{statusLabel}</div>
+                          </div>
+                          {isExp && (
+                            <div style={{ padding: "10px 16px 14px", borderBottom: "1px solid #E2E8F0", background: "#FAFBFC" }}>
+                              {e.targets && e.targets.length > 0 && (
+                                <div style={{ marginBottom: 8 }}>
+                                  <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 4 }}>Event targets</div>
+                                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                                    {e.targets.map((t, ti) => {
+                                      const sc = stC[t.st] || stC[0];
+                                      const wasActed = e.acted?.includes(t.name);
+                                      return (
+                                        <Tip key={ti} text={t.tip + (wasActed ? " \u2014 Completed!" : " \u2014 " + sc.l)}>
+                                          <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 3, background: wasActed ? "#F0FDF4" : sc.bg, color: wasActed ? "#16A34A" : sc.c, fontWeight: 600, textDecoration: wasActed ? "line-through" : "none" }}>
+                                            {wasActed ? "\u2713 " : ""}{t.name} <span style={{ fontWeight: 400, fontSize: 7 }}>({wasActed ? "Done" : sc.l})</span>
+                                          </span>
+                                        </Tip>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              {e.video && (
+                                <div style={{ marginBottom: 8, fontSize: 10, color: "#0369A1", display: "flex", alignItems: "center", gap: 4 }}>
+                                  <span>{"\u25B6"}</span> <b>{e.video.title}</b> ({e.video.dur})
+                                </div>
+                              )}
+                              <div style={{ display: "flex", gap: 12, marginBottom: 8, fontSize: 10 }}>
+                                <div><span style={{ color: "#94A3B8" }}>To:</span> <b style={{ color: "#334155" }}>{e.to}</b>{e.escalated ? " (AM)" : ""}</div>
+                                {e.acted && e.acted.length > 0 && <div><span style={{ color: "#16A34A", fontWeight: 600 }}>{e.acted.length} acted on</span></div>}
+                                {e.ignored && e.ignored.length > 0 && <div><span style={{ color: "#DC2626", fontWeight: 600 }}>{e.ignored.length} ignored</span></div>}
+                              </div>
+                              <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 6, padding: 12, fontSize: 11, color: "#334155", lineHeight: 1.7, whiteSpace: "pre-line", maxHeight: 300, overflowY: "auto" }}>{e.body}</div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
