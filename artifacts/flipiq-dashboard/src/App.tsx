@@ -289,12 +289,12 @@ export default function App() {
         <div style={{ flex: 1 }} />
 
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-          <div style={{ background: "linear-gradient(135deg,#FFF7ED,#FFF)", border: "1px solid #FED7AA", borderRadius: 12, padding: "14px 28px" }}>
+          <div>
             <div style={{ fontSize: 10, fontWeight: 700, color: "#F97316", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}><Tip text="The single North Star metric every AA is measured against. Hit this and everything else follows.">Atomic KPI</Tip></div>
             <div style={{ fontSize: 20, fontWeight: 800 }}><Tip text="Each AA must close at least 2 deals per month. This is the minimum acquisition target across all orgs.">2 Deals per Month per AA</Tip></div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 18, background: "linear-gradient(135deg,#FFF7ED,#FFF)", border: "1px solid #FED7AA", borderRadius: 12, padding: "14px 24px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
             <div style={{ position: "relative", width: 60, height: 60 }}>
               <svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="#F1F5F9" strokeWidth="5" /><circle cx="30" cy="30" r="24" fill="none" stroke={pct >= 75 ? "#10B981" : pct >= 50 ? "#D97706" : "#DC2626"} strokeWidth="5" strokeLinecap="round" strokeDasharray={pct * 1.508 + " 150.8"} transform="rotate(-90 30 30)" /></svg>
               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800 }}>{pct}%</div>
