@@ -283,7 +283,6 @@ export default function App() {
           <img src={import.meta.env.BASE_URL + "flipiq-logo.png"} alt="FlipIQ" style={{ height: 132, width: "auto" }} />
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.4 }}>FlipIQ COMMAND CENTER</div>
-            <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>Together, We Flip Smarter</div>
           </div>
         </div>
 
@@ -292,8 +291,7 @@ export default function App() {
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
           <div style={{ background: "linear-gradient(135deg,#FFF7ED,#FFF)", border: "1px solid #FED7AA", borderRadius: 12, padding: "14px 28px" }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: "#F97316", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}><Tip text="The single North Star metric every AA is measured against. Hit this and everything else follows.">Atomic KPI</Tip></div>
-            <div style={{ fontSize: 20, fontWeight: 800 }}><Tip text="Each AA must close at least 2 deals per month. This is the minimum acquisition target across all orgs.">2 Deals / Month / Person</Tip></div>
-            <div style={{ fontSize: 11, color: "#64748B", marginTop: 4 }}>= Big Bucks for All <b style={{ color: "#F97316" }}>Ramy, get us to big bucks!!!</b></div>
+            <div style={{ fontSize: 20, fontWeight: 800 }}><Tip text="Each AA must close at least 2 deals per month. This is the minimum acquisition target across all orgs.">2 Deals per Month per AA</Tip></div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 18, background: "linear-gradient(135deg,#FFF7ED,#FFF)", border: "1px solid #FED7AA", borderRadius: 12, padding: "14px 24px" }}>
