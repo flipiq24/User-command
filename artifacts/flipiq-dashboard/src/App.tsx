@@ -831,26 +831,15 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10 }}>
                     {pipe.map((p, pi) => {
                       const pct2 = Math.min(100, Math.round((p.v / p.max) * 100));
-                      const r = 22;
-                      const circ = 2 * Math.PI * r;
-                      const dash = (pct2 / 100) * circ;
                       const trend = mkTrend(p.v, user.day, p.seed + user.id);
                       const trendUp = trend.length >= 2 && trend[trend.length - 1] >= trend[trend.length - 2];
                       return (
                         <Tip key={p.n} text={p.tip}><div style={{ background: p.bg, border: "1px solid " + p.bc, borderRadius: 10, padding: "14px 12px", textAlign: "center", position: "relative" }}>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: p.color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>{p.n}</div>
-                          <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
-                            <div style={{ position: "relative", width: 52, height: 52 }}>
-                              <svg width="52" height="52" viewBox="0 0 52 52">
-                                <circle cx="26" cy="26" r={r} fill="none" stroke={p.bc} strokeWidth="4" />
-                                <circle cx="26" cy="26" r={r} fill="none" stroke={p.color} strokeWidth="4" strokeLinecap="round" strokeDasharray={dash + " " + circ} transform="rotate(-90 26 26)" style={{ transition: "stroke-dasharray 0.5s" }} />
-                              </svg>
-                              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: p.color }}>{p.v}</div>
-                            </div>
-                          </div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: p.color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>{p.n}</div>
+                          <div style={{ fontSize: 20, fontWeight: 800, color: p.color, marginBottom: 2 }}>{p.v}</div>
                           <div style={{ fontSize: 10, color: "#64748B", marginBottom: 6 }}>{pct2}% of {p.max}</div>
                           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 4 }}>
-                            <Spark data={trend} color={p.color} />
+                            <Spark data={trend} color={p.color} w={90} h={32} />
                             <span style={{ fontSize: 8, fontWeight: 700, color: trendUp ? "#10B981" : "#DC2626" }}>{trendUp ? "\u25B2" : "\u25BC"}</span>
                           </div>
                           <div style={{ fontSize: 8, color: "#94A3B8", marginTop: 2 }}>{Math.min(user.day, 7)}d trend</div>
@@ -954,9 +943,6 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               const adopted = active + cooling;
               const pct = Math.round((adopted / total) * 100);
               const newEv = allEv.filter((e) => e.st >= 1 && e.first && parseInt(e.first.replace("Mar ", "")) >= 19);
-              const r = 38; const cx = 48; const cy = 48; const stroke = 8;
-              const circ = 2 * Math.PI * r;
-              const dash = circ * (pct / 100);
               const legend = [
                 { label: "Active", color: "#10B981", count: active },
                 { label: "Cooling", color: "#D97706", count: cooling },
@@ -966,21 +952,20 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               return (
                 <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, padding: "16px 18px", marginBottom: 12 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>
-                    <Tip text="Visual breakdown of feature adoption across 61 events in 7 categories. Shows what's actively used, cooling off, has gaps, or is completely unused. The progress ring shows the overall adoption rate (Active + Cooling events).">Feature Adoption</Tip>
+                    <Tip text="Visual breakdown of feature adoption across 61 events in 7 categories. Shows what's actively used, cooling off, has gaps, or is completely unused. The progress bar shows the overall adoption rate (Active + Cooling events).">Feature Adoption</Tip>
                     <span style={{ fontSize: 11, color: "#94A3B8", fontWeight: 400, marginLeft: 8 }}>{adopted}/{total} adopted ({pct}%)</span>
                   </div>
-                  <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-                    <div style={{ position: "relative", width: 96, height: 96, flexShrink: 0 }}>
-                      <svg viewBox="0 0 96 96" width={96} height={96}>
-                        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F1F5F9" strokeWidth={stroke} />
-                        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F97316" strokeWidth={stroke} strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={circ / 4} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.5s" }} />
-                      </svg>
-                      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                        <span style={{ fontSize: 22, fontWeight: 800, color: "#F97316" }}>{pct}%</span>
-                        <span style={{ fontSize: 8, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 0.5 }}>adopted</span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ flex: 1, height: 20, background: "#F1F5F9", borderRadius: 6, overflow: "hidden", display: "flex" }}>
+                        {active > 0 && <div style={{ width: (active / total * 100) + "%", background: "#10B981", height: "100%", transition: "width 0.5s" }} />}
+                        {cooling > 0 && <div style={{ width: (cooling / total * 100) + "%", background: "#D97706", height: "100%", transition: "width 0.5s" }} />}
+                        {gap > 0 && <div style={{ width: (gap / total * 100) + "%", background: "#EA580C", height: "100%", transition: "width 0.5s" }} />}
+                        {unused > 0 && <div style={{ width: (unused / total * 100) + "%", background: "#FEE2E2", height: "100%", transition: "width 0.5s" }} />}
                       </div>
+                      <span style={{ fontSize: 16, fontWeight: 800, color: "#F97316", flexShrink: 0 }}>{pct}%</span>
                     </div>
-                    <div style={{ flex: 1 }}>
+                    <div>
                       <div style={{ display: "flex", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
                         {legend.map((l) => (
                           <Tip key={l.label} text={l.label + ": " + l.count + " of " + total + " events — " + (l.label === "Active" ? "regularly used features" : l.label === "Cooling" ? "usage slowing down" : l.label === "Gap" ? "used once, not recently" : "never used")}>
