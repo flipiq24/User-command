@@ -267,16 +267,14 @@ export default function App() {
       </div>
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0" }}>
-        <div style={{ padding: "10px 24px", borderBottom: "1px solid #F1F5F9", display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8", minWidth: 48 }}>ORG</span>
+        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}>ORG</span>
           <select value={flt.org || "all"} onChange={(e) => sf((f) => ({ ...f, org: e.target.value === "all" ? null : +e.target.value }))} style={{ padding: "6px 32px 6px 12px", fontSize: 13, fontWeight: 500, border: "1px solid #E2E8F0", borderRadius: 8, background: "#FFF", appearance: "none", WebkitAppearance: "none", cursor: "pointer", minWidth: 200, backgroundImage: sel0, backgroundRepeat: "no-repeat", backgroundPosition: "right 10px center" }}>
             <option value="all">All organizations ({U.length})</option>
             {O.map((o) => <option key={o.id} value={o.id}>{o.n} ({U.filter((u) => u.org === o.id).length})</option>)}
           </select>
-        </div>
-
-        <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8", minWidth: 48 }}>PHASE</span>
+          <div style={{ width: 1, height: 28, background: "#E2E8F0", margin: "0 4px" }} />
+          <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}>PHASE</span>
           <div style={{ display: "flex", gap: 8 }}>
             {[{ p: 1, n: "Onboarding", d: "Days 1-7", c: "#0C447C", bc: "#85B7EB", bg: "#E6F1FB" }, { p: 2, n: "Activation", d: "Days 8-21", c: "#854F0B", bc: "#EF9F27", bg: "#FAEEDA" }, { p: 3, n: "Performance", d: "Day 22+", c: "#085041", bc: "#5DCAA5", bg: "#E1F5EE" }].map((x) => (
               <div key={x.p} onClick={() => tog("phase", x.p)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", borderRadius: 8, border: flt.phase === x.p ? "1.5px solid " + x.bc : "1px solid #E2E8F0", background: flt.phase === x.p ? x.bg : "#FAFBFC", cursor: "pointer", minWidth: 150 }}>
