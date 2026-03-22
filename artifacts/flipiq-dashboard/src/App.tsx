@@ -300,8 +300,8 @@ export default function App() {
               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800 }}>{pct}%</div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 34, fontWeight: 800, color: "#F97316", lineHeight: 1 }}>{td}</div>
-              <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 4 }}>deals / {tgt} target</div>
+              <div style={{ fontSize: 34, fontWeight: 800, lineHeight: 1 }}><span style={{ color: "#F97316" }}>{td}</span><span style={{ color: "#94A3B8", fontSize: 18, fontWeight: 600 }}> / {tgt}</span></div>
+              <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 4 }}>deals closed / target</div>
             </div>
           </div>
 
