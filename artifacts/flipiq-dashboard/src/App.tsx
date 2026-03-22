@@ -326,7 +326,6 @@ function bE(u) {
   const s = u.s;
   const { missing, gaps, cooling } = gME(u);
   const prevHist = gEH(u);
-  const prevSent = prevHist.flatMap((h) => h.targets?.map((t) => t.name) || []);
   const prevActed = prevHist.flatMap((h) => h.acted || []);
   const prevIgnored = prevHist.flatMap((h) => h.ignored || []);
   const priority = [...missing.filter((e) => !prevActed.includes(e.name)), ...gaps.filter((e) => !prevActed.includes(e.name)), ...cooling.filter((e) => prevIgnored.includes(e.name))];
@@ -1055,7 +1054,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               <div style={{ fontSize: 10, color: "#94A3B8" }}>Every email: yesterday data + event targets + phase-matched video + iQ Help Bot. System tracks sent vs. used vs. ignored daily.</div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "40px 45px 140px 1fr 70px 140px 40px 1fr", padding: "5px 8px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-              <div><Tip text="Which phase this rule applies to: P1 (Onboarding), P2 (Activation), P3 (Performance), or ALL.">Ph</Tip></div><div><Tip text="When the rule fires: Daily, at specific day milestones (D3, D14, etc.), or after inactivity periods (7+d).">When</Tip></div><div><Tip text="The specific behavior or condition that triggers the email. E.g., 'Calls below 30/day' or 'Feature unused 7d'.">Trigger</Tip></div><div><Tip text="What the coaching email says — the specific message or subject line sent to the AA.">Email</Tip></div><div><Tip text="Which training video is linked in the email. Shows the specific feature or skill the AA needs help with.">Video</Tip></div><div><Tip text="Which of the 61 tracked FlipIQ events this rule targets. (dynamic) means the system picks the specific unused event for that AA.">Events</Tip></div><div><Tip text="Who receives the email: AA (the associate), AM (account manager), or both AA+AM.">To</Tip></div><div><Tip text="What happens if the AA doesn't respond to the email. Escalation path — e.g., 'Flag', 'call', or 'Escalate' to AM.">No resp</Tip></div>
+              <div><Tip text="Which phase this rule applies to: P1 (Onboarding), P2 (Activation), P3 (Performance), or ALL.">Ph</Tip></div><div><Tip text="When the rule fires: Daily, at specific day milestones (D3, D14, etc.), or after inactivity periods (7+d).">When</Tip></div><div><Tip text="The specific behavior or condition that triggers the email. E.g., 'Calls below 30/day' or 'Feature unused 7d'.">Trigger</Tip></div><div><Tip text="What the coaching email says — the specific message or subject line sent to the AA.">Email</Tip></div><div><Tip text="Which training video is linked in the email. Shows the specific feature or skill the AA needs help with.">Video</Tip></div><div><Tip text="Which of the 61 tracked FlipiQ events this rule targets. (dynamic) means the system picks the specific unused event for that AA.">Events</Tip></div><div><Tip text="Who receives the email: AA (the associate), AM (account manager), or both AA+AM.">To</Tip></div><div><Tip text="What happens if the AA doesn't respond to the email. Escalation path — e.g., 'Flag', 'call', or 'Escalate' to AM.">No resp</Tip></div>
             </div>
             {EL.map((r, i) => {
               const strike = r.tr.includes("0 response");
@@ -1344,7 +1343,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               );
             })()}
 
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}><Tip text="3-Track scoring of 61 FlipIQ features across 7 categories. Each event is scored: First use (ever used?), Recency (used recently?), Frequency (how often?). Colors: red=missing, orange=gap, yellow=cooling, green=active.">Feature usage</Tip> &mdash; 61 events</div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}><Tip text="3-Track scoring of 61 FlipiQ features across 7 categories. Each event is scored: First use (ever used?), Recency (used recently?), Frequency (how often?). Colors: red=missing, orange=gap, yellow=cooling, green=active.">Feature usage</Tip> &mdash; 61 events</div>
             {C.map((cat, ci) => {
               const cs = user.cs[ci];
               const isO = exp && exp.u === user.id && exp.c === ci;
@@ -1371,7 +1370,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   {isO && (
                     <div style={{ background: "#FAFBFC", border: "1px solid #E2E8F0", borderTop: "none", borderRadius: "0 0 8px 8px", padding: "4px 0" }}>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 75px 55px 75px 65px", padding: "4px 14px", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-                        {[["name", "Event", "left", "Name of the feature event tracked in FlipIQ."], ["first", "First", "center", "Date this feature was first used by the AA. 'never' = never tried."], ["count", "Count", "center", "Total number of times this feature has been used."], ["last", "Last", "center", "Most recent date this feature was used. 'never' = never tried."], ["st", "Status", "center", "3-Track score: Missing (never used), Gap (used once, not recently), Cooling (used but slowing), Active (regular use)."]].map(([k, label, align, tip]) => (
+                        {[["name", "Event", "left", "Name of the feature event tracked in FlipiQ."], ["first", "First", "center", "Date this feature was first used by the AA. 'never' = never tried."], ["count", "Count", "center", "Total number of times this feature has been used."], ["last", "Last", "center", "Most recent date this feature was used. 'never' = never tried."], ["st", "Status", "center", "3-Track score: Missing (never used), Gap (used once, not recently), Cooling (used but slowing), Active (regular use)."]].map(([k, label, align, tip]) => (
                           <Tip key={k} text={tip}><div onClick={() => toggleEvSort(k)} style={{ textAlign: align, cursor: "pointer", userSelect: "none", color: evSort.col === k ? "#F97316" : "#94A3B8" }}>{label} {evSort.col === k ? (evSort.dir === 1 ? "\u25B2" : "\u25BC") : ""}</div></Tip>
                         ))}
                       </div>
