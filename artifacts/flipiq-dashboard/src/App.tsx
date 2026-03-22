@@ -44,6 +44,70 @@ const V = {
   priority: ["Priority Mgmt", "60s"],
   agentprofile: ["Agent Profile", "90s"],
 };
+const EV = {
+  "iQ Check-In": { vid: "nav", ph: [1,2,3], tip: "Start every day with your iQ Check-In" },
+  "Report blockers": { vid: "nav", ph: [1,2,3], tip: "Report what's blocking your progress" },
+  "Open Deal Review": { vid: "nav", ph: [1,2,3], tip: "Review your active deals daily" },
+  "Review Critical Calls": { vid: "outreach", ph: [1,2,3], tip: "Follow up on your highest-priority calls" },
+  "Process New Deals": { vid: "nav", ph: [1,2,3], tip: "Process incoming deals quickly" },
+  "Open Daily Outreach": { vid: "outreach", ph: [1,2,3], tip: "Open your outreach queue and start calling" },
+  "Call from Outreach": { vid: "outreach", ph: [1,2,3], tip: "Make calls directly from your outreach list" },
+  "Open My Active Deals": { vid: "nav", ph: [1,2,3], tip: "Check on your active pipeline" },
+  "Open MLS Hot Deals": { vid: "nav", ph: [1,2], tip: "Find new hot deals on MLS" },
+  "Filter Hot Deals": { vid: "nav", ph: [1,2], tip: "Filter MLS results to find the best deals" },
+  "Open MLS Search": { vid: "nav", ph: [1,2], tip: "Use MLS search to find properties" },
+  "Apply MLS filters": { vid: "nav", ph: [1,2], tip: "Apply filters to narrow MLS results" },
+  "Save a filter": { vid: "nav", ph: [1,2], tip: "Save your best search filters" },
+  "Open Agent Search": { vid: "agentprofile", ph: [2,3], tip: "Search for agents in your area" },
+  "Search agents": { vid: "agentprofile", ph: [2,3], tip: "Find and connect with listing agents" },
+  "Open Agent Profile": { vid: "agentprofile", ph: [2,3], tip: "View agent profiles before calling" },
+  "Open Campaigns": { vid: "campaigns", ph: [2,3], tip: "Launch targeted outreach campaigns" },
+  "Select campaign": { vid: "campaigns", ph: [2,3], tip: "Choose the right campaign for your market" },
+  "Send campaign": { vid: "campaigns", ph: [2,3], tip: "Send your campaigns to new agents" },
+  "Call agent": { vid: "outreach", ph: [1,2,3], tip: "Pick up the phone and call an agent" },
+  "Text agent": { vid: "outreach", ph: [1,2,3], tip: "Send a text to start a conversation" },
+  "Email agent": { vid: "outreach", ph: [1,2,3], tip: "Email an agent about a deal" },
+  "AI Connect": { vid: "outreach", ph: [2,3], tip: "Use AI Connect for smart outreach" },
+  "Bulk Call": { vid: "outreach", ph: [2,3], tip: "Make calls in bulk to save time" },
+  "Bulk Text": { vid: "outreach", ph: [2,3], tip: "Send bulk texts to your agent list" },
+  "Add Note": { vid: "property", ph: [1,2,3], tip: "Add notes to every deal you work" },
+  "Reminder": { vid: "property", ph: [1,2,3], tip: "Set reminders so deals don't slip" },
+  "AI Report": { vid: "property", ph: [2,3], tip: "Generate AI reports for deal analysis" },
+  "Follow-Up": { vid: "property", ph: [1,2,3], tip: "Follow up on every conversation" },
+  "To Do": { vid: "property", ph: [1,2,3], tip: "Track your to-dos for each deal" },
+  "PIQ Detail": { vid: "ia", ph: [2,3], tip: "Analyze property investment quality" },
+  "Comps Map": { vid: "comps", ph: [2,3], tip: "Use Comps Map to evaluate deals" },
+  "Comps Matrix": { vid: "comps", ph: [2,3], tip: "Compare comps side by side" },
+  "Investment Analysis": { vid: "ia", ph: [2,3], tip: "Run full investment analysis before offering" },
+  "Offer Terms": { vid: "offer", ph: [2,3], tip: "Set your offer terms and submit" },
+  "Submit Contract": { vid: "offer", ph: [2,3], tip: "Submit your contract for the deal" },
+  "Offer vs goal": { vid: "offer", ph: [2,3], tip: "Track your offers against your goal" },
+  "No Props in priorities": { vid: "priority", ph: [1,2,3], tip: "Make sure you have properties set in your priorities" },
+  "Review High Priority": { vid: "priority", ph: [1,2,3], tip: "Review your high-priority deals first" },
+  "Review Med Priority": { vid: "priority", ph: [1,2,3], tip: "Check medium-priority deals after high" },
+  "Review Low Priority": { vid: "priority", ph: [2,3], tip: "Don't forget your low-priority deals" },
+  "Text VM": { vid: "outreach", ph: [1,2,3], tip: "Send a text voicemail to agents" },
+  "Bulk Email": { vid: "outreach", ph: [2,3], tip: "Send bulk emails to your agent list" },
+  "Bulk Text VM": { vid: "outreach", ph: [2,3], tip: "Send bulk text voicemails" },
+  "Bulk AI Connect": { vid: "outreach", ph: [2,3], tip: "Use AI Connect in bulk for smart outreach" },
+  "Tax Data": { vid: "property", ph: [2,3], tip: "Check tax data on properties" },
+  "Activity history": { vid: "property", ph: [1,2,3], tip: "Review the activity history on your deals" },
+  "Check-In": { vid: "property", ph: [1,2,3], tip: "Check in on your active properties" },
+  "Offer Status": { vid: "offer", ph: [2,3], tip: "Update the status on your offers" },
+  "Priority": { vid: "priority", ph: [1,2,3], tip: "Set priority level on your deals" },
+  "Add Property": { vid: "property", ph: [1,2,3], tip: "Add new properties to your pipeline" },
+  "Favorites": { vid: "property", ph: [1,2,3], tip: "Mark your best deals as favorites" },
+  "Agent Deals": { vid: "agentprofile", ph: [2,3], tip: "View deals from your agents" },
+  "Comps List": { vid: "comps", ph: [2,3], tip: "Review the comps list for your deals" },
+  "Update Negotiation": { vid: "offer", ph: [2,3], tip: "Update your negotiation status" },
+  "My Stats": { vid: "nav", ph: [1,2,3], tip: "Check your performance stats" },
+  "DispoPro": { vid: "nav", ph: [2,3], tip: "Use DispoPro for deal disposition" },
+  "Quick Links": { vid: "nav", ph: [1,2,3], tip: "Access quick links for common tasks" },
+  "Login": { vid: "nav", ph: [1,2,3], tip: "Log in to FlipiQ daily" },
+  "Script Practice": { vid: "outreach", ph: [1,2], tip: "Practice your call scripts" },
+  "Post-call": { vid: "outreach", ph: [1,2,3], tip: "Complete your post-call notes" },
+  "EOD Stats": { vid: "nav", ph: [1,2,3], tip: "Review your end-of-day stats" },
+};
 
 const C = [
   { n: "Today's plan", ev: ["iQ Check-In", "Report blockers", "Open Deal Review", "Review Critical Calls", "No Props in priorities", "Review High Priority", "Review Med Priority", "Review Low Priority", "Process New Deals", "Open Daily Outreach", "Call from Outreach", "Open My Active Deals"] },
@@ -142,43 +206,61 @@ function gc(u) {
   return null;
 }
 
+function gME(u) {
+  const missing = [];
+  const gaps = [];
+  const cooling = [];
+  C.forEach((cat, ci) => {
+    cat.ev.forEach((eName, ei) => {
+      const evMeta = EV[eName];
+      if (!evMeta || !evMeta.ph.includes(u.ph)) return;
+      const st = g3(u.health, ci, ei);
+      if (st.st === 0) missing.push({ name: eName, cat: cat.n, vid: evMeta.vid, tip: evMeta.tip, st: 0 });
+      else if (st.st === 1) gaps.push({ name: eName, cat: cat.n, vid: evMeta.vid, tip: evMeta.tip, st: 1 });
+      else if (st.st === 2) cooling.push({ name: eName, cat: cat.n, vid: evMeta.vid, tip: evMeta.tip, st: 2 });
+    });
+  });
+  return { missing, gaps, cooling };
+}
+
 function gEH(u) {
   if (u.ec === 0) return [];
   const hist = [];
   const today = new Date(2026, 2, 21);
-  const triggers = [
-    { gap: "NEVER LOGGED IN", su: "Getting Started with FlipIQ", ty: "onboarding" },
-    { gap: "Zero calls", su: "Your Calls Matter — Here's Why", ty: "coaching" },
-    { gap: "2 days inactive", su: "We Noticed You've Been Away", ty: "reactivation" },
-    { gap: "3 days inactive", su: "Time to Jump Back In", ty: "reactivation" },
-    { gap: "No micro-skills", su: "Unlock Your FlipIQ Skills", ty: "coaching" },
-    { gap: "Micro-skills incomplete", su: "Complete Your Training Modules", ty: "coaching" },
-    { gap: "No offers", su: "Let's Get Your First Offer Out", ty: "coaching" },
-    { gap: "Offers < target", su: "Offer Pace Check-In", ty: "coaching" },
-    { gap: "3 days offline", su: "Missing You — Let's Reconnect", ty: "reactivation" },
-    { gap: "Campaigns cold 12d", su: "Reactivate Your Campaigns", ty: "coaching" },
-    { gap: "Notes empty", su: "Notes = Follow-Up Power", ty: "coaching" },
-    { gap: "Calls < target", su: "Call Volume Below Target", ty: "coaching" },
-  ];
+  const { missing, gaps, cooling } = gME(u);
+  const allIssues = [...missing, ...gaps, ...cooling];
   for (let i = 0; i < u.ec; i++) {
     const daysAgo = Math.min(u.ec - i, u.day - 1);
     const dt = new Date(today);
     dt.setDate(dt.getDate() - daysAgo);
-    const matched = triggers.find((t) => u.gaps.some((g) => g.includes(t.gap)));
-    const fallback = !u.s.ck ? { su: "Complete Your Daily Check-In", ty: "reminder" } : { su: "FlipIQ Daily Update", ty: "coaching" };
-    const trig = i === 0 && matched ? matched : fallback;
     const isLast = i === u.ec - 1;
     const escalated = u.ec >= 3 && isLast;
+    const offset = i * 3;
+    const targets = allIssues.length > 0 ? allIssues.slice(offset % allIssues.length, (offset % allIssues.length) + 3).concat(allIssues.slice(0, Math.max(0, 3 - (allIssues.length - (offset % allIssues.length))))).slice(0, 3) : [];
+    const vidKey = targets.length > 0 ? targets[0].vid : u.vid;
+    const vObj = vidKey ? V[vidKey] : null;
+    const acted = i < u.ec - 1 ? targets.filter((_, ti) => (i * 7 + ti * 3) % 5 > 2) : [];
+    const ignored = i < u.ec - 1 ? targets.filter((t) => !acted.includes(t)) : [];
+    let su;
+    if (escalated) su = "ESCALATION: " + u.n + " \u2014 " + u.ec + " emails sent, needs AM review";
+    else if (u.health === "red" && missing.length > 5) su = "Getting Started: " + targets.map((t) => t.name).slice(0, 2).join(" + ");
+    else if (targets.length > 0 && acted.length > 0 && i < u.ec - 1) su = "Nice work on " + acted[0].name + "! Next: " + ignored.slice(0, 2).map((t) => t.name).join(", ");
+    else if (targets.length > 0) su = "Today's focus: " + targets.map((t) => t.name).slice(0, 2).join(" + ") + (vObj ? " [" + vObj[1] + " video]" : "");
+    else su = "FlipiQ Daily Update \u2014 Day " + (u.day - daysAgo);
+    const ty = escalated ? "escalation" : u.health === "red" ? "onboarding" : acted.length > 0 ? "coaching" : gaps.length > 0 || cooling.length > 0 ? "reactivation" : "coaching";
     hist.push({
       id: i + 1,
       ts: dt.getTime(),
       date: dt.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
       time: (7 + (i % 3)) + ":00 AM",
-      subject: escalated ? "ESCALATION: " + u.n + " \u2014 " + u.ec + " emails sent, needs AM review" : trig.su,
-      type: escalated ? "escalation" : trig.ty,
+      subject: su,
+      type: escalated ? "escalation" : ty,
       to: escalated ? (O.find((o) => o.id === u.org)?.am || "AM") : u.n,
-      responded: false,
       escalated,
+      targets,
+      video: vObj ? { key: vidKey, title: vObj[0], dur: vObj[1] } : null,
+      acted: acted.map((a) => a.name),
+      ignored: ignored.map((a) => a.name),
     });
   }
   return hist;
@@ -187,14 +269,31 @@ function gEH(u) {
 function bE(u) {
   const o = O.find((x) => x.id === u.org);
   const nm = u.n.split(" ")[0];
-  const v = u.vid ? V[u.vid] : null;
   const ie = u.ec >= 3;
   const ca = gc(u);
   const ys = u.y;
   const s = u.s;
-  if (ie) return { to: o.am + " (AM)", su: "ACTION: " + u.n + " \u2014 " + u.ec + " emails, 0 response", bo: "Hi " + o.am + ",\n\n" + u.n + " received " + u.ec + " coaching emails, zero response.\n\nPhase: " + PN[u.ph] + ", Day " + u.day + "\nCalls: " + s.ca + " (goal: " + u.g.ca + ")\nOffers: " + s.of + "\nDeals: " + s.aq + "\nGaps: " + u.gaps.join(", ") + "\n\nPlease intervene.\n\n\u2014 Ramy", ie: true, uid: u.id };
+  const { missing, gaps, cooling } = gME(u);
+  const prevHist = gEH(u);
+  const prevSent = prevHist.flatMap((h) => h.targets?.map((t) => t.name) || []);
+  const prevActed = prevHist.flatMap((h) => h.acted || []);
+  const prevIgnored = prevHist.flatMap((h) => h.ignored || []);
+  const priority = [...missing.filter((e) => !prevActed.includes(e.name)), ...gaps.filter((e) => !prevActed.includes(e.name)), ...cooling.filter((e) => prevIgnored.includes(e.name))];
+  const todayTargets = priority.slice(0, 3);
+  const topVidKey = todayTargets.length > 0 ? todayTargets[0].vid : u.vid;
+  const topVid = topVidKey ? V[topVidKey] : null;
+  if (ie) {
+    const escalBody = "Hi " + o.am + ",\n\n" + u.n + " received " + u.ec + " coaching emails, needs AM review.\n\nPhase: " + PN[u.ph] + ", Day " + u.day + "\nCalls: " + s.ca + " (goal: " + u.g.ca + ")\nOffers: " + s.of + "\nDeals: " + s.aq + "\n\nEvents sent but not used:\n" + prevIgnored.slice(0, 5).map((n) => "\u2022 " + n).join("\n") + "\n\nGaps: " + u.gaps.join(", ") + "\n\nPlease intervene.\n\n\u2014 Ramy";
+    return { to: o.am + " (AM)", su: "ACTION: " + u.n + " \u2014 " + u.ec + " emails, needs AM review", bo: escalBody, ie: true, uid: u.id, targets: todayTargets, video: topVid ? { key: topVidKey, title: topVid[0], dur: topVid[1] } : null };
+  }
   let b = "Good morning " + nm + ",\n\n";
   const yT = ys.tx + ys.em + ys.ca;
+  if (prevActed.length > 0) {
+    const recent = prevActed.slice(-3);
+    b += "PROGRESS UPDATE:\n";
+    recent.forEach((a) => (b += "\u2713 " + a + " \u2014 done!\n"));
+    b += "\n";
+  }
   if (yT > 0) {
     b += "YESTERDAY:\n";
     if (ys.ca > 0) b += "\u2022 " + ys.ca + " calls" + (ys.ca >= 6 ? " \u2014 solid!" : "") + "\n";
@@ -210,40 +309,55 @@ function bE(u) {
   if (!s.ck) b += "FIRST: Complete check-in. Open iQ.\n\n";
   b += "Day " + u.day + " " + PN[u.ph] + ". " + (u.ph === 3 ? s.aq + " deal" + (s.aq !== 1 ? "s" : "") + "/2 target. " + (s.aq >= 2 ? "On pace!" : "Push offers.") : "") + (u.ph <= 2 ? s.of + " offers vs " + u.g.of + "/day." : "") + "\n\n";
   if (ca) b += "KEY: " + ca + "\n\n";
-  if (u.gaps.length > 0) { b += "FOCUS:\n"; u.gaps.forEach((g) => (b += "\u2022 " + g + "\n")); b += "\n"; }
-  if (v) b += "WATCH (" + v[1] + "): " + v[0] + "\n\n";
-  b += "TARGETS: " + u.g.ca + "C " + u.g.of + "O " + u.g.ct + "ct\nYesterday: " + ys.ca + "C " + ys.of + "O " + (ys.tx + ys.em + ys.ca) + "ct\n\niQ Help Bot \u2014 chat icon in COMMAND.\n\n\u2014 Ramy";
-  return { to: u.n, su: "FlipIQ Daily Update", bo: b, ie: false, uid: u.id };
+  if (todayTargets.length > 0) {
+    b += "TODAY'S FOCUS (" + todayTargets.length + " events):\n";
+    todayTargets.forEach((t, i) => {
+      const stLabel = t.st === 0 ? "Never used" : t.st === 1 ? "Used once, dropped" : "Gone cold";
+      b += (i + 1) + ". " + t.name + " (" + t.cat + ") \u2014 " + stLabel + "\n   " + t.tip + "\n";
+    });
+    b += "\n";
+  }
+  if (prevIgnored.length > 0) {
+    const still = prevIgnored.filter((n) => todayTargets.some((t) => t.name === n));
+    if (still.length > 0) b += "STILL PENDING (sent before, not used yet):\n" + still.map((n) => "\u2022 " + n).join("\n") + "\n\n";
+  }
+  if (topVid) b += "\u25B6 WATCH (" + topVid[1] + "): " + topVid[0] + "\n   Short video tied to " + todayTargets[0]?.name + "\n\n";
+  b += "TARGETS: " + u.g.ca + "C " + u.g.of + "O " + u.g.ct + "ct\nYesterday: " + ys.ca + "C " + ys.of + "O " + (ys.tx + ys.em + ys.ca) + "ct\n\n";
+  const totalEv = C.reduce((s, c) => s + c.ev.length, 0);
+  b += "Event adoption: " + (totalEv - missing.length - gaps.length - cooling.length) + "/" + totalEv + " active, " + missing.length + " missing, " + gaps.length + " gaps, " + cooling.length + " cooling\n\n";
+  b += "iQ Help Bot \u2014 chat icon in COMMAND.\n\n\u2014 Ramy";
+  const su = todayTargets.length > 0 ? "Day " + u.day + ": " + todayTargets[0].name + (todayTargets.length > 1 ? " + " + (todayTargets.length - 1) + " more" : "") + (topVid ? " [" + topVid[1] + " video]" : "") : "FlipiQ Daily Update \u2014 Day " + u.day;
+  return { to: u.n, su, bo: b, ie: false, uid: u.id, targets: todayTargets, video: topVid ? { key: topVidKey, title: topVid[0], dur: topVid[1] } : null };
 }
 
 const EL = [
-  { ph: "P1", d: "D1", tr: "No login", em: "Welcome + login help", vi: "Nav", to: "AA", es: "Call" },
-  { ph: "P1", d: "D1", tr: "Login no check-in", em: "iQ check-in starts day", vi: "Nav", to: "AA", es: "Monitor" },
-  { ph: "P1", d: "D2", tr: "Can't find Deal Review", em: "Here's where it is", vi: "Outreach", to: "AA", es: "Walkthrough" },
-  { ph: "P1", d: "D2", tr: "No calls yet", em: "First call instructions", vi: "Agent", to: "AA", es: "Call D3" },
-  { ph: "P1", d: "D3", tr: "Notes never created", em: "[X] calls no notes", vi: "Property", to: "AA", es: "Call" },
-  { ph: "P1", d: "D3", tr: "Reminders never set", em: "[X] deals 0 reminders", vi: "Property", to: "AA", es: "Call" },
-  { ph: "P1", d: "D3", tr: "Status never changed", em: "All deals None", vi: "Property", to: "AA", es: "Call" },
-  { ph: "P1", d: "D3", tr: "Priority never set", em: "Set H/M/L", vi: "Priority", to: "AA", es: "Call" },
-  { ph: "P1", d: "D5", tr: "No workflow loop", em: "Do one together", vi: "Offer", to: "AA", es: "Training" },
-  { ph: "P1", d: "D5", tr: "Comps never opened", em: "Can't offer without", vi: "Comps", to: "AA", es: "Walk" },
-  { ph: "P1", d: "D6-7", tr: "Silent on live", em: "Check in today", vi: "-", to: "AA+AM", es: "Escalate" },
-  { ph: "P1", d: "D7", tr: "Graduation", em: "Week 1 scorecard", vi: "Dashboard", to: "AA", es: "Extend" },
-  { ph: "P2", d: "D8", tr: "No daily pattern", em: "Consistency = deals", vi: "Outreach", to: "AA", es: "Call" },
-  { ph: "P2", d: "Daily", tr: "Checklist not done", em: "STOP. Checklist first.", vi: "-", to: "AA", es: "Block" },
-  { ph: "P2", d: "Daily", tr: "Offers=0 no comps", em: "BECAUSE no comps", vi: "Comps", to: "AA", es: "Walk" },
-  { ph: "P2", d: "Daily", tr: "90% texts <10% calls", em: "Shift 30% to phone", vi: "-", to: "AA", es: "Flag" },
-  { ph: "P2", d: "7+d", tr: "Feature unused 7d", em: "[Feature] why it matters", vi: "Specific", to: "AA", es: "2,3,call" },
-  { ph: "P2", d: "D14", tr: "Statuses not updating", em: "Pipeline invisible", vi: "Priority", to: "AA", es: "Review" },
-  { ph: "P2", d: "D14", tr: "Notes empty all deals", em: "[X] deals 0 notes", vi: "Property", to: "AA", es: "Walk" },
-  { ph: "P2", d: "D21", tr: "Not at KPI pace", em: "Graduation assessment", vi: "-", to: "AA+AM", es: "Extend" },
-  { ph: "P3", d: "Daily", tr: "Offers < target", em: "BECAUSE [root cause]", vi: "Offer", to: "AA", es: "3d=AM" },
-  { ph: "P3", d: "Daily", tr: "Calls < target", em: "Low calls = empty pipeline", vi: "-", to: "AA", es: "Flag" },
-  { ph: "P3", d: "Daily", tr: "Contacts < 50", em: "Use Campaigns", vi: "Campaigns", to: "AA", es: "Check" },
-  { ph: "P3", d: "Weekly", tr: "0 deals closed", em: "Pipeline review", vi: "-", to: "AA+AM", es: "Review" },
-  { ph: "P3", d: "7+d", tr: "Feature gone cold 7d", em: "Reactivation", vi: "Specific", to: "AA", es: "2,3,call" },
-  { ph: "P3", d: "D30", tr: "Monthly assessment", em: "30-day scorecard", vi: "Dashboard", to: "AA+AM", es: "Review" },
-  { ph: "ALL", d: "3x", tr: "3 emails 0 response", em: "STOP emailing", vi: "-", to: "AM", es: "Escalate" },
+  { ph: "P1", d: "D1", tr: "No login", em: "Welcome + login help", vi: "Nav", to: "AA", es: "Call", ev: ["Login", "iQ Check-In"] },
+  { ph: "P1", d: "D1", tr: "Login no check-in", em: "iQ check-in starts day", vi: "Nav", to: "AA", es: "Monitor", ev: ["iQ Check-In", "Open Deal Review"] },
+  { ph: "P1", d: "D2", tr: "Can't find Deal Review", em: "Here's where it is", vi: "Outreach", to: "AA", es: "Walkthrough", ev: ["Open Deal Review", "Open Daily Outreach"] },
+  { ph: "P1", d: "D2", tr: "No calls yet", em: "First call instructions", vi: "Agent", to: "AA", es: "Call D3", ev: ["Call agent", "Call from Outreach"] },
+  { ph: "P1", d: "D3", tr: "Notes never created", em: "[X] calls no notes", vi: "Property", to: "AA", es: "Call", ev: ["Add Note", "Follow-Up"] },
+  { ph: "P1", d: "D3", tr: "Reminders never set", em: "[X] deals 0 reminders", vi: "Property", to: "AA", es: "Call", ev: ["Reminder", "To Do"] },
+  { ph: "P1", d: "D3", tr: "Status never changed", em: "All deals None", vi: "Property", to: "AA", es: "Call", ev: ["Offer Status", "Priority"] },
+  { ph: "P1", d: "D3", tr: "Priority never set", em: "Set H/M/L", vi: "Priority", to: "AA", es: "Call", ev: ["Priority", "Review High Priority"] },
+  { ph: "P1", d: "D5", tr: "No workflow loop", em: "Do one together", vi: "Offer", to: "AA", es: "Training", ev: ["Offer Terms", "Investment Analysis"] },
+  { ph: "P1", d: "D5", tr: "Comps never opened", em: "Can't offer without", vi: "Comps", to: "AA", es: "Walk", ev: ["Comps Map", "Comps Matrix"] },
+  { ph: "P1", d: "D6-7", tr: "Silent on live", em: "Check in today", vi: "-", to: "AA+AM", es: "Escalate", ev: [] },
+  { ph: "P1", d: "D7", tr: "Graduation", em: "Week 1 scorecard", vi: "Dashboard", to: "AA", es: "Extend", ev: ["My Stats", "EOD Stats"] },
+  { ph: "P2", d: "D8", tr: "No daily pattern", em: "Consistency = deals", vi: "Outreach", to: "AA", es: "Call", ev: ["Open Daily Outreach", "Call from Outreach", "iQ Check-In"] },
+  { ph: "P2", d: "Daily", tr: "Checklist not done", em: "STOP. Checklist first.", vi: "-", to: "AA", es: "Block", ev: ["iQ Check-In", "Report blockers", "Open Deal Review"] },
+  { ph: "P2", d: "Daily", tr: "Offers=0 no comps", em: "BECAUSE no comps", vi: "Comps", to: "AA", es: "Walk", ev: ["Comps Map", "Comps Matrix", "Investment Analysis"] },
+  { ph: "P2", d: "Daily", tr: "90% texts <10% calls", em: "Shift 30% to phone", vi: "-", to: "AA", es: "Flag", ev: ["Call agent", "Bulk Call"] },
+  { ph: "P2", d: "7+d", tr: "Feature unused 7d", em: "[Feature] why it matters", vi: "Specific", to: "AA", es: "2,3,call", ev: ["(dynamic)"] },
+  { ph: "P2", d: "D14", tr: "Statuses not updating", em: "Pipeline invisible", vi: "Priority", to: "AA", es: "Review", ev: ["Offer Status", "Priority"] },
+  { ph: "P2", d: "D14", tr: "Notes empty all deals", em: "[X] deals 0 notes", vi: "Property", to: "AA", es: "Walk", ev: ["Add Note", "Follow-Up", "Reminder"] },
+  { ph: "P2", d: "D21", tr: "Not at KPI pace", em: "Graduation assessment", vi: "-", to: "AA+AM", es: "Extend", ev: ["My Stats", "EOD Stats"] },
+  { ph: "P3", d: "Daily", tr: "Offers < target", em: "BECAUSE [root cause]", vi: "Offer", to: "AA", es: "3d=AM", ev: ["Offer Terms", "Submit Contract", "Offer vs goal"] },
+  { ph: "P3", d: "Daily", tr: "Calls < target", em: "Low calls = empty pipeline", vi: "-", to: "AA", es: "Flag", ev: ["Call agent", "Call from Outreach", "Bulk Call"] },
+  { ph: "P3", d: "Daily", tr: "Contacts < 50", em: "Use Campaigns", vi: "Campaigns", to: "AA", es: "Check", ev: ["Open Campaigns", "Select campaign", "Send campaign"] },
+  { ph: "P3", d: "Weekly", tr: "0 deals closed", em: "Pipeline review", vi: "-", to: "AA+AM", es: "Review", ev: ["Open Deal Review", "Offer vs goal"] },
+  { ph: "P3", d: "7+d", tr: "Feature gone cold 7d", em: "Reactivation", vi: "Specific", to: "AA", es: "2,3,call", ev: ["(dynamic)"] },
+  { ph: "P3", d: "D30", tr: "Monthly assessment", em: "30-day scorecard", vi: "Dashboard", to: "AA+AM", es: "Review", ev: ["My Stats", "EOD Stats"] },
+  { ph: "ALL", d: "3x", tr: "3 emails 0 response", em: "STOP emailing", vi: "-", to: "AM", es: "Escalate", ev: [] },
 ];
 
 const DR = ["Today", "Yesterday", "Last 7 days", "Last 30 days", "This month", "All time"];
@@ -542,7 +656,20 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             </div>
             <div style={{ background: eV.ie ? "#FEF2F2" : "#F8FAFB", borderRadius: 7, padding: 16, border: "1px solid " + (eV.ie ? "#FECACA" : "#E2E8F0") }}>
               <div style={{ fontSize: 11, color: "#64748B", marginBottom: 3 }}><b>To:</b> {eV.to}</div>
-              <div style={{ fontSize: 11, color: "#64748B", marginBottom: 10 }}><b>Subject:</b> {eV.su}</div>
+              <div style={{ fontSize: 11, color: "#64748B", marginBottom: 6 }}><b>Subject:</b> {eV.su}</div>
+              {eV.targets && eV.targets.length > 0 && (
+                <div style={{ marginBottom: 10, padding: "8px 10px", background: "#FFF", borderRadius: 6, border: "1px solid #E2E8F0" }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 5 }}>Event targets in this email</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: eV.video ? 6 : 0 }}>
+                    {eV.targets.map((t, ti) => {
+                      const stL = { 0: { bg: "#FEE2E2", c: "#DC2626", l: "Missing" }, 1: { bg: "#FFF7ED", c: "#EA580C", l: "Gap" }, 2: { bg: "#FEFCE8", c: "#CA8A04", l: "Cooling" } };
+                      const sc = stL[t.st] || stL[0];
+                      return <Tip key={ti} text={t.tip + " \u2014 " + sc.l + " in " + t.cat}><span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 3, background: sc.bg, color: sc.c, fontWeight: 600 }}>{t.name} <span style={{ fontWeight: 400, fontSize: 8 }}>({sc.l})</span></span></Tip>;
+                    })}
+                  </div>
+                  {eV.video && <div style={{ fontSize: 10, color: "#0369A1", display: "flex", alignItems: "center", gap: 4 }}><span>{"\u25B6"}</span> <b>{eV.video.title}</b> ({eV.video.dur}) — tied to {eV.targets[0]?.name}</div>}
+                </div>
+              )}
               <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.8, whiteSpace: "pre-line" }}>{eV.bo}</div>
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
@@ -698,6 +825,22 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     </div>
                   </div>
                   {ca && <div style={{ fontSize: 12, color: "#EA580C", fontWeight: 600, background: "#FFF7ED", padding: "6px 10px", borderRadius: 6, marginBottom: 8 }}>Why: {ca}</div>}
+                  {(() => {
+                    const em = bE(u);
+                    return em.targets && em.targets.length > 0 ? (
+                      <div style={{ marginBottom: 8, padding: "6px 10px", background: "#F8FAFB", borderRadius: 6, border: "1px solid #E2E8F0" }}>
+                        <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 4 }}>Today's email targets</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: em.video ? 4 : 0 }}>
+                          {em.targets.map((t, ti) => {
+                            const stL = { 0: { bg: "#FEE2E2", c: "#DC2626", l: "Missing" }, 1: { bg: "#FFF7ED", c: "#EA580C", l: "Gap" }, 2: { bg: "#FEFCE8", c: "#CA8A04", l: "Cooling" } };
+                            const sc = stL[t.st] || stL[0];
+                            return <Tip key={ti} text={t.tip + " \u2014 " + sc.l + " in " + t.cat}><span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 3, background: sc.bg, color: sc.c, fontWeight: 600 }}>{t.name}</span></Tip>;
+                          })}
+                        </div>
+                        {em.video && <div style={{ fontSize: 9, color: "#0369A1" }}>{"\u25B6"} Video: {em.video.title} ({em.video.dur})</div>}
+                      </div>
+                    ) : null;
+                  })()}
                   <div style={{ display: "flex", gap: 16, fontSize: 11, color: "#64748B" }}>
                     <Tip text="What this AA did yesterday. Red = zero activity. Includes calls, offers, and total touches (calls + texts + emails)."><div><span style={{ color: "#94A3B8" }}>Yesterday:</span> <b style={{ color: yAct > 0 ? "#334155" : "#DC2626" }}>{u.y.ca} calls, {u.y.of} offers, {yAct} total touches</b></div></Tip>
                     <div style={{ color: "#E2E8F0" }}>|</div>
@@ -749,23 +892,24 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         {tab === "logic" && (
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
             <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0" }}>
-              <div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Reference table showing every rule that triggers a coaching email. Each rule fires based on phase, timing, and specific behavior patterns detected in the AA's data.">Email logic</Tip></div>
-              <div style={{ fontSize: 10, color: "#94A3B8" }}>Every email: yesterday data + video + iQ Help Bot.</div>
+              <div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Reference table showing every rule that triggers a coaching email. Each rule fires based on phase, timing, and specific behavior patterns detected in the AA's data. Events column shows which of the 61 tracked events each rule targets.">Email logic</Tip></div>
+              <div style={{ fontSize: 10, color: "#94A3B8" }}>Every email: yesterday data + event targets + phase-matched video + iQ Help Bot. System tracks sent vs. used vs. ignored daily.</div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "45px 50px 160px 1fr 75px 45px 1fr", padding: "5px 8px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-              <div><Tip text="Which phase this rule applies to: P1 (Onboarding), P2 (Activation), P3 (Performance), or ALL.">Ph</Tip></div><div><Tip text="When the rule fires: Daily, at specific day milestones (D3, D14, etc.), or after inactivity periods (7+d).">When</Tip></div><div><Tip text="The specific behavior or condition that triggers the email. E.g., 'Calls below 30/day' or 'Feature unused 7d'.">Trigger</Tip></div><div><Tip text="What the coaching email says — the specific message or subject line sent to the AA.">Email</Tip></div><div><Tip text="Which training video is linked in the email. Shows the specific feature or skill the AA needs help with.">Video</Tip></div><div><Tip text="Who receives the email: AA (the associate), AM (account manager), or both AA+AM.">To</Tip></div><div><Tip text="What happens if the AA doesn't respond to the email. Escalation path — e.g., 'Flag', 'call', or 'Escalate' to AM.">No resp</Tip></div>
+            <div style={{ display: "grid", gridTemplateColumns: "40px 45px 140px 1fr 70px 140px 40px 1fr", padding: "5px 8px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
+              <div><Tip text="Which phase this rule applies to: P1 (Onboarding), P2 (Activation), P3 (Performance), or ALL.">Ph</Tip></div><div><Tip text="When the rule fires: Daily, at specific day milestones (D3, D14, etc.), or after inactivity periods (7+d).">When</Tip></div><div><Tip text="The specific behavior or condition that triggers the email. E.g., 'Calls below 30/day' or 'Feature unused 7d'.">Trigger</Tip></div><div><Tip text="What the coaching email says — the specific message or subject line sent to the AA.">Email</Tip></div><div><Tip text="Which training video is linked in the email. Shows the specific feature or skill the AA needs help with.">Video</Tip></div><div><Tip text="Which of the 61 tracked FlipIQ events this rule targets. (dynamic) means the system picks the specific unused event for that AA.">Events</Tip></div><div><Tip text="Who receives the email: AA (the associate), AM (account manager), or both AA+AM.">To</Tip></div><div><Tip text="What happens if the AA doesn't respond to the email. Escalation path — e.g., 'Flag', 'call', or 'Escalate' to AM.">No resp</Tip></div>
             </div>
             {EL.map((r, i) => {
               const strike = r.tr.includes("0 response");
               const bc = r.em.includes("BECAUSE");
               const pc = r.ph === "P1" ? PC[1] : r.ph === "P2" ? PC[2] : r.ph === "P3" ? PC[3] : "#64748B";
               return (
-                <div key={i} style={{ display: "grid", gridTemplateColumns: "45px 50px 160px 1fr 75px 45px 1fr", padding: "7px 8px", borderBottom: "1px solid #F1F5F9", background: strike ? "#FEF2F2" : bc ? "#FFF7ED" : i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 10, alignItems: "start" }}>
+                <div key={i} style={{ display: "grid", gridTemplateColumns: "40px 45px 140px 1fr 70px 140px 40px 1fr", padding: "7px 8px", borderBottom: "1px solid #F1F5F9", background: strike ? "#FEF2F2" : bc ? "#FFF7ED" : i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 10, alignItems: "start" }}>
                   <div style={{ color: pc, fontWeight: 700 }}>{r.ph}</div>
                   <div style={{ color: "#64748B", fontSize: 9 }}>{r.d}</div>
                   <div style={{ color: "#1E293B", fontWeight: 500 }}>{r.tr}</div>
                   <div style={{ color: bc ? "#EA580C" : "#334155", fontWeight: bc ? 600 : 400, lineHeight: 1.4 }}>{r.em}</div>
                   <div style={{ color: r.vi !== "-" ? "#0369A1" : "#CBD5E1", fontSize: 9 }}>{r.vi}</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 2 }}>{r.ev && r.ev.length > 0 ? r.ev.map((e, ei) => <span key={ei} style={{ fontSize: 8, padding: "1px 4px", borderRadius: 2, background: e === "(dynamic)" ? "#EDE9FE" : "#F0F9FF", color: e === "(dynamic)" ? "#7C3AED" : "#0369A1", fontWeight: 500 }}>{e}</span>) : <span style={{ color: "#CBD5E1", fontSize: 8 }}>-</span>}</div>
                   <div style={{ fontWeight: 600, color: r.to.includes("AM") || (r.to.includes("P") && r.to.length < 4) ? "#DC2626" : "#64748B" }}>{r.to}</div>
                   <div style={{ color: strike ? "#DC2626" : "#64748B", fontWeight: strike ? 700 : 400 }}>{r.es}</div>
                 </div>
@@ -1123,9 +1267,10 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         const eh = gEH(commLog);
         const tyC = { coaching: "#F97316", onboarding: "#3B82F6", reactivation: "#8B5CF6", reminder: "#D97706", escalation: "#DC2626" };
         const tyL = { coaching: "Coaching", onboarding: "Onboarding", reactivation: "Reactivation", reminder: "Reminder", escalation: "Escalation" };
+        const stC = { 0: { bg: "#FEE2E2", c: "#DC2626", l: "Missing" }, 1: { bg: "#FFF7ED", c: "#EA580C", l: "Gap" }, 2: { bg: "#FEFCE8", c: "#CA8A04", l: "Cooling" } };
         return (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }} onClick={() => setCommLog(null)}>
-            <div style={{ background: "#FFF", borderRadius: 12, padding: 0, width: 480, maxHeight: "80vh", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", display: "flex", flexDirection: "column" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ background: "#FFF", borderRadius: 12, padding: 0, width: 540, maxHeight: "85vh", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", display: "flex", flexDirection: "column" }} onClick={(e) => e.stopPropagation()}>
               <div style={{ padding: "16px 20px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <div style={{ fontSize: 15, fontWeight: 700 }}>Emails sent to {commLog.n}</div>
@@ -1137,7 +1282,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <div style={{ position: "relative", paddingLeft: 20 }}>
                   <div style={{ position: "absolute", left: 7, top: 4, bottom: 4, width: 2, background: "#E2E8F0" }} />
                   {eh.map((e) => (
-                    <div key={e.id} style={{ position: "relative", marginBottom: 14, paddingLeft: 16 }}>
+                    <div key={e.id} style={{ position: "relative", marginBottom: 18, paddingLeft: 16 }}>
                       <div style={{ position: "absolute", left: -16, top: 5, width: 10, height: 10, borderRadius: "50%", background: e.escalated ? "#DC2626" : tyC[e.type] || "#94A3B8", border: "2px solid #FFF", boxShadow: "0 0 0 1px " + (e.escalated ? "#FECACA" : "#E2E8F0") }} />
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
                         <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>{e.date}</span>
@@ -1146,6 +1291,26 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       </div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: e.escalated ? "#DC2626" : "#334155" }}>{e.subject}</div>
                       <div style={{ fontSize: 10, color: "#64748B", marginTop: 2 }}>To: {e.to}{e.escalated ? " (Account Manager)" : ""}</div>
+                      {e.targets && e.targets.length > 0 && (
+                        <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 4 }}>
+                          {e.targets.map((t, ti) => {
+                            const sc = stC[t.st] || stC[0];
+                            const wasActed = e.acted?.includes(t.name);
+                            return (
+                              <Tip key={ti} text={t.tip + (wasActed ? " \u2014 AA completed this!" : " \u2014 " + sc.l)}>
+                                <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 3, background: wasActed ? "#F0FDF4" : sc.bg, color: wasActed ? "#16A34A" : sc.c, fontWeight: 600, textDecoration: wasActed ? "line-through" : "none" }}>
+                                  {wasActed ? "\u2713 " : ""}{t.name}
+                                </span>
+                              </Tip>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {e.video && (
+                        <div style={{ marginTop: 4, fontSize: 9, color: "#0369A1", display: "flex", alignItems: "center", gap: 4 }}>
+                          <span>{"\u25B6"}</span> {e.video.title} ({e.video.dur})
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

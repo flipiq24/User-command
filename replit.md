@@ -60,8 +60,17 @@ The dashboard is a single-page React component with embedded data arrays and inl
 - Root cause analysis section (WHY) when applicable
 - **Feature Adoption chart**: progress ring showing adoption %, color legend (Active/Cooling/Gap/Unused), 7 horizontal stacked bars per category, "New this week" callout for recently adopted events
 - Feature usage accordion with 7 categories and 61 sortable events
-- **Sent Emails popup**: button next to "Send email" opens a modal showing all coaching emails sent to this AA — date, time, type badge, subject, recipient (no response tracking)
+- **Sent Emails popup**: button next to "Send email" opens a modal showing all coaching emails sent — date, time, type badge, subject, recipient, event target badges (color-coded by status), acted/ignored tracking (green strikethrough = completed), and video per email
 - **AI Assistant panel** at the bottom: auto-generated summary + top 3 priorities + interactive chat
+
+### Event-Aware Email System
+- **EV mapping**: All 62 events mapped to videos, phases, and coaching tips
+- **gME()**: Computes missing/gap/cooling events per AA based on phase + health
+- **gEH()**: Generates email history with event targets, video, acted/ignored tracking per email
+- **bE()**: Dynamic email body with PROGRESS UPDATE (completed events), TODAY'S FOCUS (3 priority events), STILL PENDING (previously sent but unused), phase-matched video, and event adoption stats
+- **Email Logic tab**: Events column shows which of the 62 tracked events each rule targets; "(dynamic)" badges for rules that pick AA-specific events
+- **Emails tab cards**: Show "Today's email targets" with colored badges + video reference
+- **Email preview**: Shows "Event targets in this email" with status labels + video tied to top event
 
 ### Tooltips
 - Comprehensive tooltips on every interactive element, label, badge, button, tab, filter, column header, legend item, and pipeline card across all tabs
