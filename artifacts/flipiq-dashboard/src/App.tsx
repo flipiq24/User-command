@@ -1447,6 +1447,34 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 </div>
               </div>
 
+              {dlSrc === "MLS" && (() => {
+                const mlsDeals = fd.filter(d => d.src === "MLS");
+                const mlsTotal = mlsDeals.length || 1;
+                const mlsSub = DL_PTYPES.map(p => ({ n: p, cnt: mlsDeals.filter(d => d.pt === p).length })).filter(p => p.cnt > 0).sort((a, b) => b.cnt - a.cnt);
+                return (
+                  <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 9, padding: "14px 18px", marginBottom: 14 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#2563EB", marginBottom: 10 }}>MLS deal subtype breakdown</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 6 }}>
+                      {mlsSub.map(p => {
+                        const pct = Math.round(p.cnt / mlsTotal * 100);
+                        return (
+                          <div key={p.n} style={{ background: "#FFF", borderRadius: 6, padding: "8px 10px", border: "1px solid #DBEAFE" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: "#1E293B" }}>{p.n}</span>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: "#2563EB" }}>{p.cnt}</span>
+                            </div>
+                            <div style={{ height: 4, background: "#DBEAFE", borderRadius: 2 }}>
+                              <div style={{ height: 4, width: pct + "%", background: "#3B82F6", borderRadius: 2 }} />
+                            </div>
+                            <div style={{ fontSize: 8, color: "#94A3B8", marginTop: 2, textAlign: "right" }}>{pct}%</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
                 <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
