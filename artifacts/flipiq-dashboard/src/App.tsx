@@ -285,9 +285,10 @@ function genDeals() {
       const closeMonth = stg === "Acquired" ? 3 : stg === "Offer Accepted" ? (s7 < 0.5 ? 3 : 4) : stg === "In Negotiations" ? (s7 < 0.33 ? 3 : s7 < 0.66 ? 4 : 5) : (s7 < 0.2 ? 4 : s7 < 0.5 ? 5 : 6);
       const closeDay = Math.floor(1 + s5 * 27);
       const closeDate = `${["","Jan","Feb","Mar","Apr","May","Jun"][closeMonth]} ${closeDay}, 2026`;
+      const closeDateMs = new Date(2026, closeMonth - 1, closeDay).getTime();
       const closeWeek = closeMonth === 3 ? (closeDay <= 7 ? "W1" : closeDay <= 14 ? "W2" : closeDay <= 21 ? "W3" : "W4") : null;
       const addr = `${Math.floor(100 + s4 * 9900)} ${DL_STREETS[Math.floor(s2 * DL_STREETS.length)]} ${DL_SUFFIXES[Math.floor(s3 * DL_SUFFIXES.length)]}, ${DL_CITIES[Math.floor(s7 * DL_CITIES.length)]}`;
-      deals.push({ id: did++, aaId: u.id, src, pt, intent, stg, price, projProfit, comm, commType, closeDate, closeMonth, closeWeek, addr });
+      deals.push({ id: did++, aaId: u.id, src, pt, intent, stg, price, projProfit, comm, commType, closeDate, closeDateMs, closeMonth, closeWeek, addr });
     }
   });
   return deals;
@@ -582,6 +583,8 @@ export default function App() {
   const [dlPt, setDlPt] = useState(null);
   const [dlInt, setDlInt] = useState(null);
   const [dlExp, setDlExp] = useState({});
+  const [dlRange, setDlRange] = useState("All time");
+  const [dlHover, setDlHover] = useState(null);
   const [aiMsgs, setAiMsgs] = useState([]);
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -1271,12 +1274,19 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         })()}
 
         {tab === "deals" && !sel && !eV && (() => {
+          const DL_RANGES = ["30 days", "90 days", "180 days", "YTD", "All time"];
+          const now = new Date(2026, 2, 21).getTime();
+          const rangeStart = dlRange === "30 days" ? now - 30 * 86400000
+            : dlRange === "90 days" ? now - 90 * 86400000
+            : dlRange === "180 days" ? now - 180 * 86400000
+            : dlRange === "YTD" ? new Date(2026, 0, 1).getTime()
+            : 0;
           const fIds = new Set(fU.map(x => x.id));
-          let fd = DL.filter(d => fIds.has(d.aaId));
+          let fd = DL.filter(d => fIds.has(d.aaId) && d.closeDateMs >= rangeStart);
           if (dlSrc) fd = fd.filter(d => d.src === dlSrc);
           if (dlPt) fd = fd.filter(d => d.pt === dlPt);
           if (dlInt) fd = fd.filter(d => d.intent === dlInt);
-          const isFiltered = flt.org || flt.phase || flt.health || dlSrc || dlPt || dlInt;
+          const isFiltered = flt.org || flt.phase || flt.health || dlSrc || dlPt || dlInt || dlRange !== "All time";
           const fmt$ = (v) => v >= 1000000 ? "$" + (v / 1000000).toFixed(1) + "M" : v >= 1000 ? "$" + (v / 1000).toFixed(0) + "K" : "$" + v;
           const srcBreak = DL_SOURCES.map(s => ({ n: s, cnt: fd.filter(d => d.src === s).length }));
           const srcTotal = fd.length || 1;
@@ -1323,9 +1333,14 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           const totalAcquired = aaRows.reduce((s, r) => s + r.acquired, 0);
           return (
             <div>
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 16, fontWeight: 800 }}>Deal dashboard</div>
-                <div style={{ fontSize: 10, color: "#94A3B8" }}>{isFiltered ? `Showing ${fd.length} of ${DL.length} deals` : `All ${DL.length} deals`} across {aaRows.length} AAs — {fmt$(grandTotal)} total pipeline · {fmt$(grandComm)} projected commission</div>
+              <div style={{ marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 800 }}>Deal dashboard</div>
+                  <div style={{ fontSize: 10, color: "#94A3B8" }}>{isFiltered ? `Showing ${fd.length} of ${DL.length} deals` : `All ${DL.length} deals`} across {aaRows.length} AAs — {fmt$(grandTotal)} total pipeline · {fmt$(grandComm)} projected commission</div>
+                </div>
+                <select value={dlRange} onChange={e => setDlRange(e.target.value)} style={{ padding: "6px 28px 6px 10px", fontSize: 11, fontWeight: 600, border: "1px solid #E2E8F0", borderRadius: 7, background: "#FFF", color: "#1E293B", cursor: "pointer", appearance: "none", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394A3B8'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
+                  {DL_RANGES.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
               </div>
 
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
@@ -1376,9 +1391,9 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               </div>
 
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 18px", marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}><Tip text="4-month revenue forecast. March is broken into weekly projections, followed by April/May/June monthly totals. Line chart shows projected commission trend.">Revenue forecast — Commission</Tip></div>
-                <div style={{ position: "relative", height: 120, marginBottom: 8 }}>
-                  <svg width="100%" height="120" viewBox="0 0 700 120" preserveAspectRatio="none">
+                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}><Tip text="4-month revenue forecast. March is broken into weekly projections, followed by April/May/June monthly totals. Line chart shows projected commission trend. Hover over points for details.">Revenue forecast — Commission</Tip></div>
+                <div style={{ position: "relative", height: 140, marginBottom: 8 }}>
+                  <svg width="100%" height="140" viewBox="0 0 700 140" preserveAspectRatio="none">
                     {[0, 0.25, 0.5, 0.75, 1].map((p, i) => <line key={i} x1="50" y1={10 + p * 90} x2="680" y2={10 + p * 90} stroke="#F1F5F9" strokeWidth="1" />)}
                     {fcAll.map((f, fi) => {
                       const x = 80 + fi * 90;
@@ -1388,7 +1403,23 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     {fcVals.map((v, i) => {
                       const x = 80 + i * 90;
                       const y = 100 - (v / fcMax) * 85;
-                      return <g key={i}><circle cx={x} cy={y} r="4" fill="#FFF" stroke="#F97316" strokeWidth="2" /><text x={x} y={y - 8} textAnchor="middle" fontSize="8" fill="#F97316" fontWeight="700">{fmt$(v)}</text></g>;
+                      const isHovered = dlHover === i;
+                      const period = fcAll[i];
+                      const dealCount = period.ds.length;
+                      const totalVal = period.ds.reduce((s, d) => s + d.price, 0);
+                      const periodLabel = i < 4 ? `March ${period.l} 2026` : `${period.l} 2026`;
+                      return <g key={i}>
+                        <circle cx={x} cy={y} r={isHovered ? 7 : 4} fill={isHovered ? "#F97316" : "#FFF"} stroke="#F97316" strokeWidth="2" style={{ transition: "r 0.15s, fill 0.15s", cursor: "pointer" }} />
+                        <circle cx={x} cy={y} r="16" fill="transparent" style={{ cursor: "pointer" }} onMouseEnter={() => setDlHover(i)} onMouseLeave={() => setDlHover(null)} />
+                        {!isHovered && <text x={x} y={y - 8} textAnchor="middle" fontSize="8" fill="#F97316" fontWeight="700">{fmt$(v)}</text>}
+                        {isHovered && <g>
+                          <rect x={x - 72} y={y - 58} width="144" height="48" rx="6" fill="#1E293B" opacity="0.95" />
+                          <polygon points={`${x - 5},${y - 10} ${x + 5},${y - 10} ${x},${y - 4}`} fill="#1E293B" opacity="0.95" />
+                          <text x={x} y={y - 42} textAnchor="middle" fontSize="9" fill="#FFF" fontWeight="700">{periodLabel}</text>
+                          <text x={x} y={y - 30} textAnchor="middle" fontSize="8" fill="#F97316" fontWeight="700">Commission: {fmt$(v)}</text>
+                          <text x={x} y={y - 19} textAnchor="middle" fontSize="8" fill="#94A3B8">{dealCount} deals · {fmt$(totalVal)} value</text>
+                        </g>}
+                      </g>;
                     })}
                   </svg>
                 </div>
