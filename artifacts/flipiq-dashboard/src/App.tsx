@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import DealGrid from "./DealGrid";
 
 function Tip({ text, children }) {
   const [show, setShow] = useState(false);
@@ -1292,7 +1293,11 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           );
         })()}
 
-        {tab === "deals" && !sel && !eV && (() => {
+        {tab === "deals" && !sel && !eV && (
+          <DealGrid users={UR} orgs={O} flt={flt} />
+        )}
+
+        {false && (() => { /* OLD DEAL DASHBOARD - REMOVED */
           const DL_RANGES = ["30 days", "90 days", "180 days", "YTD", "All time"];
           const now = new Date(2026, 2, 21).getTime();
           const rangeStart = dlRange === "30 days" ? now - 30 * 86400000
