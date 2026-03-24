@@ -290,7 +290,21 @@ function genDeals() {
       const addr = `${Math.floor(100 + s4 * 9900)} ${DL_STREETS[Math.floor(s2 * DL_STREETS.length)]} ${DL_SUFFIXES[Math.floor(s3 * DL_SUFFIXES.length)]}, ${DL_CITIES[Math.floor(s7 * DL_CITIES.length)]}`;
       const s8 = seed(did * 163 + j * 59);
       const daysInStage = stg === "Acquired" ? Math.floor(s8 * 4) : stg === "Offer Accepted" ? Math.floor(1 + s8 * 10) : stg === "In Negotiations" ? Math.floor(2 + s8 * 20) : stg === "Offers" ? Math.floor(1 + s8 * 14) : Math.floor(1 + s8 * 30);
-      deals.push({ id: did++, aaId: u.id, src, pt, intent, stg, price, projProfit, comm, commType, closeDate, closeDateMs, closeMonth, closeWeek, addr, daysInStage });
+      const s9 = seed(did * 181 + j * 67);
+      const s10 = seed(did * 199 + j * 71);
+      const fmtD = (m, d) => `${["","Jan","Feb","Mar","Apr","May","Jun","Jul"][m]} ${d}, 2026`;
+      const contractDay = Math.floor(1 + s9 * 20);
+      const contractMonth = stg === "Acquired" || stg === "Offer Accepted" ? (s9 < 0.7 ? 2 : 3) : 3;
+      const contractDate = fmtD(contractMonth, contractDay);
+      const offerAccDay = Math.floor(contractDay + 3 + s10 * 10);
+      const offerAccMonth = offerAccDay > 28 ? contractMonth + 1 : contractMonth;
+      const offerAccDayAdj = offerAccDay > 28 ? offerAccDay - 28 : offerAccDay;
+      const offerAcceptedDate = (stg === "Offer Accepted" || stg === "Acquired") ? fmtD(Math.min(offerAccMonth, 6), offerAccDayAdj) : null;
+      const estCloseDay = Math.floor(1 + s8 * 27);
+      const estCloseMonth = closeMonth <= 6 ? closeMonth : 6;
+      const estCloseDate = fmtD(estCloseMonth, estCloseDay);
+      const actualCloseDate = stg === "Acquired" ? closeDate : null;
+      deals.push({ id: did++, aaId: u.id, src, pt, intent, stg, price, projProfit, comm, commType, closeDate, closeDateMs, closeMonth, closeWeek, addr, daysInStage, contractDate, offerAcceptedDate, estCloseDate, actualCloseDate });
     }
   });
   return deals;
@@ -587,6 +601,7 @@ export default function App() {
   const [dlExp, setDlExp] = useState({});
   const [dlRange, setDlRange] = useState("All time");
   const [dlHover, setDlHover] = useState(null);
+  const [pipeHover, setPipeHover] = useState(null);
   const [dlStgView, setDlStgView] = useState("closed");
   const [dlAnalytics, setDlAnalytics] = useState(false);
   const [aiMsgs, setAiMsgs] = useState([]);
@@ -1409,21 +1424,46 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   const sparkData = fcAll.map(f => f.ds.filter(d => d.stg === p.n).reduce((s, d) => s + d.comm, 0));
                   const spMax = Math.max(...sparkData, 1);
                   const pts = sparkData.map((v, i) => `${10 + i * (130 / 6)},${38 - (v / spMax) * 32}`).join(" ");
+                  const isHov = pipeHover === pi;
+                  const topDeals = [...stgDeals].sort((a, b) => b.price - a.price).slice(0, 8);
                   return (
-                  <Tip key={p.n} text={`${p.n}: ${p.cnt} deals, ${fmt$(p.total)} value, ${fmt$(p.comm)} commission, avg ${p.avgDays}d in stage, ${p.stuck} stuck 7+d`}><div style={{ background: pipeColors[pi].bg, border: "1px solid " + pipeColors[pi].bc, borderRadius: 10, padding: "10px 10px 6px", position: "relative" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: pipeColors[pi].color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>{p.n}</div>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                      <span style={{ fontSize: 20, fontWeight: 800, color: pipeColors[pi].color }}>{p.cnt}</span>
-                      <span style={{ fontSize: 10, color: "#64748B" }}>deals</span>
+                  <div key={p.n} style={{ position: "relative" }} onMouseEnter={() => setPipeHover(pi)} onMouseLeave={() => setPipeHover(null)}>
+                    <div style={{ background: isHov ? pipeColors[pi].bc : pipeColors[pi].bg, border: "2px solid " + (isHov ? pipeColors[pi].color : pipeColors[pi].bc), borderRadius: 10, padding: "10px 10px 6px", position: "relative", cursor: "pointer", transition: "all 0.15s" }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: pipeColors[pi].color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>{p.n}</div>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                        <span style={{ fontSize: 20, fontWeight: 800, color: pipeColors[pi].color }}>{p.cnt}</span>
+                        <span style={{ fontSize: 10, color: "#64748B" }}>deals</span>
+                      </div>
+                      <div style={{ fontSize: 10, color: "#64748B", marginTop: 1 }}>{fmt$(p.total)}</div>
+                      <div style={{ fontSize: 10, color: p.avgDays >= 10 ? "#DC2626" : p.avgDays >= 7 ? "#F97316" : "#64748B", fontWeight: 600, marginTop: 1 }}>Avg {p.avgDays}d{p.stuck > 0 ? ` · ${p.stuck} stuck` : ""}</div>
+                      <svg width="100%" height="42" viewBox="0 0 150 42" preserveAspectRatio="none" style={{ display: "block", marginTop: 2 }}>
+                        <polyline points={pts} fill="none" stroke={pipeColors[pi].color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" opacity="0.6" />
+                        {sparkData.map((v, i) => <circle key={i} cx={10 + i * (130 / 6)} cy={38 - (v / spMax) * 32} r="2" fill={pipeColors[pi].color} opacity="0.8" />)}
+                      </svg>
+                      {pi < 4 && <div style={{ position: "absolute", right: -8, top: "40%", transform: "translateY(-50%)", fontSize: 10, color: "#CBD5E1" }}>{"\u25B6"}</div>}
                     </div>
-                    <div style={{ fontSize: 10, color: "#64748B", marginTop: 1 }}>{fmt$(p.total)}</div>
-                    <div style={{ fontSize: 10, color: p.avgDays >= 10 ? "#DC2626" : p.avgDays >= 7 ? "#F97316" : "#64748B", fontWeight: 600, marginTop: 1 }}>Avg {p.avgDays}d{p.stuck > 0 ? ` · ${p.stuck} stuck` : ""}</div>
-                    <svg width="100%" height="42" viewBox="0 0 150 42" preserveAspectRatio="none" style={{ display: "block", marginTop: 2 }}>
-                      <polyline points={pts} fill="none" stroke={pipeColors[pi].color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" opacity="0.6" />
-                      {sparkData.map((v, i) => <circle key={i} cx={10 + i * (130 / 6)} cy={38 - (v / spMax) * 32} r="2" fill={pipeColors[pi].color} opacity="0.8" />)}
-                    </svg>
-                    {pi < 4 && <div style={{ position: "absolute", right: -8, top: "40%", transform: "translateY(-50%)", fontSize: 10, color: "#CBD5E1" }}>{"\u25B6"}</div>}
-                  </div></Tip>
+                    {isHov && stgDeals.length > 0 && (
+                      <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 50, marginTop: 4, background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, boxShadow: "0 12px 32px rgba(0,0,0,0.12)", padding: "10px 0", maxHeight: 320, overflowY: "auto", minWidth: 340 }}>
+                        <div style={{ padding: "0 12px 6px", fontSize: 10, fontWeight: 700, color: pipeColors[pi].color, textTransform: "uppercase", borderBottom: "1px solid #F1F5F9" }}>{p.n} — {p.cnt} deals · {fmt$(p.total)}</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 65px 65px 55px 55px", padding: "4px 12px", fontSize: 10, fontWeight: 700, color: "#64748B", borderBottom: "1px solid #F1F5F9" }}>
+                          <div>Address</div><div>Price</div><div>Comm</div><div>Days</div><div>Est close</div>
+                        </div>
+                        {topDeals.map(d => {
+                          const dayColor = d.daysInStage >= 14 ? "#DC2626" : d.daysInStage >= 7 ? "#F97316" : "#10B981";
+                          return (
+                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "1fr 65px 65px 55px 55px", padding: "4px 12px", fontSize: 10, borderBottom: "1px solid #F8FAFB", alignItems: "center" }}>
+                              <div style={{ color: "#1E293B", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.addr}</div>
+                              <div style={{ color: "#1E293B", fontWeight: 600 }}>{fmt$(d.price)}</div>
+                              <div style={{ color: "#10B981", fontWeight: 700 }}>{fmt$(d.comm)}</div>
+                              <div style={{ fontWeight: 700, color: dayColor }}>{d.daysInStage}d</div>
+                              <div style={{ color: "#64748B", fontSize: 10 }}>{d.estCloseDate.replace(", 2026", "")}</div>
+                            </div>
+                          );
+                        })}
+                        {stgDeals.length > 8 && <div style={{ padding: "4px 12px", fontSize: 10, color: "#64748B", fontStyle: "italic" }}>+{stgDeals.length - 8} more deals</div>}
+                      </div>
+                    )}
+                  </div>
                   );
                 })}
               </div>
@@ -1479,50 +1519,51 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     <div style={{ fontSize: 10, color: "#64748B" }}>{fmt$(tableDeals.reduce((s, d) => s + d.price, 0))} value · {fmt$(tableDeals.reduce((s, d) => s + d.comm, 0))} comm</div>
                   </div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: dlStgView === "all" ? "160px 100px 60px 80px 80px 60px 80px" : "180px 110px 80px 90px 70px 90px", padding: "6px 18px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>
-                  <div>AA</div><div>Company</div>{dlStgView === "all" ? <><div>Deals</div><div>Max days</div></> : <><div>Accepted</div><div>Accept to close</div></>}<div>Acquired</div><div>Commission</div>{dlStgView === "all" && <div></div>}
+                <div style={{ display: "grid", gridTemplateColumns: dlStgView === "all" ? "1fr 140px 70px 90px 80px 100px" : "1fr 140px 90px 120px 80px 110px", padding: "8px 24px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", gap: "0 8px" }}>
+                  <div>AA</div><div>Company</div>{dlStgView === "all" ? <><div>Deals</div><div>Max days in stage</div></> : <><div>Accepted</div><div>Accept to close</div></>}<div>Acquired</div><div>Commission</div>
                 </div>
                 {aaRows.map((r, ri) => (
                   <div key={r.aid}>
-                    <div onClick={() => setDlExp(p => ({ ...p, [r.aid]: !p[r.aid] }))} style={{ display: "grid", gridTemplateColumns: dlStgView === "all" ? "160px 100px 60px 80px 80px 60px 80px" : "180px 110px 80px 90px 70px 90px", padding: "8px 18px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", cursor: "pointer", alignItems: "center", transition: "background 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#F0F7FF"} onMouseLeave={e => e.currentTarget.style.background = ri % 2 === 0 ? "#FFF" : "#FAFBFC"}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div onClick={() => setDlExp(p => ({ ...p, [r.aid]: !p[r.aid] }))} style={{ display: "grid", gridTemplateColumns: dlStgView === "all" ? "1fr 140px 70px 90px 80px 100px" : "1fr 140px 90px 120px 80px 110px", padding: "10px 24px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", cursor: "pointer", alignItems: "center", transition: "background 0.15s", gap: "0 8px" }} onMouseEnter={e => e.currentTarget.style.background = "#F0F7FF"} onMouseLeave={e => e.currentTarget.style.background = ri % 2 === 0 ? "#FFF" : "#FAFBFC"}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <span style={{ fontSize: 10, color: "#CBD5E1" }}>{dlExp[r.aid] ? "\u25BC" : "\u25B6"}</span>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: "#0369A1", textDecoration: "underline", textDecorationColor: "#CBD5E1" }}>{r.n}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#0369A1", textDecoration: "underline", textDecorationColor: "#CBD5E1" }}>{r.n}</span>
                       </div>
-                      <div style={{ fontSize: 10, color: "#F97316", fontWeight: 600 }}>{r.co}</div>
+                      <div style={{ fontSize: 11, color: "#F97316", fontWeight: 600 }}>{r.co}</div>
                       {dlStgView === "all" ? <>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: "#1E293B" }}>{r.dealCount}</div>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: r.maxDays >= 14 ? "#DC2626" : r.maxDays >= 7 ? "#F97316" : "#10B981" }}>{r.maxDays}d</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "#1E293B" }}>{r.dealCount}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: r.maxDays >= 14 ? "#DC2626" : r.maxDays >= 7 ? "#F97316" : "#10B981" }}>{r.maxDays}d</div>
                       </> : <>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981" }}>{r.accepted}</div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <div style={{ width: 40, height: 5, background: "#F1F5F9", borderRadius: 3 }}><div style={{ width: r.accToClose + "%", height: 5, background: r.accToClose >= 50 ? "#10B981" : r.accToClose >= 25 ? "#F97316" : "#DC2626", borderRadius: 3 }} /></div>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: r.accToClose >= 50 ? "#10B981" : r.accToClose >= 25 ? "#F97316" : "#DC2626" }}>{r.accToClose}%</span>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "#10B981" }}>{r.accepted}</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <div style={{ width: 50, height: 6, background: "#F1F5F9", borderRadius: 3 }}><div style={{ width: r.accToClose + "%", height: 6, background: r.accToClose >= 50 ? "#10B981" : r.accToClose >= 25 ? "#F97316" : "#DC2626", borderRadius: 3 }} /></div>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: r.accToClose >= 50 ? "#10B981" : r.accToClose >= 25 ? "#F97316" : "#DC2626" }}>{r.accToClose}%</span>
                         </div>
                       </>}
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#059669" }}>{r.acquired}</div>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981" }}>{fmt$(r.totalComm)}</div>
-                      {dlStgView === "all" && <div></div>}
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#059669" }}>{r.acquired}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#10B981" }}>{fmt$(r.totalComm)}</div>
                     </div>
                     {dlExp[r.aid] && (
-                      <div style={{ background: "#F8FAFB", borderBottom: "1px solid #E2E8F0" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "160px 65px 55px 50px 75px 75px 60px 75px 65px 40px", padding: "4px 28px", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>
-                          <div>Address</div><div>Source</div><div>Intent</div><div>Type</div><div>Price</div><div>Commission</div><div>Comm type</div><div>Close date</div><div>Stage</div><div>Days</div>
+                      <div style={{ background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", overflowX: "auto" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "minmax(150px,1fr) 70px 60px 55px 80px 80px 80px 80px 80px 80px 75px 40px", padding: "6px 24px", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", minWidth: 960, gap: "0 6px" }}>
+                          <div>Address</div><div>Source</div><div>Intent</div><div>Type</div><div>Price</div><div>Commission</div><div>Contract</div><div>Offer Acc.</div><div>Est. close</div><div>Actual close</div><div>Stage</div><div>Days</div>
                         </div>
                         {r.deals.map(d => {
                           const stgColor = d.stg === "Acquired" ? "#059669" : d.stg === "Offer Accepted" ? "#10B981" : d.stg === "In Negotiations" ? "#8B5CF6" : d.stg === "Offers" ? "#F97316" : "#3B82F6";
                           const dayColor = d.daysInStage >= 14 ? "#DC2626" : d.daysInStage >= 7 ? "#F97316" : "#10B981";
                           return (
-                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "160px 65px 55px 50px 75px 75px 60px 75px 65px 40px", padding: "5px 28px", borderBottom: "1px solid #F1F5F9", fontSize: 10, alignItems: "center" }}>
-                              <div style={{ color: "#1E293B", fontWeight: 500 }}>{d.addr}</div>
-                              <div><span style={{ fontSize: 10, padding: "1px 5px", borderRadius: 3, background: d.src === "MLS" ? "#EFF6FF" : d.src === "Off Market" ? "#FFF7ED" : "#F5F3FF", color: d.src === "MLS" ? "#3B82F6" : d.src === "Off Market" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.src}</span></div>
-                              <div><span style={{ fontSize: 10, padding: "1px 4px", borderRadius: 3, background: d.intent === "Flip" ? "#FFF7ED" : "#F5F3FF", color: d.intent === "Flip" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.intent}</span></div>
+                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "minmax(150px,1fr) 70px 60px 55px 80px 80px 80px 80px 80px 80px 75px 40px", padding: "7px 24px", borderBottom: "1px solid #F1F5F9", fontSize: 10, alignItems: "center", minWidth: 960, gap: "0 6px" }}>
+                              <div style={{ color: "#1E293B", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.addr}</div>
+                              <div><span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: d.src === "MLS" ? "#EFF6FF" : d.src === "Off Market" ? "#FFF7ED" : "#F5F3FF", color: d.src === "MLS" ? "#3B82F6" : d.src === "Off Market" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.src}</span></div>
+                              <div><span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: d.intent === "Flip" ? "#FFF7ED" : "#F5F3FF", color: d.intent === "Flip" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.intent}</span></div>
                               <div style={{ color: "#64748B", fontWeight: 600 }}>{d.pt}</div>
-                              <div style={{ color: "#1E293B", fontWeight: 600 }}>{fmt$(d.price)}</div>
+                              <div style={{ color: "#1E293B", fontWeight: 700 }}>{fmt$(d.price)}</div>
                               <div style={{ color: "#10B981", fontWeight: 700 }}>{fmt$(d.comm)}</div>
-                              <div style={{ fontSize: 10, color: "#64748B" }}>{d.commType}</div>
-                              <div style={{ fontSize: 10, color: "#64748B" }}>{d.closeDate}</div>
-                              <div><span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 3, background: stgColor + "15", color: stgColor, fontWeight: 600 }}>{d.stg}</span></div>
+                              <div style={{ color: "#475569", fontSize: 10 }}>{d.contractDate.replace(", 2026", "")}</div>
+                              <div style={{ color: d.offerAcceptedDate ? "#059669" : "#CBD5E1", fontSize: 10, fontWeight: d.offerAcceptedDate ? 600 : 400 }}>{d.offerAcceptedDate ? d.offerAcceptedDate.replace(", 2026", "") : "—"}</div>
+                              <div style={{ color: "#475569", fontSize: 10 }}>{d.estCloseDate.replace(", 2026", "")}</div>
+                              <div style={{ color: d.actualCloseDate ? "#059669" : "#CBD5E1", fontSize: 10, fontWeight: d.actualCloseDate ? 700 : 400 }}>{d.actualCloseDate ? d.actualCloseDate.replace(", 2026", "") : "—"}</div>
+                              <div><span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: stgColor + "15", color: stgColor, fontWeight: 600 }}>{d.stg}</span></div>
                               <div style={{ fontSize: 10, fontWeight: 700, color: dayColor }}>{d.daysInStage}d</div>
                             </div>
                           );
