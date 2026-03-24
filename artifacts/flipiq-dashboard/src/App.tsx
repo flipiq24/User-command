@@ -1149,21 +1149,24 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             { k: "cid", l: "Contact ID", w: 85, tip: "CRM contact identifier." },
           ];
           const tw = ulCols.reduce((s, c) => s + c.w, 0);
+          const fIds = new Set(fU.map(x => x.id));
+          const fUL = UL.filter(u => fIds.has(u.uid));
+          const isFiltered = flt.org || flt.phase || flt.health;
           return (
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
               <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>User list</div>
-                  <div style={{ fontSize: 10, color: "#94A3B8" }}>All {UL.length} acquisition associates — login history, credentials, contact info, and Dialpad integration.</div>
+                  <div style={{ fontSize: 10, color: "#94A3B8" }}>{isFiltered ? `Showing ${fUL.length} of ${UL.length}` : `All ${UL.length}`} acquisition associates — login history, credentials, contact info, and Dialpad integration.</div>
                 </div>
-                <div style={{ fontSize: 11, color: "#64748B", background: "#F1F5F9", padding: "4px 10px", borderRadius: 5, fontWeight: 600 }}>{UL.length} users</div>
+                <div style={{ fontSize: 11, color: isFiltered ? "#F97316" : "#64748B", background: isFiltered ? "#FFF7ED" : "#F1F5F9", padding: "4px 10px", borderRadius: 5, fontWeight: 600 }}>{fUL.length} users</div>
               </div>
               <div style={{ overflowX: "auto" }}>
                 <div style={{ minWidth: tw + 20 }}>
                   <div style={{ display: "grid", gridTemplateColumns: ulCols.map(c => c.w + "px").join(" "), padding: "6px 10px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", gap: 0 }}>
                     {ulCols.map(c => <div key={c.k}><Tip text={c.tip}>{c.l}</Tip></div>)}
                   </div>
-                  {UL.map((u, i) => (
+                  {fUL.map((u, i) => (
                     <div key={u.uid} style={{ display: "grid", gridTemplateColumns: ulCols.map(c => c.w + "px").join(" "), padding: "7px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 10, alignItems: "center", gap: 0 }}>
                       <div style={{ color: "#64748B", fontWeight: 600 }}>{u.uid}</div>
                       <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.fn}</div>
