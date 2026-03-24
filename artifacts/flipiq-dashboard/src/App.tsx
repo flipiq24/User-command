@@ -1394,6 +1394,59 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 </div>
               </div>
 
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
+                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}>By source</div>
+                  {srcBreak.map(s => {
+                    const active = dlSrc === s.n;
+                    return (
+                      <div key={s.n} onClick={() => setDlSrc(active ? null : s.n)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, padding: "3px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#EFF6FF" : "transparent", border: active ? "1px solid #BFDBFE" : "1px solid transparent" }}>
+                        <span style={{ fontSize: 11, color: "#1E293B", fontWeight: active ? 700 : 500 }}>{s.n}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: active ? "#3B82F6" : "#1E293B" }}>{s.cnt}</span>
+                          <span style={{ fontSize: 9, color: "#94A3B8" }}>{Math.round(s.cnt / srcTotal * 100)}%</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#F97316", marginBottom: 8 }}>By property type</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+                    {DL_PTYPES.map(p => {
+                      const cnt = fd.filter(d => d.pt === p).length;
+                      const active = dlPt === p;
+                      return (
+                        <div key={p} onClick={() => setDlPt(active ? null : p)} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, padding: "2px 4px", background: active ? "#FFF7ED" : cnt > 0 ? "#FEFCE8" : "transparent", borderRadius: 3, cursor: "pointer", border: active ? "1px solid #FED7AA" : "1px solid transparent" }}>
+                          <span style={{ color: "#64748B", fontWeight: active ? 700 : 600 }}>{p}</span>
+                          <span style={{ fontWeight: 700, color: active ? "#F97316" : cnt > 0 ? "#F97316" : "#CBD5E1" }}>{cnt}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", marginBottom: 8 }}>By intent</div>
+                  {intBreak.map(i => {
+                    const pct = Math.round(i.cnt / srcTotal * 100);
+                    const active = dlInt === i.n;
+                    return (
+                      <div key={i.n} onClick={() => setDlInt(active ? null : i.n)} style={{ marginBottom: 8, padding: "4px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#F5F3FF" : "transparent", border: active ? "1px solid #DDD6FE" : "1px solid transparent" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                          <span style={{ fontSize: 12, fontWeight: active ? 700 : 600, color: "#1E293B" }}>{i.n}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: i.n === "Flip" ? "#F97316" : "#8B5CF6" }}>{i.cnt} <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 400 }}>{pct}%</span></span>
+                        </div>
+                        <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3 }}>
+                          <div style={{ height: 6, width: pct + "%", background: i.n === "Flip" ? "#F97316" : "#8B5CF6", borderRadius: 3 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
                 <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
@@ -1423,14 +1476,15 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     </div>
                     {dlExp[r.aid] && (
                       <div style={{ background: "#F8FAFB", borderBottom: "1px solid #E2E8F0" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "200px 80px 55px 80px 80px 70px 90px 80px", padding: "4px 28px", fontSize: 7, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>
-                          <div>Address</div><div>Intent</div><div>Type</div><div>Price</div><div>Commission</div><div>Comm type</div><div>Close date</div><div>Stage</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "180px 70px 60px 50px 80px 80px 65px 85px 75px", padding: "4px 28px", fontSize: 7, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>
+                          <div>Address</div><div>Source</div><div>Intent</div><div>Type</div><div>Price</div><div>Commission</div><div>Comm type</div><div>Close date</div><div>Stage</div>
                         </div>
                         {r.deals.map(d => {
                           const stgColor = d.stg === "Acquired" ? "#059669" : "#10B981";
                           return (
-                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "200px 80px 55px 80px 80px 70px 90px 80px", padding: "5px 28px", borderBottom: "1px solid #F1F5F9", fontSize: 9, alignItems: "center" }}>
+                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "180px 70px 60px 50px 80px 80px 65px 85px 75px", padding: "5px 28px", borderBottom: "1px solid #F1F5F9", fontSize: 9, alignItems: "center" }}>
                               <div style={{ color: "#1E293B", fontWeight: 500 }}>{d.addr}</div>
+                              <div><span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 3, background: d.src === "MLS" ? "#EFF6FF" : d.src === "Off Market" ? "#FFF7ED" : "#F5F3FF", color: d.src === "MLS" ? "#3B82F6" : d.src === "Off Market" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.src}</span></div>
                               <div><span style={{ fontSize: 8, padding: "1px 4px", borderRadius: 3, background: d.intent === "Flip" ? "#FFF7ED" : "#F5F3FF", color: d.intent === "Flip" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.intent}</span></div>
                               <div style={{ color: "#64748B", fontWeight: 600 }}>{d.pt}</div>
                               <div style={{ color: "#1E293B", fontWeight: 600 }}>{fmt$(d.price)}</div>
