@@ -1,0 +1,275 @@
+# Deal Dashboard Redesign — Replit Implementation Spec
+
+**From:** Tony Diaz, CEO — FlipIQ  
+**Date:** March 24, 2026  
+**For:** Replit Developer  
+**Context:** The current "Deal Dashboard" tab in the FlipIQ USER COMMAND CSM Dashboard needs a fundamental redesign. This document provides the exact requirements, references to existing code, and the changes needed.
+
+---
+
+## Current State (What Exists)
+
+The deal dashboard lives inside `artifacts/flipiq-dashboard/src/App.tsx` starting at **line 1295** (`tab === "deals"`). It currently renders:
+
+1. **5 pipeline stage cards** with inline SVG sparklines (Active Pipeline → Offers → In Negotiations → Offer Accepted → Acquired)
+2. **SVG line chart** for revenue forecasting (commission projections by week/month)
+3. **AA-grouped deal table** — currently only shows "Offer Accepted" and "Acquired" by default, with a toggle for "All stages"
+4. **Collapsible analytics panels** — By Source, By Property Type, By Intent
+
+**Deal data** is generated from the `genDeals()` function (line 236) which creates ~280 mock deals proportionally scaled from AA stats. Each deal has: `id`, `aaId`, `src`, `pt` (property type), `intent`, `stg` (stage), `price`, `projProfit`, `comm`, `commType`, `closeDate`, `closeDateMs`, `closeMonth`, `closeWeek`, `addr`, `daysInStage`, `contractDate`, `offerAcceptedDate`, `estCloseDate`, `actualCloseDate`.
+
+**Database schema** (in `lib/db/src/schema/flipiq.ts`): There is currently **NO deals/properties table** in the database. Deals are entirely mocked in `genDeals()`. A real `deals` table will need to be created.
+
+**Pipeline stages** are defined at line 184: `["Active Pipeline", "Offers", "In Negotiations", "Offer Accepted", "Acquired"]`
+
+**Sources** at line 185: `["MLS", "Off Market", "Wholesaler"]`
+
+**Intents** at line 186: `["Flip", "Wholesale"]`
+
+---
+
+## What Needs to Change
+
+### CHANGE 1: Replace Charts/Graphs with a Grid (Spreadsheet-Style Table)
+
+**Remove** the SVG line chart revenue forecast entirely. **Remove** the 5 pipeline stage cards.
+
+**Replace with** a single data grid table. Think of it like a condensed spreadsheet view — rows are deal stages, columns are months.
+
+**Grid Structure:**
+
+| | Closed This Month (Mar 2026) | Apr 2026 | May 2026 | Jun 2026 | Jul 2026 | Aug 2026 | Sep 2026 |
+|---|---|---|---|---|---|---|---|
+| **Qualifying Deals** | | | | | | | |
+| Count | 12 | 8 | 5 | 3 | 2 | 1 | — |
+| **Sent Offer Deals** | | | | | | | |
+| Count | 8 | 6 | 4 | 2 | 1 | — | — |
+| Revenue | $240K | $180K | $120K | $60K | $30K | — | — |
+| **Offer Accepted** | | | | | | | |
+| Count | 4 | 3 | 2 | 1 | — | — | — |
+| Revenue | $120K | $90K | $60K | $30K | — | — | — |
+| **Acquired** | | | | | | | |
+| Count | 2 | 1 | — | — | — | — | — |
+| Revenue | $60K | $30K | — | — | — | — | — |
+
+**Column mapping:**
+- **Column 1** = Current month (shows actual closed deals this month)
+- **Columns 2–7** = Next 6 months, showing expected/projected deals and revenue
+
+**Row definitions — stage mapping from existing data model:**
+- **Qualifying Deals** = deals at stages: "Initial Contact", "Backup", "Offer Terms Sent" — these are the early pipeline stages. *Show count only (no revenue)* since these are too early to project reliably.
+- **Sent Offer Deals** = deals at stages: "Contract Submitted", "In Negotiations" — show both count and projected revenue.
+- **Offer Accepted** = deals where offer has been accepted — show both count and projected revenue.
+- **Acquired** = closed/acquired deals — show both count and revenue.
+
+**Revenue projection logic:** Each deal's column placement is determined by its `estCloseDate` (expected close date). If a deal's expected close date falls in April 2026, its revenue shows in the April column. The deal's `intent` (Flip vs Wholesale) determines whether the revenue comes from dispo or wholesale.
+
+> **NOTE:** The existing stage names in the code (`"Active Pipeline"`, `"Offers"`, `"In Negotiations"`, `"Offer Accepted"`, `"Acquired"`) need to be remapped. We need to either:  
+> (a) Add new stages ("Initial Contact", "Backup", "Offer Terms Sent", "Contract Submitted") to the data model, OR  
+> (b) Map the existing stages into the new groupings. Recommend option (a) — update the `DL_STAGES` array and `genDeals()` logic.
+
+---
+
+### CHANGE 2: Filter by Source
+
+Add a filter bar at the top with Source options:
+- **MLS**
+- **Off Market**
+
+These already exist in the data model (`d.src`). The current filter toggle buttons at the top work — keep the same `dlSrc` state pattern but remove "Wholesaler" as a separate source. Deals should be filterable by one or more sources.
+
+When a source filter is active, ALL numbers in the grid should update to reflect only that source.
+
+---
+
+### CHANGE 3: Filter by Intent
+
+Add an Intent filter alongside Source:
+- **Flip**
+- **Wholesale**
+- **Portfolio** ← This is NEW and needs to be added to the data model
+
+Currently `DL_INTENTS` at line 186 only has `["Flip", "Wholesale"]`. **Add "Portfolio"** as a third option. Update `genDeals()` (line 258) to include Portfolio deals (suggest ~15-20% of deals).
+
+When an intent filter is active, ALL numbers in the grid should update to reflect only that intent.
+
+---
+
+### CHANGE 4: Group by Company with Drill-Down
+
+The grid described in Change 1 should be the **top-level summary view**. Below it (or as the primary structure), deals should be **grouped by Company** (organization).
+
+**Hierarchy:**
+
+```
+▶ Coko Homes          [grid row with totals for this company]
+  ▶ Gregory Patterson  [grid row with totals for this AA]
+    ▶ 123 Main St      [individual deal detail]
+    ▶ 456 Oak Ave      [individual deal detail]
+  ▶ Jesus Valdez       [grid row with totals for this AA]
+▶ Hegemark             [grid row with totals for this company]
+  ▶ Roman Bracamonte   [grid row with totals for this AA]
+```
+
+**Company level** = collapsed by default, shows aggregate numbers across all AAs in that company.
+
+**AA level** = expand company to see individual AAs and their numbers.
+
+**Deal level** = expand AA to see each individual deal with property details:
+- **Thumbnail** (property image — use placeholder if not available)
+- **Address** (already in data as `d.addr`)
+- **Source** (MLS / Off Market)
+- **Intent** (Flip / Wholesale / Portfolio)
+- **Price** (`d.price`)
+- **Expected Revenue** (`d.projProfit` or `d.comm` depending on context)
+- **Expected Close Date** (`d.estCloseDate`)
+- **Days to Close** (calculated: `estCloseDate - today`)
+
+**Existing code reference:** The current deal table already has AA grouping logic (line 1375-1386 in App.tsx using `aaGroups`). Extend this to add a company grouping layer above it using the `O` array (organizations, line 28) and `u.org` on each user.
+
+---
+
+### CHANGE 5: Past-Due Highlighting
+
+If a deal is NOT marked as closed (stage ≠ "Acquired") AND the current date is past the deal's `estCloseDate`:
+
+- **Yellow highlight** on the Company/AA row if the deal is **less than 1 week** past due
+- **Red highlight** on the Company/AA row if the deal is **more than 1 week** past due
+
+**Implementation:** Compare `new Date()` against `d.estCloseDate`. If `today - estCloseDate > 0 && today - estCloseDate <= 7 days` → yellow. If `> 7 days` → red.
+
+The highlight should apply to the **entire row** for the AA, and bubble up to the company row if any AA under that company has past-due deals. The worst status wins (if one AA is yellow and another is red, the company row shows red).
+
+**Existing code reference:** The current deal table already has `daysInStage` color coding (line 1606: green <7d, orange 7-14d, red 14d+). Apply similar logic but against expected close date instead of days in stage.
+
+---
+
+### CHANGE 6: FlipIQ Version — Expected Success Fees
+
+This is a **separate view or additional column set** that shows FlipIQ's own revenue tracking.
+
+Each property/deal should have an **Expected Success Fee** field. This is the fee FlipIQ charges per deal.
+
+**Invoice tracking per deal** — add a dropdown or expandable section on each deal showing:
+
+| Step | Status | Date |
+|---|---|---|
+| Need to Invoice | ◻️ | — |
+| Invoiced | ◻️ | — |
+| Payment Received | ◻️ | — |
+
+These three payment steps should be **clickable checkboxes** that update the deal's invoice status.
+
+**At the top of the page**, add **three clickable summary boxes** that act as both KPIs and filters:
+
+```
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│ Need to Invoice  │  │    Invoiced     │  │ Payment Received│
+│     $45,000      │  │    $32,000      │  │    $18,000      │
+│    (12 deals)    │  │    (8 deals)    │  │    (5 deals)    │
+└─────────────────┘  └─────────────────┘  └─────────────────┘
+```
+
+**Clicking a box** should filter the grid below to show only deals at that invoice step. Clicking again deselects the filter.
+
+---
+
+## Database Changes Required
+
+The current schema (`lib/db/src/schema/flipiq.ts`) has NO deals table. You need to add:
+
+```typescript
+export const deals = pgTable("deals", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+  org_id: integer("org_id").references(() => organizations.id),
+  address: text("address").notNull(),
+  thumbnail_url: text("thumbnail_url"),
+  source: text("source").notNull(),         // "MLS", "Off Market"
+  intent: text("intent").notNull(),          // "Flip", "Wholesale", "Portfolio"
+  stage: text("stage").notNull(),            // See stage list below
+  price: integer("price").default(0),
+  projected_profit: integer("projected_profit").default(0),
+  commission: integer("commission").default(0),
+  commission_type: text("commission_type"),
+  expected_close_date: date("expected_close_date"),
+  actual_close_date: date("actual_close_date"),
+  contract_date: date("contract_date"),
+  offer_accepted_date: date("offer_accepted_date"),
+  days_in_stage: integer("days_in_stage").default(0),
+  property_type: text("property_type"),
+  // FlipIQ Success Fee fields
+  success_fee: integer("success_fee").default(0),
+  invoice_status: text("invoice_status").default("need_to_invoice"), // "need_to_invoice", "invoiced", "payment_received"
+  invoiced_date: date("invoiced_date"),
+  payment_received_date: date("payment_received_date"),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+```
+
+**Updated stage list** (replaces `DL_STAGES`):
+```
+"Initial Contact", "Backup", "Offer Terms Sent",   ← Qualifying Deals
+"Contract Submitted", "In Negotiations",             ← Sent Offer Deals  
+"Offer Accepted",                                     ← Offer Accepted
+"Acquired"                                            ← Acquired/Closed
+```
+
+---
+
+## API Changes Required
+
+Add these routes to the API spec (`lib/api-spec/openapi.yaml`):
+
+1. `GET /api/deals` — list all deals with filtering (source, intent, org_id, stage, date range)
+2. `GET /api/deals/:id` — single deal detail
+3. `POST /api/deals` — create deal
+4. `PATCH /api/deals/:id` — update deal (stage changes, invoice status updates)
+5. `GET /api/deals/summary` — aggregated grid data (counts and revenue by stage and month, grouped by org and user)
+
+The summary endpoint should return pre-aggregated data to avoid doing heavy computation on the frontend.
+
+---
+
+## Frontend Architecture Notes
+
+**Current problem:** The entire App.tsx is a 2,231-line monolith with hardcoded data arrays, inline styles, and all 7 tabs in one file. The deal dashboard section alone is ~340 lines of inline JSX.
+
+**Recommended approach for this change:**
+1. Create the grid as a **new component** (`DealGrid.tsx` or similar) rather than adding more code to App.tsx
+2. Use the existing API client pattern (`@workspace/api-client-react`) to fetch real deal data instead of `genDeals()`
+3. Keep the inline style pattern for consistency with the rest of the dashboard (the codebase explicitly avoids Tailwind utility classes in JSX per replit.md)
+4. Use the existing expand/collapse pattern from the current deal table (line 1599, `dlExp` state) for the Company → AA → Deal drill-down
+
+**Existing UI components available** (in `src/components/ui/`):
+- `table.tsx` — shadcn table component (but current dashboard uses custom inline tables)
+- `accordion.tsx` — could use for expand/collapse
+- `badge.tsx` — for stage badges, status indicators
+- `card.tsx` — for the invoice summary boxes
+
+---
+
+## Priority Order
+
+1. **Grid view** (Change 1) — this is the core redesign. Get the spreadsheet-style table working first.
+2. **Company grouping with drill-down** (Change 4) — this transforms it from flat to hierarchical.
+3. **Source and Intent filters** (Changes 2 & 3) — wire up the filter state to the grid.
+4. **Past-due highlighting** (Change 5) — visual alert system.
+5. **Success fee / invoice tracking** (Change 6) — this requires DB changes and is the most complex piece.
+6. **Database migration** — move from `genDeals()` mock data to real Postgres table. Can be done in parallel with frontend work if you keep the same data shape.
+
+---
+
+## What to Keep
+
+- The **cross-filtering** between main dashboard filters (Org, Phase, Health) and deal-specific filters should still work
+- The **commission calculation logic** (different rates for Wholesaler vs MLS vs Off Market, line 273-284) — this is correct and should be preserved
+- The **deal analytics accordion** at the bottom (By Source, By Property Type, By Intent) — keep this as a collapsible secondary view for weekly reviews
+- The **health color system** (red/orange/yellow/green) from the rest of the dashboard should be maintained for visual consistency
+
+## What to Remove
+
+- The **SVG line chart** revenue forecast (line 1510-1557) — replaced by the grid
+- The **5 pipeline stage cards** at the top — replaced by the grid rows
+- The **"Closed deals" / "All stages" toggle** (line 1568) — the new grid always shows all stages as rows
