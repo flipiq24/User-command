@@ -1435,7 +1435,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     {[0, 0.25, 0.5, 0.75, 1].map((p, i) => <line key={i} x1="50" y1={10 + p * 90} x2="680" y2={10 + p * 90} stroke="#F1F5F9" strokeWidth="1" />)}
                     {fcAll.map((f, fi) => {
                       const x = 80 + fi * 90;
-                      return <text key={fi} x={x} y={115} textAnchor="middle" fontSize="9" fill="#94A3B8" fontWeight="600">{f.l}</text>;
+                      return <text key={fi} x={x} y={115} textAnchor="middle" fontSize="10" fill="#64748B" fontWeight="600">{f.l}</text>;
                     })}
                     {(() => { const tY = 100 - (targetCommLine / fcMax) * 85; return <g><line x1="50" y1={tY} x2="680" y2={tY} stroke="#10B981" strokeWidth="1.5" strokeDasharray="6 4" opacity="0.7" /><text x="685" y={tY + 3} fontSize="10" fill="#10B981" fontWeight="700">Target</text></g>; })()}
                     <polyline points={fcVals.map((v, i) => `${80 + i * 90},${100 - (v / fcMax) * 85}`).join(" ")} fill="none" stroke="#F97316" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
@@ -1450,13 +1450,13 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       return <g key={i}>
                         <circle cx={x} cy={y} r={isHovered ? 7 : 4} fill={isHovered ? "#F97316" : "#FFF"} stroke="#F97316" strokeWidth="2" style={{ transition: "r 0.15s, fill 0.15s", cursor: "pointer" }} />
                         <circle cx={x} cy={y} r="16" fill="transparent" style={{ cursor: "pointer" }} onMouseEnter={() => setDlHover(i)} onMouseLeave={() => setDlHover(null)} />
-                        {!isHovered && <text x={x} y={y - 8} textAnchor="middle" fontSize="8" fill="#F97316" fontWeight="700">{fmt$(v)}</text>}
+                        {!isHovered && <text x={x} y={y - 8} textAnchor="middle" fontSize="10" fill="#F97316" fontWeight="700">{fmt$(v)}</text>}
                         {isHovered && <g>
-                          <rect x={x - 72} y={y - 58} width="144" height="48" rx="6" fill="#1E293B" opacity="0.95" />
+                          <rect x={x - 76} y={y - 60} width="152" height="50" rx="6" fill="#1E293B" opacity="0.95" />
                           <polygon points={`${x - 5},${y - 10} ${x + 5},${y - 10} ${x},${y - 4}`} fill="#1E293B" opacity="0.95" />
-                          <text x={x} y={y - 42} textAnchor="middle" fontSize="9" fill="#FFF" fontWeight="700">{periodLabel}</text>
-                          <text x={x} y={y - 30} textAnchor="middle" fontSize="8" fill="#F97316" fontWeight="700">Commission: {fmt$(v)}</text>
-                          <text x={x} y={y - 19} textAnchor="middle" fontSize="8" fill="#94A3B8">{dealCount} deals · {fmt$(totalVal)} value</text>
+                          <text x={x} y={y - 44} textAnchor="middle" fontSize="10" fill="#FFF" fontWeight="700">{periodLabel}</text>
+                          <text x={x} y={y - 31} textAnchor="middle" fontSize="10" fill="#F97316" fontWeight="700">Commission: {fmt$(v)}</text>
+                          <text x={x} y={y - 18} textAnchor="middle" fontSize="10" fill="#64748B">{dealCount} deals · {fmt$(totalVal)} value</text>
                         </g>}
                       </g>;
                     })}
@@ -1536,7 +1536,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
                 <div onClick={() => setDlAnalytics(!dlAnalytics)} style={{ padding: "12px 18px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#64748B" }}>Deal analytics</div>
-                  <span style={{ fontSize: 10, color: "#94A3B8" }}>{dlAnalytics ? "\u25B2" : "\u25BC"} {dlAnalytics ? "Collapse" : "Expand"}</span>
+                  <span style={{ fontSize: 10, color: "#64748B" }}>{dlAnalytics ? "\u25B2" : "\u25BC"} {dlAnalytics ? "Collapse" : "Expand"}</span>
                 </div>
                 {dlAnalytics && (
                   <div style={{ padding: "0 18px 18px" }}>
