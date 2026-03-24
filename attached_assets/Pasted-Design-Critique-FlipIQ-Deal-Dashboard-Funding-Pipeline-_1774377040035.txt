@@ -1,0 +1,60 @@
+Design Critique: FlipIQ Deal Dashboard (Funding Pipeline)
+Date: March 24, 2026
+Context: New "Deal Dashboard" tab added to FlipIQ USER COMMAND — a CSM tool used daily by Ramy to monitor 21 Acquisition Associates across 5 organizations.
+Stage: Early implementation — recently added, not yet in the spec document.
+Primary User: Ramy (CSM Lead), with visibility for Tony (Product), Ethan (Accountability), and the COO.
+
+Overall Impression
+The deal dashboard has strong bones — the 5-stage pipeline cards, revenue forecast chart, and AA-grouped deal table are the right data to show. The biggest opportunity is reducing cognitive load. Right now, the tab dumps a lot of raw numbers without guiding Ramy toward the one thing she needs to answer each morning: "Which AAs are stuck in the pipeline, and where?" The dashboard currently shows deals, but doesn't yet tell a story about deal velocity or risk.
+
+1. Usability
+FindingSeverityRecommendationNo "so what" moment at the top. The header shows total pipeline and commission, but doesn't surface the metrics Ramy actually acts on — how many AAs are behind on their 2-deals-per-month target, and which pipeline stage is the bottleneck.🔴 CriticalAdd a KPI strip at the top: "X of Y AAs on pace for 2 deals/month" with a mini progress ring, plus "Biggest bottleneck: In Negotiations (Z deals stuck 7+ days)." This mirrors how the Overview tab leads with "Tasks: X/Y" — give the deal tab the same action-first framing.Filter bar is dense and hard to scan. Source, Type (up to 12 property types), and Intent filters all live on one row with tiny toggle buttons. The property type buttons especially are hard to hit and read at 9px font.🟡 ModerateGroup Source and Intent as pill toggles (they have 2-3 options each — fine as-is). Move Property Type into a dropdown multi-select instead of 12 individual buttons. This cuts the filter row from ~30 items to ~10."Deals by AA" table only shows Offer Accepted and Acquired. This means the majority of deals (Active Pipeline, Offers, In Negotiations) are invisible in the table. Ramy can't drill into where deals are stuck.🔴 CriticalShow all pipeline stages in the table, with a stage filter dropdown. Default to "All stages" so Ramy sees the full picture. Add a "Days in stage" column so stuck deals jump out visually — highlight deals sitting in a stage for 7+ days in orange, 14+ in red.No clear path from "I see a problem" to "I take action." On the Overview tab, every row has a checkbox and action modal. The deal dashboard has no equivalent — you see numbers but can't act.🟡 ModerateAdd a quick-action column on the deal table: "Send Email" (pre-fills a coaching email targeting the AA's pipeline gaps) and "View AA" (jumps to their detail page). This connects the deal view back to the coaching workflow that drives the whole system.Revenue forecast chart is decorative, not actionable. The line chart shows commission projections by week/month, but there's no target line, so Ramy can't tell if the team is on track or behind.🟡 ModerateAdd a target line to the forecast chart — a dashed horizontal line at the "2 deals × N AAs × avg commission" benchmark. Shade the area below target in light red, above in light green. Now the chart answers "Are we on pace?" at a glance.Expanded deal rows have 9 columns of detail at 7-9px font. Address, Source, Intent, Type, Price, Commission, Comm type, Close date, Stage — that's a lot of data crammed into a small space.🟢 MinorReduce the expanded view to 5 essential columns: Address, Source, Price, Stage, Days in Stage. Move the rest into a tooltip or secondary panel on click. Less is more when Ramy is scanning 50+ deals.
+
+2. Visual Hierarchy
+What draws the eye first: The 5 pipeline stage cards — their colored backgrounds and large count numbers pull attention correctly. This is good.
+Reading flow: Eye moves from pipeline cards → forecast chart → breakdown panels → deal table. The problem is the three breakdown panels (By Source, By Property Type, By Intent) interrupt the natural flow from "pipeline overview" to "which deals need attention." They're analytical context, not action drivers.
+Recommended change: Move the three breakdown panels into a collapsible "Analytics" section below the deal table. Most mornings, Ramy doesn't need source/type/intent breakdowns — she needs pipeline stage → stuck deals → action. Reserve the analytics for weekly reviews when Tony or Ethan want to slice the data.
+Emphasis issues:
+
+The pipeline stage cards treat all 5 stages equally (same size, same visual weight). But "In Negotiations" and "Offer Accepted" are where deals stall. Consider making these two cards slightly larger or adding a "velocity" indicator (avg days in stage) to call out bottlenecks.
+Commission totals are prominently shown, but Ramy's primary metric is deal count (2/month/AA), not dollar amounts. Lead with count, show dollars secondary.
+
+
+3. Consistency with the Rest of the Dashboard
+ElementIssueRecommendationTab namingOther tabs use task-oriented names (Overview, Leaderboard, Heat Map, Emails). "Deal Dashboard" is generic — it doesn't say what you do here.Rename to "Pipeline" or "Deals" to match the concise naming pattern.Color codingThe pipeline cards use blue/orange/purple/green/dark-green. The rest of the app uses a strict 4-color health system (red/orange/yellow/green). The purple for "In Negotiations" and secondary green for "Acquired" don't exist elsewhere.Keep the pipeline colors (they represent stages, not health), but add health-colored dots next to each AA in the deal table to maintain the visual language Ramy already knows. When she sees a red dot next to an AA's name in the deal table, she instantly knows "this person is critical" without context-switching.Font sizesThe deal dashboard uses 7-9px for most text. The rest of the app uses 10-12px as the baseline.Bump the minimum font size to 10px across the deal tab. At 7px, even the column headers in the expanded deal rows are hard to read on a normal monitor.Interaction patternOther tabs let you click an AA name to jump to their detail view. The deal table's AA names are styled as links but only toggle the expand/collapse.Make the AA name a link to their detail view (consistent with every other tab). Use the expand/collapse arrow for revealing deal rows.
+
+4. Accessibility
+
+Color contrast: The 7-8px text in #94A3B8 on white backgrounds fails WCAG AA contrast ratio (4.5:1 required for small text). This affects the subtitle text, column headers, and percentage labels throughout the deal tab.
+Touch targets: The filter toggle buttons are ~24×20px. WCAG recommends 44×44px minimum. On a laptop touchpad or if this is ever viewed on a tablet, these are hard to hit.
+Text readability: The 7px font in the expanded deal detail rows is below the generally recommended 12px minimum for body text on screen. Even for data-dense tables, 10px is the practical floor.
+
+
+5. What Works Well
+
+Pipeline-as-funnel visualization with the 5 stage cards and arrow connectors is exactly the right mental model for a funding pipeline. It maps to how AAs think about their work.
+Cross-filtering between the main dashboard filters (Org, Phase, Health) and the deal-specific filters (Source, Type, Intent) is powerful. Ramy can ask "Show me all red-health AAs at TD Realty with MLS deals" in 3 clicks.
+Revenue forecast chart with hover tooltips showing deal count and value per period is well-executed. The data is there — it just needs a target line to become actionable.
+Expandable AA rows in the deal table are the right pattern for progressive disclosure. Show the summary, click to see deal-level detail.
+Commission calculation logic (different rates for Wholesaler vs MLS vs Off Market) being built into the data model means the numbers Ramy sees are real, not estimates.
+
+
+6. Priority Recommendations
+1. Add a "Pipeline Health" KPI strip at the top (High Impact, Low Effort)
+Why: The dashboard currently opens with a title and subtitle of aggregate numbers. Ramy's first question every morning is "Who's behind?" not "What's the total pipeline?" A 3-metric KPI strip — (a) AAs on pace for 2 deals/month, (b) deals stuck 7+ days in a stage, (c) biggest bottleneck stage — turns the tab from a data dump into a morning briefing.
+How: Add a horizontal card row above the pipeline stages. Three cards, each with a number, label, and color (green if healthy, red if concerning). Same pattern as the "Total AAs / Critical / At Risk / Draft Emails" strip on the Overview tab.
+2. Add "Days in Stage" to the deal table and pipeline cards (High Impact, Medium Effort)
+Why: The deal dashboard shows where deals are but not how long they've been there. A deal sitting in "In Negotiations" for 3 days is fine. A deal sitting there for 21 days is a problem. Without velocity data, the pipeline view is a snapshot that doesn't reveal momentum or stagnation.
+How: Add a days_in_stage computed field to each deal. Show it as a column in the deal table with color coding (green <7d, yellow 7-14d, red 14d+). On the pipeline stage cards, show "Avg X days" beneath the deal count. This single addition transforms the deal tab from "here's what exists" to "here's what needs attention."
+3. Show all pipeline stages in the deal table, not just closed deals (High Impact, Medium Effort)
+Why: The current table only shows "Offer Accepted" and "Acquired" deals. That's the finish line, not the journey. Ramy needs to see which deals are stuck in Active Pipeline (no offer yet), which have offers out but no response, and which are in negotiation limbo. This is the coaching intelligence that drives her daily work.
+How: Change the table filter default to "All stages." Add a stage filter dropdown. Add stage-colored badges to each row. Sort by "Days in stage" descending so stuck deals surface first.
+4. Collapse the analytics panels and promote the deal table (Medium Impact, Low Effort)
+Why: The "By Source / By Property Type / By Intent" panels take up significant vertical space between the pipeline overview and the deal table. For Ramy's daily workflow, these are secondary. Pushing the deal table — where she identifies stuck deals and takes action — below the fold hurts usability.
+How: Move the analytics panels into a collapsible "Deal Analytics" accordion below the deal table. Default to collapsed. This puts the pipeline cards → deal table above the fold, matching the "see the situation → act on it" flow that makes the Overview tab effective.
+5. Connect the deal tab to the coaching workflow (Medium Impact, Medium Effort)
+Why: The Overview tab has checkboxes, action modals, and email generation. The deal tab is view-only. If Ramy spots a problem (AA has 5 deals stuck in Active Pipeline with zero offers), she has to navigate away to the Overview or Emails tab to do anything about it. Every tab-switch is friction.
+How: Add a small "Coach" button on each AA's row in the deal table. Clicking it opens the email preview with the root cause pre-filled from the pipeline data: "Zero offers BECAUSE Active Pipeline deals have no Offer Terms or Submit Contract activity." This closes the loop between seeing the pipeline and driving action.
+
+Summary Matrix
+RecommendationImpactEffortPriorityKPI strip at top🔴 High🟢 LowDo firstDays in stage🔴 High🟡 MediumDo firstShow all stages in table🔴 High🟡 MediumDo firstCollapse analytics panels🟡 Medium🟢 LowDo secondConnect to coaching workflow🟡 Medium🟡 MediumDo secondFont size and contrast fixes🟡 Medium🟢 LowDo secondRename tab to "Pipeline"🟢 Low🟢 LowQuick winHealth dots on AA names🟢 Low🟢 LowQuick winTarget line on forecast chart🟡 Medium🟢 LowQuick winProperty type → dropdown🟢 Low🟢 LowQuick win
