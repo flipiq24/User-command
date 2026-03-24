@@ -1169,8 +1169,8 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   {fUL.map((u, i) => (
                     <div key={u.uid} style={{ display: "grid", gridTemplateColumns: ulCols.map(c => c.w + "px").join(" "), padding: "7px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 10, alignItems: "center", gap: 0 }}>
                       <div style={{ color: "#64748B", fontWeight: 600 }}>{u.uid}</div>
-                      <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.fn}</div>
-                      <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.ln}</div>
+                      <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.fn}</div>
+                      <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.ln}</div>
                       <div style={{ color: "#F97316", fontWeight: 600 }}>{u.co}</div>
                       <div style={{ color: "#64748B", fontFamily: "monospace", fontSize: 9 }}>{u.lid}</div>
                       <div><span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 3, background: u.st === "Active" ? "#ECFDF5" : "#FEF2F2", color: u.st === "Active" ? "#10B981" : "#DC2626", fontWeight: 600 }}>{u.st}</span></div>
