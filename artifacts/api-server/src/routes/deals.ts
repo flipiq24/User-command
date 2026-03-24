@@ -25,6 +25,13 @@ const STAGE_GROUPS: Record<string, string[]> = {
 const SOURCES = ["MLS", "Off Market"];
 const INTENTS = ["Flip", "Wholesale", "Portfolio"];
 
+const STAGE_TO_GROUP: Record<string, string> = {};
+for (const [group, stages] of Object.entries(STAGE_GROUPS)) {
+  for (const stage of stages) {
+    STAGE_TO_GROUP[stage] = group;
+  }
+}
+
 router.get("/deals", async (req, res) => {
   try {
     const conditions: any[] = [];
@@ -109,9 +116,19 @@ router.get("/deals/summary", async (req, res) => {
       ? sql`WHERE ${sql.join(conditions, sql` AND `)}`
       : sql``;
 
+    const timeConditions = [...conditions, sql`d.expected_close_date >= date_trunc('month', CURRENT_DATE)`, sql`d.expected_close_date < date_trunc('month', CURRENT_DATE) + interval '7 months'`];
+    const timeWhere = timeConditions.length > 0
+      ? sql`WHERE ${sql.join(timeConditions, sql` AND `)}`
+      : sql``;
+
     const result = await db.execute(sql`
       SELECT
-        d.stage,
+        CASE
+          WHEN d.stage IN ('Initial Contact', 'Backup', 'Offer Terms Sent') THEN 'qualifying'
+          WHEN d.stage IN ('Contract Submitted', 'In Negotiations') THEN 'sent_offer'
+          WHEN d.stage = 'Offer Accepted' THEN 'offer_accepted'
+          WHEN d.stage = 'Acquired' THEN 'acquired'
+        END AS stage_group,
         EXTRACT(YEAR FROM d.expected_close_date)::int AS close_year,
         EXTRACT(MONTH FROM d.expected_close_date)::int AS close_month,
         d.org_id,
@@ -126,8 +143,8 @@ router.get("/deals/summary", async (req, res) => {
       FROM deals d
       LEFT JOIN users u ON d.user_id = u.id
       LEFT JOIN organizations o ON d.org_id = o.id
-      ${whereClause}
-      GROUP BY d.stage, close_year, close_month, d.org_id, o.name, d.user_id, u.name
+      ${timeWhere}
+      GROUP BY stage_group, close_year, close_month, d.org_id, o.name, d.user_id, u.name
       ORDER BY close_year, close_month, d.org_id, d.user_id
     `);
 

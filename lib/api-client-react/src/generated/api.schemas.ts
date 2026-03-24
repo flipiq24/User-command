@@ -420,8 +420,18 @@ export interface UpdateDealRequest {
   payment_received_date?: string;
 }
 
+export type DealSummaryGridRowStageGroup =
+  (typeof DealSummaryGridRowStageGroup)[keyof typeof DealSummaryGridRowStageGroup];
+
+export const DealSummaryGridRowStageGroup = {
+  qualifying: "qualifying",
+  sent_offer: "sent_offer",
+  offer_accepted: "offer_accepted",
+  acquired: "acquired",
+} as const;
+
 export interface DealSummaryGridRow {
-  stage?: string;
+  stage_group?: DealSummaryGridRowStageGroup;
   close_year?: number;
   close_month?: number;
   org_id?: number | null;

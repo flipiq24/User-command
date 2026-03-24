@@ -5,9 +5,10 @@
  * FlipIQ CSM Dashboard API
  * OpenAPI spec version: 0.1.0
  */
+import type { DealSummaryGridRowStageGroup } from "./dealSummaryGridRowStageGroup";
 
 export interface DealSummaryGridRow {
-  stage?: string;
+  stage_group?: DealSummaryGridRowStageGroup;
   close_year?: number;
   close_month?: number;
   org_id?: number | null;

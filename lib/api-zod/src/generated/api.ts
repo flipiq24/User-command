@@ -649,7 +649,9 @@ export const GetDealsSummaryResponse = zod.object({
   grid: zod
     .array(
       zod.object({
-        stage: zod.string().optional(),
+        stage_group: zod
+          .enum(["qualifying", "sent_offer", "offer_accepted", "acquired"])
+          .optional(),
         close_year: zod.number().optional(),
         close_month: zod.number().optional(),
         org_id: zod.number().nullish(),

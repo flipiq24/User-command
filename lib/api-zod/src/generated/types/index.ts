@@ -27,6 +27,7 @@ export * from "./dealInvoiceStatus";
 export * from "./dealSource";
 export * from "./dealStage";
 export * from "./dealSummaryGridRow";
+export * from "./dealSummaryGridRowStageGroup";
 export * from "./dealSummaryResponse";
 export * from "./dealSummaryResponseStageGroups";
 export * from "./getDealsSummaryParams";

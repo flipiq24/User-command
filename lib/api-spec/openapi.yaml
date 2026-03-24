@@ -1080,8 +1080,9 @@ components:
     DealSummaryGridRow:
       type: object
       properties:
-        stage:
+        stage_group:
           type: string
+          enum: [qualifying, sent_offer, offer_accepted, acquired]
         close_year:
           type: integer
         close_month:
