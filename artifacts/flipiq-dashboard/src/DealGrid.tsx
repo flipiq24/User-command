@@ -162,6 +162,8 @@ export default function DealGrid({ users, orgs, flt }) {
   const [invFilter, setInvFilter] = useState(null);
   const [expanded, setExpanded] = useState({});
   const [analytics, setAnalytics] = useState(false);
+  const [dlRange, setDlRange] = useState("All time");
+  const [pipeExp, setPipeExp] = useState({});
 
   const apiBase = useMemo(() => {
     const base = import.meta.env.BASE_URL || "/";
@@ -319,12 +321,76 @@ export default function DealGrid({ users, orgs, flt }) {
   const srcBreak = DL_SOURCES.map(s => ({ n: s, cnt: fd.filter(d => d.source === s).length }));
   const srcTotal = fd.length || 1;
   const ptBreak = DL_PTYPES.map(p => ({ n: p, cnt: fd.filter(d => d.property_type === p).length })).filter(p => p.cnt > 0).sort((a, b) => b.cnt - a.cnt);
+  const allPtBreak = DL_PTYPES.map(p => ({ n: p, cnt: fd.filter(d => d.property_type === p).length }));
   const intBreak = DL_INTENTS.map(i => ({ n: i, cnt: fd.filter(d => d.intent === i).length }));
   const activeFilters = [...dlSrc, ...dlInt];
 
   const grandTotal = fd.reduce((s, d) => s + (d.price || 0), 0);
   const grandComm = fd.reduce((s, d) => s + (d.commission || 0), 0);
   const isFiltered = flt.org || flt.phase || flt.health || dlSrc.length || dlInt.length || invFilter;
+
+  const DL_RANGES = ["30 days", "90 days", "180 days", "YTD", "All time"];
+  const now = new Date();
+  const nowMs = now.getTime();
+  const rangeStart = dlRange === "30 days" ? nowMs - 30 * 86400000
+    : dlRange === "90 days" ? nowMs - 90 * 86400000
+    : dlRange === "180 days" ? nowMs - 180 * 86400000
+    : dlRange === "YTD" ? new Date(now.getFullYear(), 0, 1).getTime()
+    : 0;
+
+  const rangeFd = useMemo(() => {
+    if (rangeStart === 0) return fd;
+    return fd.filter(d => {
+      if (!d.expected_close_date) return true;
+      return new Date(d.expected_close_date).getTime() >= rangeStart;
+    });
+  }, [fd, rangeStart]);
+
+  const OLD_PIPE_STAGES = [
+    { key: "ap", label: "Active Pipeline", stages: ["Initial Contact", "Backup"], color: "#3B82F6" },
+    { key: "of", label: "Offers", stages: ["Offer Terms Sent", "Contract Submitted"], color: "#F97316" },
+    { key: "ng", label: "In Negotiations", stages: ["In Negotiations"], color: "#8B5CF6" },
+    { key: "ac", label: "Offer Accepted", stages: ["Offer Accepted"], color: "#10B981" },
+    { key: "aq", label: "Acquired", stages: ["Acquired"], color: "#059669" },
+  ];
+
+  const pipeCards = OLD_PIPE_STAGES.map(ps => {
+    const stageDeals = rangeFd.filter(d => ps.stages.includes(d.stage));
+    return { ...ps, count: stageDeals.length, value: stageDeals.reduce((s, d) => s + (d.price || 0), 0), deals: stageDeals };
+  });
+
+  const uniqueAAs = useMemo(() => new Set(rangeFd.map(d => d.user_id)).size, [rangeFd]);
+
+  const oldSrcBreak = ["MLS", "Off Market", "Wholesaler"].map(s => ({ n: s, cnt: rangeFd.filter(d => d.source === s).length }));
+  const oldPtBreak = DL_PTYPES.map(p => ({ n: p, cnt: rangeFd.filter(d => d.property_type === p).length }));
+  const oldIntBreak = ["Flip", "Wholesale"].map(i => ({ n: i, cnt: rangeFd.filter(d => d.intent === i).length }));
+  const oldSrcTotal = rangeFd.length || 1;
+  const rangePipeline = rangeFd.reduce((s, d) => s + (d.price || 0), 0);
+  const rangeComm = rangeFd.reduce((s, d) => s + (d.commission || 0), 0);
+
+  const fcData = useMemo(() => {
+    const curMonth = now.getMonth();
+    const curDay = now.getDate();
+    const w1End = 7, w2End = 14, w3End = 21;
+    const periods = [];
+    periods.push({ label: "W1", start: new Date(now.getFullYear(), curMonth, 1), end: new Date(now.getFullYear(), curMonth, w1End + 1) });
+    periods.push({ label: "W2", start: new Date(now.getFullYear(), curMonth, w1End + 1), end: new Date(now.getFullYear(), curMonth, w2End + 1) });
+    periods.push({ label: "W3", start: new Date(now.getFullYear(), curMonth, w2End + 1), end: new Date(now.getFullYear(), curMonth, w3End + 1) });
+    periods.push({ label: "W4", start: new Date(now.getFullYear(), curMonth, w3End + 1), end: new Date(now.getFullYear(), curMonth + 1, 1) });
+    for (let m = 1; m <= 3; m++) {
+      const mIdx = curMonth + m;
+      const mLabel = new Date(now.getFullYear(), mIdx, 1).toLocaleDateString("en-US", { month: "short" });
+      periods.push({ label: mLabel, start: new Date(now.getFullYear(), mIdx, 1), end: new Date(now.getFullYear(), mIdx + 1, 1) });
+    }
+    return periods.map(p => {
+      const comm = rangeFd.filter(d => {
+        if (!d.expected_close_date) return false;
+        const dt = new Date(d.expected_close_date);
+        return dt >= p.start && dt < p.end;
+      }).reduce((s, d) => s + (d.commission || 0), 0);
+      return { label: p.label, comm };
+    });
+  }, [rangeFd, now]);
 
   return (
     <div>
@@ -597,6 +663,123 @@ export default function DealGrid({ users, orgs, flt }) {
                 </div>
               </div>
             )}
+          </div>
+
+          <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "18px 20px", marginTop: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <div style={{ fontSize: 11, color: "#64748B" }}>
+                Showing {rangeFd.length} of {fd.length} deals across {uniqueAAs} AAs — {fmt$(rangePipeline)} total pipeline · {fmt$(rangeComm)} projected commission
+              </div>
+              <select value={dlRange} onChange={e => setDlRange(e.target.value)} style={{ padding: "6px 28px 6px 10px", fontSize: 11, fontWeight: 600, border: "1px solid #E2E8F0", borderRadius: 7, background: "#FFF", color: "#1E293B", cursor: "pointer", appearance: "none", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394A3B8'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
+                {DL_RANGES.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: "#94A3B8", marginBottom: 6 }}>Source</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                {oldSrcBreak.map(s => (
+                  <span key={s.n} style={{ padding: "4px 10px", fontSize: 11, fontWeight: 600, color: "#3B82F6", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 6 }}>{s.n} ({s.cnt})</span>
+                ))}
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: "#94A3B8", marginBottom: 6 }}>Type</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+                {oldPtBreak.filter(p => p.cnt > 0).map(p => (
+                  <span key={p.n} style={{ padding: "4px 10px", fontSize: 11, fontWeight: 600, color: "#F97316", background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 6 }}>{p.n} ({p.cnt})</span>
+                ))}
+                {oldPtBreak.filter(p => p.cnt === 0).length > 0 && oldPtBreak.filter(p => p.cnt > 0).length === 0 && (
+                  <span style={{ fontSize: 11, color: "#94A3B8" }}>No types with deals</span>
+                )}
+              </div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: "#94A3B8", marginBottom: 6 }}>Intent</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {oldIntBreak.map(i => (
+                  <span key={i.n} style={{ padding: "4px 10px", fontSize: 11, fontWeight: 600, color: "#8B5CF6", background: "#F5F3FF", border: "1px solid #DDD6FE", borderRadius: 6 }}>{i.n} ({i.cnt})</span>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 14 }}>
+              {pipeCards.map(pc => (
+                <div key={pc.key} onClick={() => setPipeExp(p => ({ ...p, [pc.key]: !p[pc.key] }))} style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px", cursor: "pointer", borderTop: `3px solid ${pc.color}` }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: pc.color, marginBottom: 6 }}>{pc.label}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "#1E293B" }}>{pc.count}</div>
+                  <div style={{ fontSize: 10, color: "#64748B" }}>deals</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#1E293B", marginTop: 4 }}>{fmt$(pc.value)}</div>
+                  <div style={{ textAlign: "right", fontSize: 10, color: "#94A3B8", marginTop: 6 }}>{pipeExp[pc.key] ? "\u25BC" : "\u25B6"}</div>
+                  {pipeExp[pc.key] && pc.deals.length > 0 && (
+                    <div style={{ marginTop: 8, borderTop: "1px solid #E2E8F0", paddingTop: 8 }}>
+                      {pc.deals.slice(0, 10).map(d => (
+                        <div key={d.id} style={{ fontSize: 10, padding: "3px 0", borderBottom: "1px solid #F1F5F9", display: "flex", justifyContent: "space-between" }}>
+                          <span style={{ color: "#1E293B", fontWeight: 500 }}>{d.user_name || "—"}</span>
+                          <span style={{ color: "#64748B" }}>{fmt$(d.price || 0)}</span>
+                        </div>
+                      ))}
+                      {pc.deals.length > 10 && <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 4 }}>+{pc.deals.length - 10} more</div>}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px", marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", marginBottom: 10 }}>Revenue forecast — Commission</div>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 120 }}>
+                {(() => {
+                  const maxComm = Math.max(...fcData.map(f => f.comm), 1);
+                  return fcData.map((f, i) => (
+                    <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: "#1E293B", marginBottom: 4 }}>{fmt$(f.comm)}</div>
+                      <div style={{ width: "100%", background: f.comm > 0 ? "#F97316" : "#E2E8F0", borderRadius: "4px 4px 0 0", height: Math.max(4, (f.comm / maxComm) * 80) }} />
+                      <div style={{ fontSize: 10, color: "#64748B", marginTop: 4, fontWeight: 600 }}>{f.label}</div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+              <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}>By source</div>
+                {oldSrcBreak.map(s => (
+                  <div key={s.n} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, padding: "3px 6px" }}>
+                    <span style={{ fontSize: 11, color: "#1E293B", fontWeight: 500 }}>{s.n}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "#1E293B" }}>{s.cnt}</span>
+                      <span style={{ fontSize: 10, color: "#64748B" }}>{Math.round(s.cnt / oldSrcTotal * 100)}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#F97316", marginBottom: 8 }}>By property type</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+                  {allPtBreak.map(p => (
+                    <div key={p.n} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, padding: "2px 4px", background: p.cnt > 0 ? "#FEFCE8" : "transparent", borderRadius: 3 }}>
+                      <span style={{ color: "#64748B", fontWeight: 600 }}>{p.n}</span>
+                      <span style={{ fontWeight: 700, color: p.cnt > 0 ? "#F97316" : "#CBD5E1" }}>{p.cnt}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", marginBottom: 8 }}>By intent</div>
+                {oldIntBreak.map(i => {
+                  const pct = Math.round(i.cnt / oldSrcTotal * 100);
+                  return (
+                    <div key={i.n} style={{ marginBottom: 8, padding: "4px 6px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#1E293B" }}>{i.n}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: i.n === "Flip" ? "#F97316" : "#8B5CF6" }}>{i.cnt} <span style={{ fontSize: 10, color: "#64748B", fontWeight: 400 }}>{pct}%</span></span>
+                      </div>
+                      <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3 }}>
+                        <div style={{ height: 6, width: pct + "%", background: i.n === "Flip" ? "#F97316" : "#8B5CF6", borderRadius: 3 }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </>
       )}
