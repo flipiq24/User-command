@@ -288,7 +288,9 @@ function genDeals() {
       const closeDateMs = new Date(2026, closeMonth - 1, closeDay).getTime();
       const closeWeek = closeMonth === 3 ? (closeDay <= 7 ? "W1" : closeDay <= 14 ? "W2" : closeDay <= 21 ? "W3" : "W4") : null;
       const addr = `${Math.floor(100 + s4 * 9900)} ${DL_STREETS[Math.floor(s2 * DL_STREETS.length)]} ${DL_SUFFIXES[Math.floor(s3 * DL_SUFFIXES.length)]}, ${DL_CITIES[Math.floor(s7 * DL_CITIES.length)]}`;
-      deals.push({ id: did++, aaId: u.id, src, pt, intent, stg, price, projProfit, comm, commType, closeDate, closeDateMs, closeMonth, closeWeek, addr });
+      const s8 = seed(did * 163 + j * 59);
+      const daysInStage = stg === "Acquired" ? Math.floor(s8 * 4) : stg === "Offer Accepted" ? Math.floor(1 + s8 * 10) : stg === "In Negotiations" ? Math.floor(2 + s8 * 20) : stg === "Offers" ? Math.floor(1 + s8 * 14) : Math.floor(1 + s8 * 30);
+      deals.push({ id: did++, aaId: u.id, src, pt, intent, stg, price, projProfit, comm, commType, closeDate, closeDateMs, closeMonth, closeWeek, addr, daysInStage });
     }
   });
   return deals;
@@ -585,6 +587,8 @@ export default function App() {
   const [dlExp, setDlExp] = useState({});
   const [dlRange, setDlRange] = useState("All time");
   const [dlHover, setDlHover] = useState(null);
+  const [dlStgView, setDlStgView] = useState("closed");
+  const [dlAnalytics, setDlAnalytics] = useState(false);
   const [aiMsgs, setAiMsgs] = useState([]);
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -1295,7 +1299,9 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           const activeFilters = [...dlSrc, ...dlPt, ...dlInt];
           const pipeStages = DL_STAGES.map(stg => {
             const sd = fd.filter(d => d.stg === stg);
-            return { n: stg, cnt: sd.length, total: sd.reduce((s, d) => s + d.price, 0), comm: sd.reduce((s, d) => s + d.comm, 0) };
+            const avgDays = sd.length > 0 ? Math.round(sd.reduce((s, d) => s + d.daysInStage, 0) / sd.length) : 0;
+            const stuck = sd.filter(d => d.daysInStage >= 7).length;
+            return { n: stg, cnt: sd.length, total: sd.reduce((s, d) => s + d.price, 0), comm: sd.reduce((s, d) => s + d.comm, 0), avgDays, stuck };
           });
           const pipeColors = [{ color: "#3B82F6", bg: "#EFF6FF", bc: "#BFDBFE" }, { color: "#F97316", bg: "#FFF7ED", bc: "#FED7AA" }, { color: "#8B5CF6", bg: "#F5F3FF", bc: "#DDD6FE" }, { color: "#10B981", bg: "#ECFDF5", bc: "#A7F3D0" }, { color: "#059669", bg: "#D1FAE5", bc: "#6EE7B7" }];
           const fcW = [
@@ -1311,10 +1317,13 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           ];
           const fcAll = [...fcW, ...fcM];
           const fcVals = fcAll.map(f => f.ds.reduce((s, d) => s + d.comm, 0));
-          const fcMax = Math.max(...fcVals, 1);
+          const avgComm = fd.length > 0 ? fd.reduce((s, d) => s + d.comm, 0) / fd.length : 0;
+          const targetCommLine = 2 * 21 * avgComm;
+          const fcMax = Math.max(...fcVals, targetCommLine, 1);
           const closedDeals = fd.filter(d => d.stg === "Offer Accepted" || d.stg === "Acquired");
+          const tableDeals = dlStgView === "all" ? fd : closedDeals;
           const aaGroups = {};
-          closedDeals.forEach(d => {
+          tableDeals.forEach(d => {
             if (!aaGroups[d.aaId]) aaGroups[d.aaId] = [];
             aaGroups[d.aaId].push(d);
           });
@@ -1325,45 +1334,73 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             const accepted = ds.filter(d => d.stg === "Offer Accepted");
             const acquired = ds.filter(d => d.stg === "Acquired");
             const accToClose = accepted.length + acquired.length > 0 ? Math.round(acquired.length / (accepted.length + acquired.length) * 100) : 0;
-            return { aid: +aid, n: u?.n || "Unknown", co: org?.n || "", accepted: accepted.length, acquired: acquired.length, accToClose, totalComm: ds.reduce((s, d) => s + d.comm, 0), totalPrice: ds.reduce((s, d) => s + d.price, 0), deals: ds };
-          }).sort((a, b) => b.totalComm - a.totalComm);
+            const maxDays = Math.max(...ds.map(d => d.daysInStage), 0);
+            return { aid: +aid, n: u?.n || "Unknown", co: org?.n || "", accepted: accepted.length, acquired: acquired.length, accToClose, totalComm: ds.reduce((s, d) => s + d.comm, 0), totalPrice: ds.reduce((s, d) => s + d.price, 0), deals: dlStgView === "all" ? [...ds].sort((a, b) => b.daysInStage - a.daysInStage) : ds, maxDays, dealCount: ds.length };
+          }).sort((a, b) => dlStgView === "all" ? b.maxDays - a.maxDays : b.totalComm - a.totalComm);
           const grandTotal = fd.reduce((s, d) => s + d.price, 0);
           const grandComm = fd.reduce((s, d) => s + d.comm, 0);
           const totalAccepted = aaRows.reduce((s, r) => s + r.accepted, 0);
           const totalAcquired = aaRows.reduce((s, r) => s + r.acquired, 0);
+          const totalStuck = fd.filter(d => d.daysInStage >= 7).length;
+          const bottleneck = pipeStages.filter(p => p.n !== "Acquired").reduce((best, p) => p.stuck > best.stuck ? p : best, { n: "None", stuck: 0 });
+          const aasOnPace = fU.filter(u => fd.filter(d => d.aaId === u.id && d.stg === "Acquired").length >= 2).length;
           return (
             <div>
               <div style={{ marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 800 }}>Deal dashboard</div>
-                  <div style={{ fontSize: 10, color: "#94A3B8" }}>{isFiltered ? `Showing ${fd.length} of ${DL.length} deals` : `All ${DL.length} deals`} across {aaRows.length} AAs — {fmt$(grandTotal)} total pipeline · {fmt$(grandComm)} projected commission</div>
+                  <div style={{ fontSize: 11, color: "#64748B" }}>{isFiltered ? `Showing ${fd.length} of ${DL.length} deals` : `All ${DL.length} deals`} across {aaRows.length} AAs — {fmt$(grandTotal)} total pipeline · {fmt$(grandComm)} projected commission</div>
                 </div>
                 <select value={dlRange} onChange={e => setDlRange(e.target.value)} style={{ padding: "6px 28px 6px 10px", fontSize: 11, fontWeight: 600, border: "1px solid #E2E8F0", borderRadius: 7, background: "#FFF", color: "#1E293B", cursor: "pointer", appearance: "none", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394A3B8'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
                   {DL_RANGES.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
 
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Source</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
+                <div style={{ background: aasOnPace >= Math.round(fU.length * 0.5) ? "#ECFDF5" : "#FEF2F2", border: "1px solid " + (aasOnPace >= Math.round(fU.length * 0.5) ? "#A7F3D0" : "#FECACA"), borderRadius: 9, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5 }}>AAs on pace</div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
+                    <span style={{ fontSize: 24, fontWeight: 800, color: aasOnPace >= Math.round(fU.length * 0.5) ? "#059669" : "#DC2626" }}>{aasOnPace}</span>
+                    <span style={{ fontSize: 11, color: "#64748B" }}>of {fU.length} AAs at 2+ deals/mo</span>
+                  </div>
+                </div>
+                <div style={{ background: totalStuck <= 10 ? "#ECFDF5" : "#FEF2F2", border: "1px solid " + (totalStuck <= 10 ? "#A7F3D0" : "#FECACA"), borderRadius: 9, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5 }}>Stuck deals</div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
+                    <span style={{ fontSize: 24, fontWeight: 800, color: totalStuck <= 10 ? "#059669" : "#DC2626" }}>{totalStuck}</span>
+                    <span style={{ fontSize: 11, color: "#64748B" }}>deals 7+ days in stage</span>
+                  </div>
+                </div>
+                <div style={{ background: bottleneck.stuck <= 5 ? "#ECFDF5" : "#FEF2F2", border: "1px solid " + (bottleneck.stuck <= 5 ? "#A7F3D0" : "#FECACA"), borderRadius: 9, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5 }}>Biggest bottleneck</div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
+                    <span style={{ fontSize: 18, fontWeight: 800, color: bottleneck.stuck <= 5 ? "#059669" : "#DC2626" }}>{bottleneck.n}</span>
+                    <span style={{ fontSize: 11, color: "#64748B" }}>{bottleneck.stuck} stuck</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12, alignItems: "center" }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Source</div>
                 {DL_SOURCES.map(s => {
                   const active = dlSrc.includes(s);
                   const cnt = fd.filter(d => d.src === s).length;
-                  return <Tip key={s} text={`Filter by ${s} deals (${cnt}). Click to toggle.`}><button onClick={() => setDlSrc(active ? dlSrc.filter(x => x !== s) : [...dlSrc, s])} style={{ padding: "4px 10px", fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#3B82F6", background: active ? "#3B82F6" : "#EFF6FF", border: active ? "2px solid #2563EB" : "1px solid #BFDBFE", borderRadius: 6, cursor: "pointer" }}>{s} ({cnt})</button></Tip>;
+                  return <Tip key={s} text={`Filter by ${s} deals (${cnt}). Click to toggle.`}><button onClick={() => setDlSrc(active ? dlSrc.filter(x => x !== s) : [...dlSrc, s])} style={{ padding: "6px 12px", fontSize: 11, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#3B82F6", background: active ? "#3B82F6" : "#EFF6FF", border: active ? "2px solid #2563EB" : "1px solid #BFDBFE", borderRadius: 6, cursor: "pointer", minHeight: 32 }}>{s} ({cnt})</button></Tip>;
                 })}
-                <div style={{ width: 1, background: "#E2E8F0", margin: "0 6px" }} />
-                <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Type</div>
+                <div style={{ width: 1, background: "#E2E8F0", margin: "0 6px", height: 20 }} />
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Type</div>
                 {ptBreak.slice(0, 8).map(p => {
                   const active = dlPt.includes(p.n);
-                  return <Tip key={p.n} text={`Filter by ${p.n} property type (${p.cnt} deals). Click to toggle.`}><button onClick={() => setDlPt(active ? dlPt.filter(x => x !== p.n) : [...dlPt, p.n])} style={{ padding: "4px 8px", fontSize: 9, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#F97316", background: active ? "#F97316" : "#FFF7ED", border: active ? "2px solid #EA580C" : "1px solid #FED7AA", borderRadius: 6, cursor: "pointer" }}>{p.n} ({p.cnt})</button></Tip>;
+                  return <Tip key={p.n} text={`Filter by ${p.n} property type (${p.cnt} deals). Click to toggle.`}><button onClick={() => setDlPt(active ? dlPt.filter(x => x !== p.n) : [...dlPt, p.n])} style={{ padding: "6px 10px", fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#F97316", background: active ? "#F97316" : "#FFF7ED", border: active ? "2px solid #EA580C" : "1px solid #FED7AA", borderRadius: 6, cursor: "pointer", minHeight: 32 }}>{p.n} ({p.cnt})</button></Tip>;
                 })}
-                <div style={{ width: 1, background: "#E2E8F0", margin: "0 6px" }} />
-                <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Intent</div>
+                <div style={{ width: 1, background: "#E2E8F0", margin: "0 6px", height: 20 }} />
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Intent</div>
                 {DL_INTENTS.map(i => {
                   const active = dlInt.includes(i);
                   const cnt = fd.filter(d => d.intent === i).length;
-                  return <Tip key={i} text={`Filter by ${i} intent (${cnt} deals). Click to toggle.`}><button onClick={() => setDlInt(active ? dlInt.filter(x => x !== i) : [...dlInt, i])} style={{ padding: "4px 10px", fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#8B5CF6", background: active ? "#8B5CF6" : "#F5F3FF", border: active ? "2px solid #7C3AED" : "1px solid #DDD6FE", borderRadius: 6, cursor: "pointer" }}>{i} ({cnt})</button></Tip>;
+                  return <Tip key={i} text={`Filter by ${i} intent (${cnt} deals). Click to toggle.`}><button onClick={() => setDlInt(active ? dlInt.filter(x => x !== i) : [...dlInt, i])} style={{ padding: "6px 12px", fontSize: 11, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#8B5CF6", background: active ? "#8B5CF6" : "#F5F3FF", border: active ? "2px solid #7C3AED" : "1px solid #DDD6FE", borderRadius: 6, cursor: "pointer", minHeight: 32 }}>{i} ({cnt})</button></Tip>;
                 })}
-                {activeFilters.length > 0 && <Tip text="Clear all deal filters"><button onClick={() => { setDlSrc([]); setDlPt([]); setDlInt([]); }} style={{ padding: "4px 10px", fontSize: 9, fontWeight: 600, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 6, cursor: "pointer" }}>Clear filters</button></Tip>}
+                {activeFilters.length > 0 && <Tip text="Clear all deal filters"><button onClick={() => { setDlSrc([]); setDlPt([]); setDlInt([]); }} style={{ padding: "6px 12px", fontSize: 10, fontWeight: 600, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 6, cursor: "pointer", minHeight: 32 }}>Clear filters</button></Tip>}
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 14 }}>
@@ -1373,13 +1410,14 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   const spMax = Math.max(...sparkData, 1);
                   const pts = sparkData.map((v, i) => `${10 + i * (130 / 6)},${38 - (v / spMax) * 32}`).join(" ");
                   return (
-                  <Tip key={p.n} text={`${p.n}: ${p.cnt} deals, ${fmt$(p.total)} value, ${fmt$(p.comm)} commission`}><div style={{ background: pipeColors[pi].bg, border: "1px solid " + pipeColors[pi].bc, borderRadius: 10, padding: "10px 10px 6px", position: "relative" }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: pipeColors[pi].color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>{p.n}</div>
+                  <Tip key={p.n} text={`${p.n}: ${p.cnt} deals, ${fmt$(p.total)} value, ${fmt$(p.comm)} commission, avg ${p.avgDays}d in stage, ${p.stuck} stuck 7+d`}><div style={{ background: pipeColors[pi].bg, border: "1px solid " + pipeColors[pi].bc, borderRadius: 10, padding: "10px 10px 6px", position: "relative" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: pipeColors[pi].color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>{p.n}</div>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
                       <span style={{ fontSize: 20, fontWeight: 800, color: pipeColors[pi].color }}>{p.cnt}</span>
-                      <span style={{ fontSize: 9, color: "#94A3B8" }}>deals</span>
+                      <span style={{ fontSize: 10, color: "#64748B" }}>deals</span>
                     </div>
                     <div style={{ fontSize: 10, color: "#64748B", marginTop: 1 }}>{fmt$(p.total)}</div>
+                    <div style={{ fontSize: 10, color: p.avgDays >= 10 ? "#DC2626" : p.avgDays >= 7 ? "#F97316" : "#64748B", fontWeight: 600, marginTop: 1 }}>Avg {p.avgDays}d{p.stuck > 0 ? ` · ${p.stuck} stuck` : ""}</div>
                     <svg width="100%" height="42" viewBox="0 0 150 42" preserveAspectRatio="none" style={{ display: "block", marginTop: 2 }}>
                       <polyline points={pts} fill="none" stroke={pipeColors[pi].color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" opacity="0.6" />
                       {sparkData.map((v, i) => <circle key={i} cx={10 + i * (130 / 6)} cy={38 - (v / spMax) * 32} r="2" fill={pipeColors[pi].color} opacity="0.8" />)}
@@ -1399,6 +1437,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       const x = 80 + fi * 90;
                       return <text key={fi} x={x} y={115} textAnchor="middle" fontSize="9" fill="#94A3B8" fontWeight="600">{f.l}</text>;
                     })}
+                    {(() => { const tY = 100 - (targetCommLine / fcMax) * 85; return <g><line x1="50" y1={tY} x2="680" y2={tY} stroke="#10B981" strokeWidth="1.5" strokeDasharray="6 4" opacity="0.7" /><text x="685" y={tY + 3} fontSize="10" fill="#10B981" fontWeight="700">Target</text></g>; })()}
                     <polyline points={fcVals.map((v, i) => `${80 + i * 90},${100 - (v / fcMax) * 85}`).join(" ")} fill="none" stroke="#F97316" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
                     {fcVals.map((v, i) => {
                       const x = 80 + i * 90;
@@ -1425,132 +1464,66 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
-                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}>By source</div>
-                  {srcBreak.map(s => {
-                    const active = dlSrc.includes(s.n);
-                    return (
-                      <div key={s.n} onClick={() => setDlSrc(active ? dlSrc.filter(x => x !== s.n) : [...dlSrc, s.n])} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, padding: "3px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#EFF6FF" : "transparent", border: active ? "1px solid #BFDBFE" : "1px solid transparent" }}>
-                        <span style={{ fontSize: 11, color: "#1E293B", fontWeight: active ? 700 : 500 }}>{s.n}</span>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: active ? "#3B82F6" : "#1E293B" }}>{s.cnt}</span>
-                          <span style={{ fontSize: 9, color: "#94A3B8" }}>{Math.round(s.cnt / srcTotal * 100)}%</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#F97316", marginBottom: 8 }}>By property type</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-                    {DL_PTYPES.map(p => {
-                      const cnt = fd.filter(d => d.pt === p).length;
-                      const active = dlPt.includes(p);
-                      return (
-                        <div key={p} onClick={() => setDlPt(active ? dlPt.filter(x => x !== p) : [...dlPt, p])} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, padding: "2px 4px", background: active ? "#FFF7ED" : cnt > 0 ? "#FEFCE8" : "transparent", borderRadius: 3, cursor: "pointer", border: active ? "1px solid #FED7AA" : "1px solid transparent" }}>
-                          <span style={{ color: "#64748B", fontWeight: active ? 700 : 600 }}>{p}</span>
-                          <span style={{ fontWeight: 700, color: active ? "#F97316" : cnt > 0 ? "#F97316" : "#CBD5E1" }}>{cnt}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", marginBottom: 8 }}>By intent</div>
-                  {intBreak.map(i => {
-                    const pct = Math.round(i.cnt / srcTotal * 100);
-                    const active = dlInt.includes(i.n);
-                    return (
-                      <div key={i.n} onClick={() => setDlInt(active ? dlInt.filter(x => x !== i.n) : [...dlInt, i.n])} style={{ marginBottom: 8, padding: "4px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#F5F3FF" : "transparent", border: active ? "1px solid #DDD6FE" : "1px solid transparent" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                          <span style={{ fontSize: 12, fontWeight: active ? 700 : 600, color: "#1E293B" }}>{i.n}</span>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: i.n === "Flip" ? "#F97316" : "#8B5CF6" }}>{i.cnt} <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 400 }}>{pct}%</span></span>
-                        </div>
-                        <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3 }}>
-                          <div style={{ height: 6, width: pct + "%", background: i.n === "Flip" ? "#F97316" : "#8B5CF6", borderRadius: 3 }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {dlSrc.includes("MLS") && (() => {
-                const mlsDeals = fd.filter(d => d.src === "MLS");
-                const mlsTotal = mlsDeals.length || 1;
-                const mlsSub = DL_PTYPES.map(p => ({ n: p, cnt: mlsDeals.filter(d => d.pt === p).length })).filter(p => p.cnt > 0).sort((a, b) => b.cnt - a.cnt);
-                return (
-                  <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 9, padding: "14px 18px", marginBottom: 14 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#2563EB", marginBottom: 10 }}>MLS deal subtype breakdown</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 6 }}>
-                      {mlsSub.map(p => {
-                        const pct = Math.round(p.cnt / mlsTotal * 100);
-                        return (
-                          <div key={p.n} style={{ background: "#FFF", borderRadius: 6, padding: "8px 10px", border: "1px solid #DBEAFE" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                              <span style={{ fontSize: 10, fontWeight: 700, color: "#1E293B" }}>{p.n}</span>
-                              <span style={{ fontSize: 10, fontWeight: 700, color: "#2563EB" }}>{p.cnt}</span>
-                            </div>
-                            <div style={{ height: 4, background: "#DBEAFE", borderRadius: 2 }}>
-                              <div style={{ height: 4, width: pct + "%", background: "#3B82F6", borderRadius: 2 }} />
-                            </div>
-                            <div style={{ fontSize: 8, color: "#94A3B8", marginTop: 2, textAlign: "right" }}>{pct}%</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
+              <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden", marginBottom: 14 }}>
                 <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700 }}>Deals by AA</div>
-                    <div style={{ fontSize: 10, color: "#94A3B8" }}>Showing Offer Accepted and Acquired deals only. {totalAccepted} accepted · {totalAcquired} acquired across {aaRows.length} AAs.</div>
+                    <div style={{ fontSize: 11, color: "#64748B" }}>{dlStgView === "all" ? `All ${tableDeals.length} deals across ${aaRows.length} AAs` : `${totalAccepted} accepted · ${totalAcquired} acquired across ${aaRows.length} AAs`}</div>
                   </div>
-                  <div style={{ fontSize: 10, color: "#64748B" }}>{fmt$(closedDeals.reduce((s, d) => s + d.price, 0))} value · {fmt$(closedDeals.reduce((s, d) => s + d.comm, 0))} commission</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ display: "flex", background: "#F1F5F9", borderRadius: 6, overflow: "hidden", border: "1px solid #E2E8F0" }}>
+                      {[["closed", "Closed deals"], ["all", "All stages"]].map(([v, l]) => (
+                        <button key={v} onClick={() => setDlStgView(v)} style={{ padding: "5px 12px", fontSize: 10, fontWeight: dlStgView === v ? 700 : 500, color: dlStgView === v ? "#FFF" : "#64748B", background: dlStgView === v ? "#F97316" : "transparent", border: "none", cursor: "pointer", minHeight: 28 }}>{l}</button>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: 10, color: "#64748B" }}>{fmt$(tableDeals.reduce((s, d) => s + d.price, 0))} value · {fmt$(tableDeals.reduce((s, d) => s + d.comm, 0))} comm</div>
+                  </div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "180px 110px 80px 90px 70px 90px", padding: "6px 18px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-                  <div>AA</div><div>Company</div><div>Accepted</div><div>Accept to close</div><div>Acquired</div><div>Commission</div>
+                <div style={{ display: "grid", gridTemplateColumns: dlStgView === "all" ? "160px 100px 60px 80px 80px 60px 80px" : "180px 110px 80px 90px 70px 90px", padding: "6px 18px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>
+                  <div>AA</div><div>Company</div>{dlStgView === "all" ? <><div>Deals</div><div>Max days</div></> : <><div>Accepted</div><div>Accept to close</div></>}<div>Acquired</div><div>Commission</div>{dlStgView === "all" && <div></div>}
                 </div>
                 {aaRows.map((r, ri) => (
                   <div key={r.aid}>
-                    <div onClick={() => setDlExp(p => ({ ...p, [r.aid]: !p[r.aid] }))} style={{ display: "grid", gridTemplateColumns: "180px 110px 80px 90px 70px 90px", padding: "8px 18px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", cursor: "pointer", alignItems: "center", transition: "background 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#F0F7FF"} onMouseLeave={e => e.currentTarget.style.background = ri % 2 === 0 ? "#FFF" : "#FAFBFC"}>
+                    <div onClick={() => setDlExp(p => ({ ...p, [r.aid]: !p[r.aid] }))} style={{ display: "grid", gridTemplateColumns: dlStgView === "all" ? "160px 100px 60px 80px 80px 60px 80px" : "180px 110px 80px 90px 70px 90px", padding: "8px 18px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", cursor: "pointer", alignItems: "center", transition: "background 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#F0F7FF"} onMouseLeave={e => e.currentTarget.style.background = ri % 2 === 0 ? "#FFF" : "#FAFBFC"}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ fontSize: 10, color: "#CBD5E1" }}>{dlExp[r.aid] ? "\u25BC" : "\u25B6"}</span>
                         <span style={{ fontSize: 11, fontWeight: 600, color: "#0369A1", textDecoration: "underline", textDecorationColor: "#CBD5E1" }}>{r.n}</span>
                       </div>
                       <div style={{ fontSize: 10, color: "#F97316", fontWeight: 600 }}>{r.co}</div>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981" }}>{r.accepted}</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <div style={{ width: 40, height: 5, background: "#F1F5F9", borderRadius: 3 }}><div style={{ width: r.accToClose + "%", height: 5, background: r.accToClose >= 50 ? "#10B981" : r.accToClose >= 25 ? "#F97316" : "#DC2626", borderRadius: 3 }} /></div>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: r.accToClose >= 50 ? "#10B981" : r.accToClose >= 25 ? "#F97316" : "#DC2626" }}>{r.accToClose}%</span>
-                      </div>
+                      {dlStgView === "all" ? <>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#1E293B" }}>{r.dealCount}</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: r.maxDays >= 14 ? "#DC2626" : r.maxDays >= 7 ? "#F97316" : "#10B981" }}>{r.maxDays}d</div>
+                      </> : <>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981" }}>{r.accepted}</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                          <div style={{ width: 40, height: 5, background: "#F1F5F9", borderRadius: 3 }}><div style={{ width: r.accToClose + "%", height: 5, background: r.accToClose >= 50 ? "#10B981" : r.accToClose >= 25 ? "#F97316" : "#DC2626", borderRadius: 3 }} /></div>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: r.accToClose >= 50 ? "#10B981" : r.accToClose >= 25 ? "#F97316" : "#DC2626" }}>{r.accToClose}%</span>
+                        </div>
+                      </>}
                       <div style={{ fontSize: 11, fontWeight: 700, color: "#059669" }}>{r.acquired}</div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981" }}>{fmt$(r.totalComm)}</div>
+                      {dlStgView === "all" && <div></div>}
                     </div>
                     {dlExp[r.aid] && (
                       <div style={{ background: "#F8FAFB", borderBottom: "1px solid #E2E8F0" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "180px 70px 60px 50px 80px 80px 65px 85px 75px", padding: "4px 28px", fontSize: 7, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>
-                          <div>Address</div><div>Source</div><div>Intent</div><div>Type</div><div>Price</div><div>Commission</div><div>Comm type</div><div>Close date</div><div>Stage</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "160px 65px 55px 50px 75px 75px 60px 75px 65px 40px", padding: "4px 28px", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>
+                          <div>Address</div><div>Source</div><div>Intent</div><div>Type</div><div>Price</div><div>Commission</div><div>Comm type</div><div>Close date</div><div>Stage</div><div>Days</div>
                         </div>
                         {r.deals.map(d => {
-                          const stgColor = d.stg === "Acquired" ? "#059669" : "#10B981";
+                          const stgColor = d.stg === "Acquired" ? "#059669" : d.stg === "Offer Accepted" ? "#10B981" : d.stg === "In Negotiations" ? "#8B5CF6" : d.stg === "Offers" ? "#F97316" : "#3B82F6";
+                          const dayColor = d.daysInStage >= 14 ? "#DC2626" : d.daysInStage >= 7 ? "#F97316" : "#10B981";
                           return (
-                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "180px 70px 60px 50px 80px 80px 65px 85px 75px", padding: "5px 28px", borderBottom: "1px solid #F1F5F9", fontSize: 9, alignItems: "center" }}>
+                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "160px 65px 55px 50px 75px 75px 60px 75px 65px 40px", padding: "5px 28px", borderBottom: "1px solid #F1F5F9", fontSize: 10, alignItems: "center" }}>
                               <div style={{ color: "#1E293B", fontWeight: 500 }}>{d.addr}</div>
-                              <div><span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 3, background: d.src === "MLS" ? "#EFF6FF" : d.src === "Off Market" ? "#FFF7ED" : "#F5F3FF", color: d.src === "MLS" ? "#3B82F6" : d.src === "Off Market" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.src}</span></div>
-                              <div><span style={{ fontSize: 8, padding: "1px 4px", borderRadius: 3, background: d.intent === "Flip" ? "#FFF7ED" : "#F5F3FF", color: d.intent === "Flip" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.intent}</span></div>
+                              <div><span style={{ fontSize: 10, padding: "1px 5px", borderRadius: 3, background: d.src === "MLS" ? "#EFF6FF" : d.src === "Off Market" ? "#FFF7ED" : "#F5F3FF", color: d.src === "MLS" ? "#3B82F6" : d.src === "Off Market" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.src}</span></div>
+                              <div><span style={{ fontSize: 10, padding: "1px 4px", borderRadius: 3, background: d.intent === "Flip" ? "#FFF7ED" : "#F5F3FF", color: d.intent === "Flip" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.intent}</span></div>
                               <div style={{ color: "#64748B", fontWeight: 600 }}>{d.pt}</div>
                               <div style={{ color: "#1E293B", fontWeight: 600 }}>{fmt$(d.price)}</div>
                               <div style={{ color: "#10B981", fontWeight: 700 }}>{fmt$(d.comm)}</div>
-                              <div style={{ fontSize: 7, color: "#94A3B8" }}>{d.commType}</div>
-                              <div style={{ fontSize: 8, color: "#64748B" }}>{d.closeDate}</div>
-                              <div><span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 3, background: stgColor + "15", color: stgColor, fontWeight: 600 }}>{d.stg}</span></div>
+                              <div style={{ fontSize: 10, color: "#64748B" }}>{d.commType}</div>
+                              <div style={{ fontSize: 10, color: "#64748B" }}>{d.closeDate}</div>
+                              <div><span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 3, background: stgColor + "15", color: stgColor, fontWeight: 600 }}>{d.stg}</span></div>
+                              <div style={{ fontSize: 10, fontWeight: 700, color: dayColor }}>{d.daysInStage}d</div>
                             </div>
                           );
                         })}
@@ -1558,6 +1531,94 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     )}
                   </div>
                 ))}
+              </div>
+
+              <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
+                <div onClick={() => setDlAnalytics(!dlAnalytics)} style={{ padding: "12px 18px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#64748B" }}>Deal analytics</div>
+                  <span style={{ fontSize: 10, color: "#94A3B8" }}>{dlAnalytics ? "\u25B2" : "\u25BC"} {dlAnalytics ? "Collapse" : "Expand"}</span>
+                </div>
+                {dlAnalytics && (
+                  <div style={{ padding: "0 18px 18px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: dlSrc.includes("MLS") ? 14 : 0 }}>
+                      <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}>By source</div>
+                        {srcBreak.map(s => {
+                          const active = dlSrc.includes(s.n);
+                          return (
+                            <div key={s.n} onClick={() => setDlSrc(active ? dlSrc.filter(x => x !== s.n) : [...dlSrc, s.n])} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, padding: "3px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#EFF6FF" : "transparent", border: active ? "1px solid #BFDBFE" : "1px solid transparent" }}>
+                              <span style={{ fontSize: 11, color: "#1E293B", fontWeight: active ? 700 : 500 }}>{s.n}</span>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: active ? "#3B82F6" : "#1E293B" }}>{s.cnt}</span>
+                                <span style={{ fontSize: 10, color: "#64748B" }}>{Math.round(s.cnt / srcTotal * 100)}%</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#F97316", marginBottom: 8 }}>By property type</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+                          {DL_PTYPES.map(p => {
+                            const cnt = fd.filter(d => d.pt === p).length;
+                            const active = dlPt.includes(p);
+                            return (
+                              <div key={p} onClick={() => setDlPt(active ? dlPt.filter(x => x !== p) : [...dlPt, p])} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, padding: "2px 4px", background: active ? "#FFF7ED" : cnt > 0 ? "#FEFCE8" : "transparent", borderRadius: 3, cursor: "pointer", border: active ? "1px solid #FED7AA" : "1px solid transparent" }}>
+                                <span style={{ color: "#64748B", fontWeight: active ? 700 : 600 }}>{p}</span>
+                                <span style={{ fontWeight: 700, color: active ? "#F97316" : cnt > 0 ? "#F97316" : "#CBD5E1" }}>{cnt}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", marginBottom: 8 }}>By intent</div>
+                        {intBreak.map(i => {
+                          const pct = Math.round(i.cnt / srcTotal * 100);
+                          const active = dlInt.includes(i.n);
+                          return (
+                            <div key={i.n} onClick={() => setDlInt(active ? dlInt.filter(x => x !== i.n) : [...dlInt, i.n])} style={{ marginBottom: 8, padding: "4px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#F5F3FF" : "transparent", border: active ? "1px solid #DDD6FE" : "1px solid transparent" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                                <span style={{ fontSize: 12, fontWeight: active ? 700 : 600, color: "#1E293B" }}>{i.n}</span>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: i.n === "Flip" ? "#F97316" : "#8B5CF6" }}>{i.cnt} <span style={{ fontSize: 10, color: "#64748B", fontWeight: 400 }}>{pct}%</span></span>
+                              </div>
+                              <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3 }}>
+                                <div style={{ height: 6, width: pct + "%", background: i.n === "Flip" ? "#F97316" : "#8B5CF6", borderRadius: 3 }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {dlSrc.includes("MLS") && (() => {
+                      const mlsDeals = fd.filter(d => d.src === "MLS");
+                      const mlsTotal = mlsDeals.length || 1;
+                      const mlsSub = DL_PTYPES.map(p => ({ n: p, cnt: mlsDeals.filter(d => d.pt === p).length })).filter(p => p.cnt > 0).sort((a, b) => b.cnt - a.cnt);
+                      return (
+                        <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 9, padding: "14px 18px" }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "#2563EB", marginBottom: 10 }}>MLS deal subtype breakdown</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 6 }}>
+                            {mlsSub.map(p => {
+                              const pct = Math.round(p.cnt / mlsTotal * 100);
+                              return (
+                                <div key={p.n} style={{ background: "#FFF", borderRadius: 6, padding: "8px 10px", border: "1px solid #DBEAFE" }}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: "#1E293B" }}>{p.n}</span>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color: "#2563EB" }}>{p.cnt}</span>
+                                  </div>
+                                  <div style={{ height: 4, background: "#DBEAFE", borderRadius: 2 }}>
+                                    <div style={{ height: 4, width: pct + "%", background: "#3B82F6", borderRadius: 2 }} />
+                                  </div>
+                                  <div style={{ fontSize: 10, color: "#64748B", marginTop: 2, textAlign: "right" }}>{pct}%</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             </div>
           );
