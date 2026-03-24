@@ -281,6 +281,186 @@ export interface ClaudeUpdateHealthRequest {
   updates: ClaudeUpdateHealthRequestUpdatesItem[];
 }
 
+export type DealSource = (typeof DealSource)[keyof typeof DealSource];
+
+export const DealSource = {
+  MLS: "MLS",
+  Off_Market: "Off Market",
+} as const;
+
+export type DealIntent = (typeof DealIntent)[keyof typeof DealIntent];
+
+export const DealIntent = {
+  Flip: "Flip",
+  Wholesale: "Wholesale",
+  Portfolio: "Portfolio",
+} as const;
+
+export type DealStage = (typeof DealStage)[keyof typeof DealStage];
+
+export const DealStage = {
+  Initial_Contact: "Initial Contact",
+  Backup: "Backup",
+  Offer_Terms_Sent: "Offer Terms Sent",
+  Contract_Submitted: "Contract Submitted",
+  In_Negotiations: "In Negotiations",
+  Offer_Accepted: "Offer Accepted",
+  Acquired: "Acquired",
+} as const;
+
+export type DealInvoiceStatus =
+  (typeof DealInvoiceStatus)[keyof typeof DealInvoiceStatus];
+
+export const DealInvoiceStatus = {
+  need_to_invoice: "need_to_invoice",
+  invoiced: "invoiced",
+  payment_received: "payment_received",
+} as const;
+
+export interface Deal {
+  id: number;
+  user_id?: number | null;
+  org_id?: number | null;
+  address: string;
+  thumbnail_url?: string | null;
+  source: DealSource;
+  intent: DealIntent;
+  stage: DealStage;
+  price?: number;
+  projected_profit?: number;
+  commission?: number;
+  commission_type?: string | null;
+  expected_close_date?: string | null;
+  actual_close_date?: string | null;
+  contract_date?: string | null;
+  offer_accepted_date?: string | null;
+  days_in_stage?: number;
+  property_type?: string | null;
+  success_fee?: number;
+  invoice_status?: DealInvoiceStatus;
+  invoiced_date?: string | null;
+  payment_received_date?: string | null;
+  user_name?: string | null;
+  org_name?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type CreateDealRequestSource =
+  (typeof CreateDealRequestSource)[keyof typeof CreateDealRequestSource];
+
+export const CreateDealRequestSource = {
+  MLS: "MLS",
+  Off_Market: "Off Market",
+} as const;
+
+export type CreateDealRequestIntent =
+  (typeof CreateDealRequestIntent)[keyof typeof CreateDealRequestIntent];
+
+export const CreateDealRequestIntent = {
+  Flip: "Flip",
+  Wholesale: "Wholesale",
+  Portfolio: "Portfolio",
+} as const;
+
+export type CreateDealRequestInvoiceStatus =
+  (typeof CreateDealRequestInvoiceStatus)[keyof typeof CreateDealRequestInvoiceStatus];
+
+export const CreateDealRequestInvoiceStatus = {
+  need_to_invoice: "need_to_invoice",
+  invoiced: "invoiced",
+  payment_received: "payment_received",
+} as const;
+
+export interface CreateDealRequest {
+  user_id?: number;
+  org_id?: number;
+  address: string;
+  thumbnail_url?: string;
+  source: CreateDealRequestSource;
+  intent: CreateDealRequestIntent;
+  stage: string;
+  price?: number;
+  projected_profit?: number;
+  commission?: number;
+  commission_type?: string;
+  expected_close_date?: string;
+  actual_close_date?: string;
+  contract_date?: string;
+  offer_accepted_date?: string;
+  days_in_stage?: number;
+  property_type?: string;
+  success_fee?: number;
+  invoice_status?: CreateDealRequestInvoiceStatus;
+}
+
+export type UpdateDealRequestInvoiceStatus =
+  (typeof UpdateDealRequestInvoiceStatus)[keyof typeof UpdateDealRequestInvoiceStatus];
+
+export const UpdateDealRequestInvoiceStatus = {
+  need_to_invoice: "need_to_invoice",
+  invoiced: "invoiced",
+  payment_received: "payment_received",
+} as const;
+
+export interface UpdateDealRequest {
+  stage?: string;
+  price?: number;
+  projected_profit?: number;
+  commission?: number;
+  commission_type?: string;
+  expected_close_date?: string;
+  actual_close_date?: string;
+  contract_date?: string;
+  offer_accepted_date?: string;
+  days_in_stage?: number;
+  success_fee?: number;
+  invoice_status?: UpdateDealRequestInvoiceStatus;
+  invoiced_date?: string;
+  payment_received_date?: string;
+}
+
+export interface DealSummaryGridRow {
+  stage?: string;
+  close_year?: number;
+  close_month?: number;
+  org_id?: number | null;
+  org_name?: string | null;
+  user_id?: number | null;
+  user_name?: string | null;
+  deal_count?: number;
+  total_price?: number;
+  total_commission?: number;
+  total_profit?: number;
+  total_success_fee?: number;
+}
+
+export interface InvoiceSummaryRow {
+  invoice_status?: string;
+  deal_count?: number;
+  total_fee?: number;
+}
+
+export interface PastDueDeal {
+  id?: number;
+  user_id?: number;
+  org_id?: number | null;
+  expected_close_date?: string;
+  days_overdue?: number;
+}
+
+export type DealSummaryResponseStageGroups = { [key: string]: string[] };
+
+export interface DealSummaryResponse {
+  stages?: string[];
+  stage_groups?: DealSummaryResponseStageGroups;
+  sources?: string[];
+  intents?: string[];
+  grid?: DealSummaryGridRow[];
+  invoice_summary?: InvoiceSummaryRow[];
+  past_due?: PastDueDeal[];
+}
+
 export type ListEmailsParams = {
   date?: string;
   status?: ListEmailsStatus;
@@ -317,4 +497,33 @@ export type ListTasksParams = {
 export type GetLeaderboardParams = {
   startDate?: string;
   endDate?: string;
+};
+
+export type ListDealsParams = {
+  /**
+   * Comma-separated sources (MLS, Off Market)
+   */
+  source?: string;
+  /**
+   * Comma-separated intents (Flip, Wholesale, Portfolio)
+   */
+  intent?: string;
+  org_id?: number;
+  /**
+   * Comma-separated stages
+   */
+  stage?: string;
+  /**
+   * Comma-separated invoice statuses
+   */
+  invoice_status?: string;
+  from_date?: string;
+  to_date?: string;
+};
+
+export type GetDealsSummaryParams = {
+  source?: string;
+  intent?: string;
+  org_id?: number;
+  invoice_status?: string;
 };

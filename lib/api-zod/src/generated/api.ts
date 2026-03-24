@@ -541,3 +541,258 @@ export const ClaudeUpdateHealthResponse = zod.object({
   success: zod.boolean(),
   message: zod.string().optional(),
 });
+
+/**
+ * @summary List deals with optional filtering
+ */
+export const ListDealsQueryParams = zod.object({
+  source: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated sources (MLS, Off Market)"),
+  intent: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated intents (Flip, Wholesale, Portfolio)"),
+  org_id: zod.coerce.number().optional(),
+  stage: zod.coerce.string().optional().describe("Comma-separated stages"),
+  invoice_status: zod.coerce
+    .string()
+    .optional()
+    .describe("Comma-separated invoice statuses"),
+  from_date: zod.date().optional(),
+  to_date: zod.date().optional(),
+});
+
+export const ListDealsResponseItem = zod.object({
+  id: zod.number(),
+  user_id: zod.number().nullish(),
+  org_id: zod.number().nullish(),
+  address: zod.string(),
+  thumbnail_url: zod.string().nullish(),
+  source: zod.enum(["MLS", "Off Market"]),
+  intent: zod.enum(["Flip", "Wholesale", "Portfolio"]),
+  stage: zod.enum([
+    "Initial Contact",
+    "Backup",
+    "Offer Terms Sent",
+    "Contract Submitted",
+    "In Negotiations",
+    "Offer Accepted",
+    "Acquired",
+  ]),
+  price: zod.number().optional(),
+  projected_profit: zod.number().optional(),
+  commission: zod.number().optional(),
+  commission_type: zod.string().nullish(),
+  expected_close_date: zod.date().nullish(),
+  actual_close_date: zod.date().nullish(),
+  contract_date: zod.date().nullish(),
+  offer_accepted_date: zod.date().nullish(),
+  days_in_stage: zod.number().optional(),
+  property_type: zod.string().nullish(),
+  success_fee: zod.number().optional(),
+  invoice_status: zod
+    .enum(["need_to_invoice", "invoiced", "payment_received"])
+    .optional(),
+  invoiced_date: zod.date().nullish(),
+  payment_received_date: zod.date().nullish(),
+  user_name: zod.string().nullish(),
+  org_name: zod.string().nullish(),
+  created_at: zod.date().optional(),
+  updated_at: zod.date().optional(),
+});
+export const ListDealsResponse = zod.array(ListDealsResponseItem);
+
+/**
+ * @summary Create a new deal
+ */
+export const CreateDealBody = zod.object({
+  user_id: zod.number().optional(),
+  org_id: zod.number().optional(),
+  address: zod.string(),
+  thumbnail_url: zod.string().optional(),
+  source: zod.enum(["MLS", "Off Market"]),
+  intent: zod.enum(["Flip", "Wholesale", "Portfolio"]),
+  stage: zod.string(),
+  price: zod.number().optional(),
+  projected_profit: zod.number().optional(),
+  commission: zod.number().optional(),
+  commission_type: zod.string().optional(),
+  expected_close_date: zod.date().optional(),
+  actual_close_date: zod.date().optional(),
+  contract_date: zod.date().optional(),
+  offer_accepted_date: zod.date().optional(),
+  days_in_stage: zod.number().optional(),
+  property_type: zod.string().optional(),
+  success_fee: zod.number().optional(),
+  invoice_status: zod
+    .enum(["need_to_invoice", "invoiced", "payment_received"])
+    .optional(),
+});
+
+/**
+ * @summary Get aggregated deal summary for grid view
+ */
+export const GetDealsSummaryQueryParams = zod.object({
+  source: zod.coerce.string().optional(),
+  intent: zod.coerce.string().optional(),
+  org_id: zod.coerce.number().optional(),
+  invoice_status: zod.coerce.string().optional(),
+});
+
+export const GetDealsSummaryResponse = zod.object({
+  stages: zod.array(zod.string()).optional(),
+  stage_groups: zod.record(zod.string(), zod.array(zod.string())).optional(),
+  sources: zod.array(zod.string()).optional(),
+  intents: zod.array(zod.string()).optional(),
+  grid: zod
+    .array(
+      zod.object({
+        stage: zod.string().optional(),
+        close_year: zod.number().optional(),
+        close_month: zod.number().optional(),
+        org_id: zod.number().nullish(),
+        org_name: zod.string().nullish(),
+        user_id: zod.number().nullish(),
+        user_name: zod.string().nullish(),
+        deal_count: zod.number().optional(),
+        total_price: zod.number().optional(),
+        total_commission: zod.number().optional(),
+        total_profit: zod.number().optional(),
+        total_success_fee: zod.number().optional(),
+      }),
+    )
+    .optional(),
+  invoice_summary: zod
+    .array(
+      zod.object({
+        invoice_status: zod.string().optional(),
+        deal_count: zod.number().optional(),
+        total_fee: zod.number().optional(),
+      }),
+    )
+    .optional(),
+  past_due: zod
+    .array(
+      zod.object({
+        id: zod.number().optional(),
+        user_id: zod.number().optional(),
+        org_id: zod.number().nullish(),
+        expected_close_date: zod.date().optional(),
+        days_overdue: zod.number().optional(),
+      }),
+    )
+    .optional(),
+});
+
+/**
+ * @summary Get a single deal by ID
+ */
+export const GetDealParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetDealResponse = zod.object({
+  id: zod.number(),
+  user_id: zod.number().nullish(),
+  org_id: zod.number().nullish(),
+  address: zod.string(),
+  thumbnail_url: zod.string().nullish(),
+  source: zod.enum(["MLS", "Off Market"]),
+  intent: zod.enum(["Flip", "Wholesale", "Portfolio"]),
+  stage: zod.enum([
+    "Initial Contact",
+    "Backup",
+    "Offer Terms Sent",
+    "Contract Submitted",
+    "In Negotiations",
+    "Offer Accepted",
+    "Acquired",
+  ]),
+  price: zod.number().optional(),
+  projected_profit: zod.number().optional(),
+  commission: zod.number().optional(),
+  commission_type: zod.string().nullish(),
+  expected_close_date: zod.date().nullish(),
+  actual_close_date: zod.date().nullish(),
+  contract_date: zod.date().nullish(),
+  offer_accepted_date: zod.date().nullish(),
+  days_in_stage: zod.number().optional(),
+  property_type: zod.string().nullish(),
+  success_fee: zod.number().optional(),
+  invoice_status: zod
+    .enum(["need_to_invoice", "invoiced", "payment_received"])
+    .optional(),
+  invoiced_date: zod.date().nullish(),
+  payment_received_date: zod.date().nullish(),
+  user_name: zod.string().nullish(),
+  org_name: zod.string().nullish(),
+  created_at: zod.date().optional(),
+  updated_at: zod.date().optional(),
+});
+
+/**
+ * @summary Update a deal (stage, invoice status, etc.)
+ */
+export const UpdateDealParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateDealBody = zod.object({
+  stage: zod.string().optional(),
+  price: zod.number().optional(),
+  projected_profit: zod.number().optional(),
+  commission: zod.number().optional(),
+  commission_type: zod.string().optional(),
+  expected_close_date: zod.date().optional(),
+  actual_close_date: zod.date().optional(),
+  contract_date: zod.date().optional(),
+  offer_accepted_date: zod.date().optional(),
+  days_in_stage: zod.number().optional(),
+  success_fee: zod.number().optional(),
+  invoice_status: zod
+    .enum(["need_to_invoice", "invoiced", "payment_received"])
+    .optional(),
+  invoiced_date: zod.date().optional(),
+  payment_received_date: zod.date().optional(),
+});
+
+export const UpdateDealResponse = zod.object({
+  id: zod.number(),
+  user_id: zod.number().nullish(),
+  org_id: zod.number().nullish(),
+  address: zod.string(),
+  thumbnail_url: zod.string().nullish(),
+  source: zod.enum(["MLS", "Off Market"]),
+  intent: zod.enum(["Flip", "Wholesale", "Portfolio"]),
+  stage: zod.enum([
+    "Initial Contact",
+    "Backup",
+    "Offer Terms Sent",
+    "Contract Submitted",
+    "In Negotiations",
+    "Offer Accepted",
+    "Acquired",
+  ]),
+  price: zod.number().optional(),
+  projected_profit: zod.number().optional(),
+  commission: zod.number().optional(),
+  commission_type: zod.string().nullish(),
+  expected_close_date: zod.date().nullish(),
+  actual_close_date: zod.date().nullish(),
+  contract_date: zod.date().nullish(),
+  offer_accepted_date: zod.date().nullish(),
+  days_in_stage: zod.number().optional(),
+  property_type: zod.string().nullish(),
+  success_fee: zod.number().optional(),
+  invoice_status: zod
+    .enum(["need_to_invoice", "invoiced", "payment_received"])
+    .optional(),
+  invoiced_date: zod.date().nullish(),
+  payment_received_date: zod.date().nullish(),
+  user_name: zod.string().nullish(),
+  org_name: zod.string().nullish(),
+  created_at: zod.date().optional(),
+  updated_at: zod.date().optional(),
+});

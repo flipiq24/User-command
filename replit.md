@@ -109,6 +109,7 @@ Key tables:
 - `user_gaps`, `user_events`, `user_category_scores` — 3-Track event system
 - `events` — 62 reference events across 7 categories
 - `event_categories` — plan/find/comm/prop/analysis/offers/tools
+- `deals` — deal pipeline: address, source (MLS/Off Market), intent (Flip/Wholesale/Portfolio), 7 stages (Initial Contact → Acquired), price/profit/commission, invoice tracking (need_to_invoice/invoiced/payment_received), success_fee, expected/actual close dates
 
 ## API Routes
 
@@ -127,6 +128,11 @@ All routes under `/api/`:
 - `POST /ai/chat` — AI assistant chat (OpenAI via Replit proxy, input-validated)
 - `GET /claude/read-all` — all data for Claude's morning processing
 - `POST /claude/update-health` — Claude writes back health scores + gaps
+- `GET /deals` — list deals with filters (source, intent, org_id, stage, invoice_status, from_date, to_date)
+- `GET /deals/summary` — aggregated grid data + invoice summary + past-due deals
+- `GET /deals/:id` — single deal detail
+- `POST /deals` — create a deal
+- `PATCH /deals/:id` — update deal (stage, invoice status, dates, etc.)
 
 ## Claude Integration
 

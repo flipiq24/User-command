@@ -21,6 +21,8 @@ tags:
     description: Daily stats operations
   - name: claude
     description: Claude API integration endpoints
+  - name: deals
+    description: Deal pipeline operations
 paths:
   /healthz:
     get:
@@ -297,6 +299,156 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+
+  /deals:
+    get:
+      operationId: listDeals
+      tags: [deals]
+      summary: List deals with optional filtering
+      parameters:
+        - name: source
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated sources (MLS, Off Market)
+        - name: intent
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated intents (Flip, Wholesale, Portfolio)
+        - name: org_id
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: stage
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated stages
+        - name: invoice_status
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Comma-separated invoice statuses
+        - name: from_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: List of deals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deal"
+    post:
+      operationId: createDeal
+      tags: [deals]
+      summary: Create a new deal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDealRequest"
+      responses:
+        "201":
+          description: Created deal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+
+  /deals/summary:
+    get:
+      operationId: getDealsSummary
+      tags: [deals]
+      summary: Get aggregated deal summary for grid view
+      parameters:
+        - name: source
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: intent
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: org_id
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: invoice_status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deal summary data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DealSummaryResponse"
+
+  /deals/{id}:
+    get:
+      operationId: getDeal
+      tags: [deals]
+      summary: Get a single deal by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deal detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
+    patch:
+      operationId: updateDeal
+      tags: [deals]
+      summary: Update a deal (stage, invoice status, etc.)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDealRequest"
+      responses:
+        "200":
+          description: Updated deal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deal"
 
 components:
   schemas:
@@ -753,3 +905,266 @@ components:
                 type: array
                 items:
                   type: string
+
+    Deal:
+      type: object
+      required: [id, address, source, intent, stage]
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+          nullable: true
+        org_id:
+          type: integer
+          nullable: true
+        address:
+          type: string
+        thumbnail_url:
+          type: string
+          nullable: true
+        source:
+          type: string
+          enum: [MLS, Off Market]
+        intent:
+          type: string
+          enum: [Flip, Wholesale, Portfolio]
+        stage:
+          type: string
+          enum: [Initial Contact, Backup, Offer Terms Sent, Contract Submitted, In Negotiations, Offer Accepted, Acquired]
+        price:
+          type: integer
+        projected_profit:
+          type: integer
+        commission:
+          type: integer
+        commission_type:
+          type: string
+          nullable: true
+        expected_close_date:
+          type: string
+          format: date
+          nullable: true
+        actual_close_date:
+          type: string
+          format: date
+          nullable: true
+        contract_date:
+          type: string
+          format: date
+          nullable: true
+        offer_accepted_date:
+          type: string
+          format: date
+          nullable: true
+        days_in_stage:
+          type: integer
+        property_type:
+          type: string
+          nullable: true
+        success_fee:
+          type: integer
+        invoice_status:
+          type: string
+          enum: [need_to_invoice, invoiced, payment_received]
+        invoiced_date:
+          type: string
+          format: date
+          nullable: true
+        payment_received_date:
+          type: string
+          format: date
+          nullable: true
+        user_name:
+          type: string
+          nullable: true
+        org_name:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateDealRequest:
+      type: object
+      required: [address, source, intent, stage]
+      properties:
+        user_id:
+          type: integer
+        org_id:
+          type: integer
+        address:
+          type: string
+        thumbnail_url:
+          type: string
+        source:
+          type: string
+          enum: [MLS, Off Market]
+        intent:
+          type: string
+          enum: [Flip, Wholesale, Portfolio]
+        stage:
+          type: string
+        price:
+          type: integer
+        projected_profit:
+          type: integer
+        commission:
+          type: integer
+        commission_type:
+          type: string
+        expected_close_date:
+          type: string
+          format: date
+        actual_close_date:
+          type: string
+          format: date
+        contract_date:
+          type: string
+          format: date
+        offer_accepted_date:
+          type: string
+          format: date
+        days_in_stage:
+          type: integer
+        property_type:
+          type: string
+        success_fee:
+          type: integer
+        invoice_status:
+          type: string
+          enum: [need_to_invoice, invoiced, payment_received]
+
+    UpdateDealRequest:
+      type: object
+      properties:
+        stage:
+          type: string
+        price:
+          type: integer
+        projected_profit:
+          type: integer
+        commission:
+          type: integer
+        commission_type:
+          type: string
+        expected_close_date:
+          type: string
+          format: date
+        actual_close_date:
+          type: string
+          format: date
+        contract_date:
+          type: string
+          format: date
+        offer_accepted_date:
+          type: string
+          format: date
+        days_in_stage:
+          type: integer
+        success_fee:
+          type: integer
+        invoice_status:
+          type: string
+          enum: [need_to_invoice, invoiced, payment_received]
+        invoiced_date:
+          type: string
+          format: date
+        payment_received_date:
+          type: string
+          format: date
+
+    DealSummaryGridRow:
+      type: object
+      properties:
+        stage:
+          type: string
+        close_year:
+          type: integer
+        close_month:
+          type: integer
+        org_id:
+          type: integer
+          nullable: true
+        org_name:
+          type: string
+          nullable: true
+        user_id:
+          type: integer
+          nullable: true
+        user_name:
+          type: string
+          nullable: true
+        deal_count:
+          type: integer
+        total_price:
+          type: integer
+        total_commission:
+          type: integer
+        total_profit:
+          type: integer
+        total_success_fee:
+          type: integer
+
+    InvoiceSummaryRow:
+      type: object
+      properties:
+        invoice_status:
+          type: string
+        deal_count:
+          type: integer
+        total_fee:
+          type: integer
+
+    PastDueDeal:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        org_id:
+          type: integer
+          nullable: true
+        expected_close_date:
+          type: string
+          format: date
+        days_overdue:
+          type: integer
+
+    DealSummaryResponse:
+      type: object
+      properties:
+        stages:
+          type: array
+          items:
+            type: string
+        stage_groups:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        sources:
+          type: array
+          items:
+            type: string
+        intents:
+          type: array
+          items:
+            type: string
+        grid:
+          type: array
+          items:
+            $ref: "#/components/schemas/DealSummaryGridRow"
+        invoice_summary:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceSummaryRow"
+        past_due:
+          type: array
+          items:
+            $ref: "#/components/schemas/PastDueDeal"
