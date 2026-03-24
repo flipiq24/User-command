@@ -256,11 +256,15 @@ function genDeals() {
       const src = s1 < 0.46 ? "MLS" : s1 < 0.83 ? "Off Market" : "Wholesaler";
       const pt = DL_PTYPES[Math.floor(s2 * DL_PTYPES.length)];
       const intent = s3 < 0.6 ? "Flip" : "Wholesale";
+      const sAq = Math.max(0, Math.round(u.s.aq * scale));
+      const sAc = Math.max(0, Math.round(u.s.ac * scale));
+      const sNg = Math.max(0, Math.round(u.s.ng * scale));
+      const sOf = Math.max(0, Math.round(u.s.of * scale));
       let stg;
-      if (j < u.s.aq) stg = "Acquired";
-      else if (j < u.s.aq + u.s.ac) stg = "Offer Accepted";
-      else if (j < u.s.aq + u.s.ac + u.s.ng) stg = "In Negotiations";
-      else if (j < u.s.aq + u.s.ac + u.s.ng + u.s.of) stg = "Offers";
+      if (j < sAq) stg = "Acquired";
+      else if (j < sAq + sAc) stg = "Offer Accepted";
+      else if (j < sAq + sAc + sNg) stg = "In Negotiations";
+      else if (j < sAq + sAc + sNg + sOf) stg = "Offers";
       else stg = "Active Pipeline";
       const price = Math.round((80000 + s4 * 420000) / 1000) * 1000;
       const profitPct = 0.08 + s5 * 0.22;
@@ -574,7 +578,9 @@ export default function App() {
   const [dR, sDR] = useState("Today");
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState("desc");
-  const [dlSrc, setDlSrc] = useState("All");
+  const [dlSrc, setDlSrc] = useState(null);
+  const [dlPt, setDlPt] = useState(null);
+  const [dlInt, setDlInt] = useState(null);
   const [dlExp, setDlExp] = useState({});
   const [aiMsgs, setAiMsgs] = useState([]);
   const [aiInput, setAiInput] = useState("");
@@ -1267,33 +1273,38 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         {tab === "deals" && !sel && !eV && (() => {
           const fIds = new Set(fU.map(x => x.id));
           let fd = DL.filter(d => fIds.has(d.aaId));
-          if (dlSrc !== "All") fd = fd.filter(d => d.src === dlSrc);
-          const isFiltered = flt.org || flt.phase || flt.health || dlSrc !== "All";
+          if (dlSrc) fd = fd.filter(d => d.src === dlSrc);
+          if (dlPt) fd = fd.filter(d => d.pt === dlPt);
+          if (dlInt) fd = fd.filter(d => d.intent === dlInt);
+          const isFiltered = flt.org || flt.phase || flt.health || dlSrc || dlPt || dlInt;
           const fmt$ = (v) => v >= 1000000 ? "$" + (v / 1000000).toFixed(1) + "M" : v >= 1000 ? "$" + (v / 1000).toFixed(0) + "K" : "$" + v;
+          const srcBreak = DL_SOURCES.map(s => ({ n: s, cnt: fd.filter(d => d.src === s).length }));
+          const srcTotal = fd.length || 1;
+          const ptBreak = DL_PTYPES.map(p => ({ n: p, cnt: fd.filter(d => d.pt === p).length })).filter(p => p.cnt > 0).sort((a, b) => b.cnt - a.cnt);
+          const intBreak = DL_INTENTS.map(i => ({ n: i, cnt: fd.filter(d => d.intent === i).length }));
+          const activeFilters = [dlSrc, dlPt, dlInt].filter(Boolean);
           const pipeStages = DL_STAGES.map(stg => {
             const sd = fd.filter(d => d.stg === stg);
             return { n: stg, cnt: sd.length, total: sd.reduce((s, d) => s + d.price, 0), comm: sd.reduce((s, d) => s + d.comm, 0) };
           });
           const pipeColors = [{ color: "#3B82F6", bg: "#EFF6FF", bc: "#BFDBFE" }, { color: "#F97316", bg: "#FFF7ED", bc: "#FED7AA" }, { color: "#8B5CF6", bg: "#F5F3FF", bc: "#DDD6FE" }, { color: "#10B981", bg: "#ECFDF5", bc: "#A7F3D0" }, { color: "#059669", bg: "#D1FAE5", bc: "#6EE7B7" }];
-          const srcBreak = DL_SOURCES.map(s => ({ n: s, cnt: fd.filter(d => d.src === s).length }));
-          const srcTotal = fd.length || 1;
-          const ptBreak = DL_PTYPES.map(p => ({ n: p, cnt: fd.filter(d => d.pt === p).length }));
-          const intBreak = DL_INTENTS.map(i => ({ n: i, cnt: fd.filter(d => d.intent === i).length }));
           const fcW = [
-            { l: "Mar W1 (1-7)", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W1") },
-            { l: "Mar W2 (8-14)", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W2") },
-            { l: "Mar W3 (15-21)", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W3") },
-            { l: "Mar W4 (22-31)", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W4") },
+            { l: "W1", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W1") },
+            { l: "W2", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W2") },
+            { l: "W3", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W3") },
+            { l: "W4", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W4") },
           ];
           const fcM = [
-            { l: "April", ds: fd.filter(d => d.closeMonth === 4) },
+            { l: "Apr", ds: fd.filter(d => d.closeMonth === 4) },
             { l: "May", ds: fd.filter(d => d.closeMonth === 5) },
-            { l: "June", ds: fd.filter(d => d.closeMonth === 6) },
+            { l: "Jun", ds: fd.filter(d => d.closeMonth === 6) },
           ];
           const fcAll = [...fcW, ...fcM];
-          const fcMax = Math.max(...fcAll.map(f => f.ds.reduce((s, d) => s + d.comm, 0)), 1);
+          const fcVals = fcAll.map(f => f.ds.reduce((s, d) => s + d.comm, 0));
+          const fcMax = Math.max(...fcVals, 1);
+          const closedDeals = fd.filter(d => d.stg === "Offer Accepted" || d.stg === "Acquired");
           const aaGroups = {};
-          fd.forEach(d => {
+          closedDeals.forEach(d => {
             if (!aaGroups[d.aaId]) aaGroups[d.aaId] = [];
             aaGroups[d.aaId].push(d);
           });
@@ -1301,129 +1312,85 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             const ds = aaGroups[aid];
             const u = U.find(x => x.id === +aid);
             const org = O.find(o => o.id === u?.org);
-            return { aid: +aid, n: u?.n || "Unknown", co: org?.n || "", cnt: ds.length, totalPrice: ds.reduce((s, d) => s + d.price, 0), totalComm: ds.reduce((s, d) => s + d.comm, 0), deals: ds };
+            const accepted = ds.filter(d => d.stg === "Offer Accepted");
+            const acquired = ds.filter(d => d.stg === "Acquired");
+            const accToClose = accepted.length + acquired.length > 0 ? Math.round(acquired.length / (accepted.length + acquired.length) * 100) : 0;
+            return { aid: +aid, n: u?.n || "Unknown", co: org?.n || "", accepted: accepted.length, acquired: acquired.length, accToClose, totalComm: ds.reduce((s, d) => s + d.comm, 0), totalPrice: ds.reduce((s, d) => s + d.price, 0), deals: ds };
           }).sort((a, b) => b.totalComm - a.totalComm);
           const grandTotal = fd.reduce((s, d) => s + d.price, 0);
           const grandComm = fd.reduce((s, d) => s + d.comm, 0);
+          const totalAccepted = aaRows.reduce((s, r) => s + r.accepted, 0);
+          const totalAcquired = aaRows.reduce((s, r) => s + r.acquired, 0);
           return (
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 800 }}>Deal dashboard</div>
-                  <div style={{ fontSize: 10, color: "#94A3B8" }}>{isFiltered ? `Showing ${fd.length} of ${DL.length} deals` : `All ${DL.length} deals`} across {aaRows.length} AAs — {fmt$(grandTotal)} total pipeline · {fmt$(grandComm)} projected commission</div>
-                </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <Tip text="Filter deals by source: MLS, Off Market, or Wholesaler."><select value={dlSrc} onChange={e => setDlSrc(e.target.value)} style={{ padding: "6px 28px 6px 10px", fontSize: 11, fontWeight: 500, border: "1px solid #E2E8F0", borderRadius: 7, background: "#FFF", appearance: "none", WebkitAppearance: "none", cursor: "pointer", backgroundImage: sel0, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
-                    <option value="All">All sources</option>
-                    {DL_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select></Tip>
-                  <div style={{ fontSize: 11, color: isFiltered ? "#F97316" : "#64748B", background: isFiltered ? "#FFF7ED" : "#F1F5F9", padding: "4px 10px", borderRadius: 5, fontWeight: 600 }}>{fd.length} deals</div>
-                </div>
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 16, fontWeight: 800 }}>Deal dashboard</div>
+                <div style={{ fontSize: 10, color: "#94A3B8" }}>{isFiltered ? `Showing ${fd.length} of ${DL.length} deals` : `All ${DL.length} deals`} across {aaRows.length} AAs — {fmt$(grandTotal)} total pipeline · {fmt$(grandComm)} projected commission</div>
+              </div>
+
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Source</div>
+                {DL_SOURCES.map(s => {
+                  const active = dlSrc === s;
+                  const cnt = fd.filter(d => d.src === s).length;
+                  return <Tip key={s} text={`Filter by ${s} deals (${cnt}). Click to toggle.`}><button onClick={() => setDlSrc(active ? null : s)} style={{ padding: "4px 10px", fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#3B82F6", background: active ? "#3B82F6" : "#EFF6FF", border: active ? "2px solid #2563EB" : "1px solid #BFDBFE", borderRadius: 6, cursor: "pointer" }}>{s} ({cnt})</button></Tip>;
+                })}
+                <div style={{ width: 1, background: "#E2E8F0", margin: "0 6px" }} />
+                <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Type</div>
+                {ptBreak.slice(0, 8).map(p => {
+                  const active = dlPt === p.n;
+                  return <Tip key={p.n} text={`Filter by ${p.n} property type (${p.cnt} deals). Click to toggle.`}><button onClick={() => setDlPt(active ? null : p.n)} style={{ padding: "4px 8px", fontSize: 9, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#F97316", background: active ? "#F97316" : "#FFF7ED", border: active ? "2px solid #EA580C" : "1px solid #FED7AA", borderRadius: 6, cursor: "pointer" }}>{p.n} ({p.cnt})</button></Tip>;
+                })}
+                <div style={{ width: 1, background: "#E2E8F0", margin: "0 6px" }} />
+                <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Intent</div>
+                {DL_INTENTS.map(i => {
+                  const active = dlInt === i;
+                  const cnt = fd.filter(d => d.intent === i).length;
+                  return <Tip key={i} text={`Filter by ${i} intent (${cnt} deals). Click to toggle.`}><button onClick={() => setDlInt(active ? null : i)} style={{ padding: "4px 10px", fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#8B5CF6", background: active ? "#8B5CF6" : "#F5F3FF", border: active ? "2px solid #7C3AED" : "1px solid #DDD6FE", borderRadius: 6, cursor: "pointer" }}>{i} ({cnt})</button></Tip>;
+                })}
+                {activeFilters.length > 0 && <Tip text="Clear all deal filters"><button onClick={() => { setDlSrc(null); setDlPt(null); setDlInt(null); }} style={{ padding: "4px 10px", fontSize: 9, fontWeight: 600, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 6, cursor: "pointer" }}>Clear filters</button></Tip>}
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 14 }}>
-                {pipeStages.map((p, pi) => (
-                  <Tip key={p.n} text={`${p.n}: ${p.cnt} deals, ${fmt$(p.total)} value, ${fmt$(p.comm)} commission`}><div style={{ background: pipeColors[pi].bg, border: "1px solid " + pipeColors[pi].bc, borderRadius: 10, padding: "12px 10px 10px", position: "relative" }}>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: pipeColors[pi].color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>{p.n}</div>
+                {pipeStages.map((p, pi) => {
+                  const stgDeals = fd.filter(d => d.stg === p.n);
+                  const sparkData = fcAll.map(f => f.ds.filter(d => d.stg === p.n).reduce((s, d) => s + d.comm, 0));
+                  const spMax = Math.max(...sparkData, 1);
+                  const pts = sparkData.map((v, i) => `${10 + i * (130 / 6)},${38 - (v / spMax) * 32}`).join(" ");
+                  return (
+                  <Tip key={p.n} text={`${p.n}: ${p.cnt} deals, ${fmt$(p.total)} value, ${fmt$(p.comm)} commission`}><div style={{ background: pipeColors[pi].bg, border: "1px solid " + pipeColors[pi].bc, borderRadius: 10, padding: "10px 10px 6px", position: "relative" }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: pipeColors[pi].color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>{p.n}</div>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                      <span style={{ fontSize: 22, fontWeight: 800, color: pipeColors[pi].color }}>{p.cnt}</span>
+                      <span style={{ fontSize: 20, fontWeight: 800, color: pipeColors[pi].color }}>{p.cnt}</span>
                       <span style={{ fontSize: 9, color: "#94A3B8" }}>deals</span>
                     </div>
-                    <div style={{ fontSize: 10, color: "#64748B", marginTop: 2 }}>{fmt$(p.total)}</div>
-                    <div style={{ fontSize: 9, color: pipeColors[pi].color, fontWeight: 600, marginTop: 1 }}>{fmt$(p.comm)} comm</div>
-                    {pi < 4 && <div style={{ position: "absolute", right: -8, top: "50%", transform: "translateY(-50%)", fontSize: 10, color: "#CBD5E1" }}>{"\u25B6"}</div>}
+                    <div style={{ fontSize: 10, color: "#64748B", marginTop: 1 }}>{fmt$(p.total)}</div>
+                    <svg width="100%" height="42" viewBox="0 0 150 42" preserveAspectRatio="none" style={{ display: "block", marginTop: 2 }}>
+                      <polyline points={pts} fill="none" stroke={pipeColors[pi].color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" opacity="0.6" />
+                      {sparkData.map((v, i) => <circle key={i} cx={10 + i * (130 / 6)} cy={38 - (v / spMax) * 32} r="2" fill={pipeColors[pi].color} opacity="0.8" />)}
+                    </svg>
+                    {pi < 4 && <div style={{ position: "absolute", right: -8, top: "40%", transform: "translateY(-50%)", fontSize: 10, color: "#CBD5E1" }}>{"\u25B6"}</div>}
                   </div></Tip>
-                ))}
+                  );
+                })}
               </div>
 
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 18px", marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}><Tip text="4-month revenue forecast. March is broken into weekly projections, followed by April/May/June monthly totals. Shows projected commission from deals expected to close in each period.">Revenue forecast — Commission</Tip></div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 8 }}>
-                  {fcAll.map((f, fi) => {
-                    const total = f.ds.reduce((s, d) => s + d.comm, 0);
-                    const pct = total / fcMax * 100;
-                    const isMar = fi < 4;
-                    return (
-                      <Tip key={f.l} text={`${f.l}: ${f.ds.length} deals closing, ${fmt$(total)} commission`}><div style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: 8, fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", marginBottom: 4 }}>{f.l}</div>
-                        <div style={{ height: 80, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-                          <div style={{ width: "60%", height: Math.max(4, pct) + "%", background: isMar ? "#F97316" : "#3B82F6", borderRadius: "4px 4px 0 0", transition: "height 0.3s" }} />
-                        </div>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: isMar ? "#F97316" : "#3B82F6", marginTop: 4 }}>{fmt$(total)}</div>
-                        <div style={{ fontSize: 8, color: "#94A3B8" }}>{f.ds.length} deals</div>
-                      </div></Tip>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: dlSrc === "MLS" ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
-                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}><Tip text="Deal count and percentage by source: MLS, Off Market, or Wholesaler.">By source</Tip></div>
-                  {srcBreak.map(s => (
-                    <div key={s.n} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                      <span style={{ fontSize: 11, color: "#1E293B", fontWeight: 500 }}>{s.n}</span>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "#1E293B" }}>{s.cnt}</span>
-                        <span style={{ fontSize: 9, color: "#94A3B8" }}>{Math.round(s.cnt / srcTotal * 100)}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#F97316", marginBottom: 8 }}><Tip text="Deal count by property type (MLS subtype classification).">By property type</Tip></div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-                    {ptBreak.map(p => (
-                      <div key={p.n} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, padding: "2px 4px", background: p.cnt > 0 ? "#FFF7ED" : "transparent", borderRadius: 3 }}>
-                        <span style={{ color: "#64748B", fontWeight: 600 }}>{p.n}</span>
-                        <span style={{ fontWeight: 700, color: p.cnt > 0 ? "#F97316" : "#CBD5E1" }}>{p.cnt}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {dlSrc === "MLS" && (() => {
-                  const mlsDeals = fd.filter(d => d.src === "MLS");
-                  const mlsTotal = mlsDeals.length || 1;
-                  const mlsSub = DL_PTYPES.map(p => ({ n: p, cnt: mlsDeals.filter(d => d.pt === p).length })).filter(p => p.cnt > 0).sort((a, b) => b.cnt - a.cnt);
-                  return (
-                    <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 9, padding: "14px 16px" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#2563EB", marginBottom: 8 }}><Tip text="MLS deal breakdown by property subtype. Only visible when source filter is set to MLS.">MLS subtypes</Tip></div>
-                      {mlsSub.map(p => {
-                        const pct = Math.round(p.cnt / mlsTotal * 100);
-                        return (
-                          <div key={p.n} style={{ marginBottom: 5 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-                              <span style={{ fontSize: 10, fontWeight: 600, color: "#1E293B" }}>{p.n}</span>
-                              <span style={{ fontSize: 10, fontWeight: 700, color: "#2563EB" }}>{p.cnt} <span style={{ fontSize: 8, color: "#94A3B8", fontWeight: 400 }}>{pct}%</span></span>
-                            </div>
-                            <div style={{ height: 4, background: "#DBEAFE", borderRadius: 2 }}>
-                              <div style={{ height: 4, width: pct + "%", background: "#3B82F6", borderRadius: 2 }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-
-                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", marginBottom: 8 }}><Tip text="Deal intent: Flip (buy, renovate, sell for profit) vs Wholesale (assign contract to another buyer for a fee).">By intent</Tip></div>
-                  {intBreak.map(i => {
-                    const pct = Math.round(i.cnt / srcTotal * 100);
-                    return (
-                      <div key={i.n} style={{ marginBottom: 8 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: "#1E293B" }}>{i.n}</span>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: i.n === "Flip" ? "#F97316" : "#8B5CF6" }}>{i.cnt} <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 400 }}>{pct}%</span></span>
-                        </div>
-                        <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3 }}>
-                          <div style={{ height: 6, width: pct + "%", background: i.n === "Flip" ? "#F97316" : "#8B5CF6", borderRadius: 3 }} />
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}><Tip text="4-month revenue forecast. March is broken into weekly projections, followed by April/May/June monthly totals. Line chart shows projected commission trend.">Revenue forecast — Commission</Tip></div>
+                <div style={{ position: "relative", height: 120, marginBottom: 8 }}>
+                  <svg width="100%" height="120" viewBox="0 0 700 120" preserveAspectRatio="none">
+                    {[0, 0.25, 0.5, 0.75, 1].map((p, i) => <line key={i} x1="50" y1={10 + p * 90} x2="680" y2={10 + p * 90} stroke="#F1F5F9" strokeWidth="1" />)}
+                    {fcAll.map((f, fi) => {
+                      const x = 80 + fi * 90;
+                      return <text key={fi} x={x} y={115} textAnchor="middle" fontSize="9" fill="#94A3B8" fontWeight="600">{f.l}</text>;
+                    })}
+                    <polyline points={fcVals.map((v, i) => `${80 + i * 90},${100 - (v / fcMax) * 85}`).join(" ")} fill="none" stroke="#F97316" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+                    {fcVals.map((v, i) => {
+                      const x = 80 + i * 90;
+                      const y = 100 - (v / fcMax) * 85;
+                      return <g key={i}><circle cx={x} cy={y} r="4" fill="#FFF" stroke="#F97316" strokeWidth="2" /><text x={x} y={y - 8} textAnchor="middle" fontSize="8" fill="#F97316" fontWeight="700">{fmt$(v)}</text></g>;
+                    })}
+                  </svg>
                 </div>
               </div>
 
@@ -1431,38 +1398,41 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700 }}>Deals by AA</div>
-                    <div style={{ fontSize: 10, color: "#94A3B8" }}>Click an AA to see individual deal details. Sorted by projected commission.</div>
+                    <div style={{ fontSize: 10, color: "#94A3B8" }}>Showing Offer Accepted and Acquired deals only. {totalAccepted} accepted · {totalAcquired} acquired across {aaRows.length} AAs.</div>
                   </div>
-                  <div style={{ fontSize: 10, color: "#64748B" }}>{fmt$(grandTotal)} pipeline · {fmt$(grandComm)} commission</div>
+                  <div style={{ fontSize: 10, color: "#64748B" }}>{fmt$(closedDeals.reduce((s, d) => s + d.price, 0))} value · {fmt$(closedDeals.reduce((s, d) => s + d.comm, 0))} commission</div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "200px 120px 60px 120px 120px", padding: "6px 18px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
-                  <div>AA</div><div>Company</div><div>Deals</div><div>Total value</div><div>Commission</div>
+                <div style={{ display: "grid", gridTemplateColumns: "180px 110px 80px 90px 70px 90px", padding: "6px 18px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
+                  <div>AA</div><div>Company</div><div>Accepted</div><div>Accept to close</div><div>Acquired</div><div>Commission</div>
                 </div>
                 {aaRows.map((r, ri) => (
                   <div key={r.aid}>
-                    <div onClick={() => setDlExp(p => ({ ...p, [r.aid]: !p[r.aid] }))} style={{ display: "grid", gridTemplateColumns: "200px 120px 60px 120px 120px", padding: "8px 18px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", cursor: "pointer", alignItems: "center", transition: "background 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#F0F7FF"} onMouseLeave={e => e.currentTarget.style.background = ri % 2 === 0 ? "#FFF" : "#FAFBFC"}>
+                    <div onClick={() => setDlExp(p => ({ ...p, [r.aid]: !p[r.aid] }))} style={{ display: "grid", gridTemplateColumns: "180px 110px 80px 90px 70px 90px", padding: "8px 18px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", cursor: "pointer", alignItems: "center", transition: "background 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#F0F7FF"} onMouseLeave={e => e.currentTarget.style.background = ri % 2 === 0 ? "#FFF" : "#FAFBFC"}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ fontSize: 10, color: "#CBD5E1" }}>{dlExp[r.aid] ? "\u25BC" : "\u25B6"}</span>
                         <span style={{ fontSize: 11, fontWeight: 600, color: "#0369A1", textDecoration: "underline", textDecorationColor: "#CBD5E1" }}>{r.n}</span>
                       </div>
                       <div style={{ fontSize: 10, color: "#F97316", fontWeight: 600 }}>{r.co}</div>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#1E293B" }}>{r.cnt}</div>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: "#1E293B" }}>{fmt$(r.totalPrice)}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981" }}>{r.accepted}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <div style={{ width: 40, height: 5, background: "#F1F5F9", borderRadius: 3 }}><div style={{ width: r.accToClose + "%", height: 5, background: r.accToClose >= 50 ? "#10B981" : r.accToClose >= 25 ? "#F97316" : "#DC2626", borderRadius: 3 }} /></div>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: r.accToClose >= 50 ? "#10B981" : r.accToClose >= 25 ? "#F97316" : "#DC2626" }}>{r.accToClose}%</span>
+                      </div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#059669" }}>{r.acquired}</div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981" }}>{fmt$(r.totalComm)}</div>
                     </div>
                     {dlExp[r.aid] && (
                       <div style={{ background: "#F8FAFB", borderBottom: "1px solid #E2E8F0" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "200px 70px 50px 50px 80px 80px 65px 100px 100px", padding: "4px 28px", fontSize: 7, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>
-                          <div>Address</div><div>Source</div><div>Type</div><div>Intent</div><div>Price</div><div>Commission</div><div>Comm type</div><div>Close date</div><div>Stage</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "200px 80px 55px 80px 80px 70px 90px 80px", padding: "4px 28px", fontSize: 7, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>
+                          <div>Address</div><div>Intent</div><div>Type</div><div>Price</div><div>Commission</div><div>Comm type</div><div>Close date</div><div>Stage</div>
                         </div>
                         {r.deals.map(d => {
-                          const stgColor = d.stg === "Acquired" ? "#059669" : d.stg === "Offer Accepted" ? "#10B981" : d.stg === "In Negotiations" ? "#8B5CF6" : d.stg === "Offers" ? "#F97316" : "#3B82F6";
+                          const stgColor = d.stg === "Acquired" ? "#059669" : "#10B981";
                           return (
-                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "200px 70px 50px 50px 80px 80px 65px 100px 100px", padding: "5px 28px", borderBottom: "1px solid #F1F5F9", fontSize: 9, alignItems: "center" }}>
+                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "200px 80px 55px 80px 80px 70px 90px 80px", padding: "5px 28px", borderBottom: "1px solid #F1F5F9", fontSize: 9, alignItems: "center" }}>
                               <div style={{ color: "#1E293B", fontWeight: 500 }}>{d.addr}</div>
-                              <div><span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 3, background: d.src === "MLS" ? "#EFF6FF" : d.src === "Off Market" ? "#FFF7ED" : "#F5F3FF", color: d.src === "MLS" ? "#3B82F6" : d.src === "Off Market" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.src}</span></div>
-                              <div style={{ color: "#64748B", fontWeight: 600 }}>{d.pt}</div>
                               <div><span style={{ fontSize: 8, padding: "1px 4px", borderRadius: 3, background: d.intent === "Flip" ? "#FFF7ED" : "#F5F3FF", color: d.intent === "Flip" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.intent}</span></div>
+                              <div style={{ color: "#64748B", fontWeight: 600 }}>{d.pt}</div>
                               <div style={{ color: "#1E293B", fontWeight: 600 }}>{fmt$(d.price)}</div>
                               <div style={{ color: "#10B981", fontWeight: 700 }}>{fmt$(d.comm)}</div>
                               <div style={{ fontSize: 7, color: "#94A3B8" }}>{d.commType}</div>
