@@ -154,6 +154,30 @@ function fmtLag(lg) {
   return "D" + (lg + 1);
 }
 
+const UL = [
+  { uid: 14, fn: "Johnny", ln: "Catala", lid: "jcatala", st: "Active", fl: null, ll: null, tl: 0, co: "TD Realty", email: "johnny.catala@tdrealty.com", ph: "(555) 301-1401", esrc: "smtp.tdrealty.com", epwd: "••••••••", besrc: "bulk.tdrealty.com", bepwd: "••••••••", baddr: "outreach@tdrealty.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10014", dpn: "+15553011401", duid: "dp-jcatala" },
+  { uid: 15, fn: "Daniel", ln: "Worby", lid: "dworby", st: "Active", fl: "Mar 19, 2026 08:12", ll: "Mar 19, 2026 08:12", tl: 1, co: "TD Realty", email: "daniel.worby@tdrealty.com", ph: "(555) 301-1502", esrc: "smtp.tdrealty.com", epwd: "••••••••", besrc: "bulk.tdrealty.com", bepwd: "••••••••", baddr: "outreach@tdrealty.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10015", dpn: "+15553011502", duid: "dp-dworby" },
+  { uid: 11, fn: "Roman", ln: "Bracamonte", lid: "rbracamonte", st: "Active", fl: "Mar 16, 2026 07:45", ll: "Mar 18, 2026 09:30", tl: 3, co: "Hegemark", email: "roman.bracamonte@hegemark.com", ph: "(555) 302-1101", esrc: "smtp.hegemark.com", epwd: "••••••••", besrc: "bulk.hegemark.com", bepwd: "••••••••", baddr: "outreach@hegemark.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10011", dpn: "+15553021101", duid: "dp-rbracamonte" },
+  { uid: 5, fn: "Jesus", ln: "Valdez", lid: "jvaldez", st: "Active", fl: "Mar 18, 2026 10:22", ll: "Mar 20, 2026 14:05", tl: 4, co: "Coko Homes", email: "jesus.valdez@cokohomes.com", ph: "(555) 300-0501", esrc: "smtp.cokohomes.com", epwd: "••••••••", besrc: "bulk.cokohomes.com", bepwd: "••••••••", baddr: "outreach@cokohomes.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10005", dpn: "+15553000501", duid: "dp-jvaldez" },
+  { uid: 21, fn: "Trevor", ln: "Kelly", lid: "tkelly", st: "Active", fl: "Jan 6, 2026 09:00", ll: "Mar 18, 2026 16:42", tl: 148, co: "Fair Close", email: "trevor.kelly@fairclose.com", ph: "(555) 304-2101", esrc: "smtp.fairclose.com", epwd: "••••••••", besrc: "bulk.fairclose.com", bepwd: "••••••••", baddr: "outreach@fairclose.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10021", dpn: "+15553042101", duid: "dp-tkelly" },
+  { uid: 4, fn: "Duk", ln: "Lim", lid: "dlim", st: "Active", fl: "Mar 17, 2026 08:30", ll: "Mar 21, 2026 07:55", tl: 8, co: "Coko Homes", email: "duk.lim@cokohomes.com", ph: "(555) 300-0401", esrc: "smtp.cokohomes.com", epwd: "••••••••", besrc: "bulk.cokohomes.com", bepwd: "••••••••", baddr: "outreach@cokohomes.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10004", dpn: "+15553000401", duid: "dp-dlim" },
+  { uid: 16, fn: "Brooke", ln: "Stiner", lid: "bstiner", st: "Active", fl: "Mar 19, 2026 09:10", ll: "Mar 21, 2026 08:45", tl: 5, co: "TD Realty", email: "brooke.stiner@tdrealty.com", ph: "(555) 301-1603", esrc: "smtp.tdrealty.com", epwd: "••••••••", besrc: "bulk.tdrealty.com", bepwd: "••••••••", baddr: "outreach@tdrealty.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10016", dpn: "+15553011603", duid: "dp-bstiner" },
+  { uid: 19, fn: "Isaac", ln: "Haro", lid: "iharo", st: "Active", fl: "Mar 15, 2026 07:30", ll: "Mar 21, 2026 09:12", tl: 14, co: "STJ Investments", email: "isaac.haro@stjinvestments.com", ph: "(555) 303-1901", esrc: "smtp.stjinvestments.com", epwd: "••••••••", besrc: "bulk.stjinvestments.com", bepwd: "••••••••", baddr: "outreach@stjinvestments.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10019", dpn: "+15553031901", duid: "dp-iharo" },
+  { uid: 3, fn: "Chris", ln: "Dragich", lid: "cdragich", st: "Active", fl: "Mar 8, 2026 08:00", ll: "Mar 21, 2026 10:30", tl: 28, co: "Coko Homes", email: "chris.dragich@cokohomes.com", ph: "(555) 300-0301", esrc: "smtp.cokohomes.com", epwd: "••••••••", besrc: "bulk.cokohomes.com", bepwd: "••••••••", baddr: "outreach@cokohomes.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10003", dpn: "+15553000301", duid: "dp-cdragich" },
+  { uid: 13, fn: "Juan", ln: "Torres", lid: "jtorres", st: "Active", fl: "Mar 12, 2026 07:50", ll: "Mar 21, 2026 09:00", tl: 20, co: "TD Realty", email: "juan.torres@tdrealty.com", ph: "(555) 301-1304", esrc: "smtp.tdrealty.com", epwd: "••••••••", besrc: "bulk.tdrealty.com", bepwd: "••••••••", baddr: "outreach@tdrealty.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10013", dpn: "+15553011304", duid: "dp-jtorres" },
+  { uid: 10, fn: "Maxwell", ln: "Irungu", lid: "mirungu", st: "Active", fl: "Mar 10, 2026 08:15", ll: "Mar 21, 2026 08:50", tl: 24, co: "Hegemark", email: "maxwell.irungu@hegemark.com", ph: "(555) 302-1002", esrc: "smtp.hegemark.com", epwd: "••••••••", besrc: "bulk.hegemark.com", bepwd: "••••••••", baddr: "outreach@hegemark.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10010", dpn: "+15553021002", duid: "dp-mirungu" },
+  { uid: 2, fn: "Jared", ln: "Lynch", lid: "jlynch", st: "Active", fl: "Feb 12, 2026 08:00", ll: "Mar 21, 2026 11:20", tl: 72, co: "Coko Homes", email: "jared.lynch@cokohomes.com", ph: "(555) 300-0201", esrc: "smtp.cokohomes.com", epwd: "••••••••", besrc: "bulk.cokohomes.com", bepwd: "••••••••", baddr: "outreach@cokohomes.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10002", dpn: "+15553000201", duid: "dp-jlynch" },
+  { uid: 7, fn: "Shaun", ln: "Alan", lid: "salan", st: "Active", fl: "Mar 4, 2026 07:40", ll: "Mar 21, 2026 09:35", tl: 36, co: "Coko Homes", email: "shaun.alan@cokohomes.com", ph: "(555) 300-0701", esrc: "smtp.cokohomes.com", epwd: "••••••••", besrc: "bulk.cokohomes.com", bepwd: "••••••••", baddr: "outreach@cokohomes.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10007", dpn: "+15553000701", duid: "dp-salan" },
+  { uid: 6, fn: "Rod", ln: "Vianna", lid: "rvianna", st: "Active", fl: "Feb 24, 2026 08:10", ll: "Mar 21, 2026 10:15", tl: 52, co: "Coko Homes", email: "rod.vianna@cokohomes.com", ph: "(555) 300-0601", esrc: "smtp.cokohomes.com", epwd: "••••••••", besrc: "bulk.cokohomes.com", bepwd: "••••••••", baddr: "outreach@cokohomes.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10006", dpn: "+15553000601", duid: "dp-rvianna" },
+  { uid: 12, fn: "Elizabeth", ln: "Puga", lid: "epuga", st: "Active", fl: "Mar 7, 2026 08:20", ll: "Mar 21, 2026 08:40", tl: 30, co: "Hegemark", email: "elizabeth.puga@hegemark.com", ph: "(555) 302-1203", esrc: "smtp.hegemark.com", epwd: "••••••••", besrc: "bulk.hegemark.com", bepwd: "••••••••", baddr: "outreach@hegemark.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10012", dpn: "+15553021203", duid: "dp-epuga" },
+  { uid: 18, fn: "Lauren", ln: "Robles", lid: "lrobles", st: "Active", fl: "Mar 6, 2026 09:00", ll: "Mar 21, 2026 09:55", tl: 32, co: "STJ Investments", email: "lauren.robles@stjinvestments.com", ph: "(555) 303-1802", esrc: "smtp.stjinvestments.com", epwd: "••••••••", besrc: "bulk.stjinvestments.com", bepwd: "••••••••", baddr: "outreach@stjinvestments.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10018", dpn: "+15553031802", duid: "dp-lrobles" },
+  { uid: 1, fn: "Miguel", ln: "Rivera", lid: "mrivera", st: "Active", fl: "Feb 5, 2026 07:30", ll: "Mar 21, 2026 11:00", tl: 90, co: "Coko Homes", email: "miguel.rivera@cokohomes.com", ph: "(555) 300-0101", esrc: "smtp.cokohomes.com", epwd: "••••••••", besrc: "bulk.cokohomes.com", bepwd: "••••••••", baddr: "outreach@cokohomes.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10001", dpn: "+15553000101", duid: "dp-mrivera" },
+  { uid: 8, fn: "Michael", ln: "May", lid: "mmay", st: "Active", fl: "Jan 21, 2026 08:00", ll: "Mar 21, 2026 10:45", tl: 120, co: "Hegemark", email: "michael.may@hegemark.com", ph: "(555) 302-0802", esrc: "smtp.hegemark.com", epwd: "••••••••", besrc: "bulk.hegemark.com", bepwd: "••••••••", baddr: "outreach@hegemark.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10008", dpn: "+15553020802", duid: "dp-mmay" },
+  { uid: 9, fn: "Alek", ln: "Tan", lid: "atan", st: "Active", fl: "Jan 31, 2026 08:30", ll: "Mar 21, 2026 09:20", tl: 100, co: "Hegemark", email: "alek.tan@hegemark.com", ph: "(555) 302-0903", esrc: "smtp.hegemark.com", epwd: "••••••••", besrc: "bulk.hegemark.com", bepwd: "••••••••", baddr: "outreach@hegemark.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10009", dpn: "+15553020903", duid: "dp-atan" },
+  { uid: 17, fn: "Steve", ln: "Medina", lid: "smedina", st: "Active", fl: "Feb 10, 2026 09:15", ll: "Mar 21, 2026 10:10", tl: 80, co: "STJ Investments", email: "steve.medina@stjinvestments.com", ph: "(555) 303-1703", esrc: "smtp.stjinvestments.com", epwd: "••••••••", besrc: "bulk.stjinvestments.com", bepwd: "••••••••", baddr: "outreach@stjinvestments.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10017", dpn: "+15553031703", duid: "dp-smedina" },
+  { uid: 20, fn: "Josh", ln: "Santos", lid: "jsantos", st: "Active", fl: "Dec 22, 2025 07:45", ll: "Mar 21, 2026 11:30", tl: 180, co: "Fair Close", email: "josh.santos@fairclose.com", ph: "(555) 304-2002", esrc: "smtp.fairclose.com", epwd: "••••••••", besrc: "bulk.fairclose.com", bepwd: "••••••••", baddr: "outreach@fairclose.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10020", dpn: "+15553042002", duid: "dp-jsantos" },
+];
+
 const vc = (v, g) => {
   if (g <= 0) return "#64748B";
   const p = v / g;
@@ -690,7 +714,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
       </div>
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "0 24px", display: "flex" }}>
-        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."]].map(([t, label, tip]) => (
+        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."],["users","User list","Complete user directory with login history, contact info, company, email sources, and Dialpad phone numbers."]].map(([t, label, tip]) => (
           <Tip key={t} text={tip}><button onClick={() => { st(t); ss(null); seV(null); sE(null); }} style={{ padding: "10px 14px", fontSize: 12, fontWeight: tab === t ? 700 : 500, color: tab === t ? "#F97316" : "#64748B", background: "none", border: "none", borderBottom: tab === t ? "2px solid #F97316" : "2px solid transparent", cursor: "pointer" }}>
             {label}
           </button></Tip>
@@ -1099,6 +1123,76 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             })}
           </div>
         )}
+
+        {tab === "users" && !sel && !eV && (() => {
+          const ulCols = [
+            { k: "uid", l: "ID", w: 45, tip: "Unique user ID in the system." },
+            { k: "fn", l: "First", w: 80, tip: "First name." },
+            { k: "ln", l: "Last", w: 95, tip: "Last name." },
+            { k: "co", l: "Company", w: 110, tip: "Organization / company name." },
+            { k: "lid", l: "Login ID", w: 100, tip: "Login username for FlipiQ." },
+            { k: "st", l: "Status", w: 60, tip: "Account status: Active or Inactive." },
+            { k: "fl", l: "First login", w: 140, tip: "Date and time of the user's very first login." },
+            { k: "ll", l: "Last login", w: 140, tip: "Date and time of the user's most recent login." },
+            { k: "tl", l: "Total", w: 50, tip: "Total number of logins." },
+            { k: "email", l: "Email", w: 200, tip: "Primary email address." },
+            { k: "ph", l: "Phone", w: 110, tip: "Primary phone number." },
+            { k: "dpn", l: "Dialpad phone", w: 120, tip: "Dialpad phone number assigned to this user." },
+            { k: "duid", l: "Dialpad user ID", w: 110, tip: "Dialpad user identifier." },
+            { k: "esrc", l: "Email src", w: 130, tip: "SMTP email source server." },
+            { k: "epwd", l: "Email pwd", w: 70, tip: "Email password (masked)." },
+            { k: "besrc", l: "Bulk email src", w: 140, tip: "Bulk email source server." },
+            { k: "bepwd", l: "Bulk email pwd", w: 90, tip: "Bulk email password (masked)." },
+            { k: "baddr", l: "Bulk email addr", w: 160, tip: "Bulk email sender address." },
+            { k: "enpwd", l: "Email pwd new", w: 90, tip: "New email password (masked)." },
+            { k: "benpwd", l: "Bulk email pwd new", w: 110, tip: "New bulk email password (masked)." },
+            { k: "cid", l: "Contact ID", w: 85, tip: "CRM contact identifier." },
+          ];
+          const tw = ulCols.reduce((s, c) => s + c.w, 0);
+          return (
+            <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
+              <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>User list</div>
+                  <div style={{ fontSize: 10, color: "#94A3B8" }}>All {UL.length} acquisition associates — login history, credentials, contact info, and Dialpad integration.</div>
+                </div>
+                <div style={{ fontSize: 11, color: "#64748B", background: "#F1F5F9", padding: "4px 10px", borderRadius: 5, fontWeight: 600 }}>{UL.length} users</div>
+              </div>
+              <div style={{ overflowX: "auto" }}>
+                <div style={{ minWidth: tw + 20 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: ulCols.map(c => c.w + "px").join(" "), padding: "6px 10px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", gap: 0 }}>
+                    {ulCols.map(c => <div key={c.k}><Tip text={c.tip}>{c.l}</Tip></div>)}
+                  </div>
+                  {UL.map((u, i) => (
+                    <div key={u.uid} style={{ display: "grid", gridTemplateColumns: ulCols.map(c => c.w + "px").join(" "), padding: "7px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 10, alignItems: "center", gap: 0 }}>
+                      <div style={{ color: "#64748B", fontWeight: 600 }}>{u.uid}</div>
+                      <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.fn}</div>
+                      <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.ln}</div>
+                      <div style={{ color: "#F97316", fontWeight: 600 }}>{u.co}</div>
+                      <div style={{ color: "#64748B", fontFamily: "monospace", fontSize: 9 }}>{u.lid}</div>
+                      <div><span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 3, background: u.st === "Active" ? "#ECFDF5" : "#FEF2F2", color: u.st === "Active" ? "#10B981" : "#DC2626", fontWeight: 600 }}>{u.st}</span></div>
+                      <div style={{ color: u.fl ? "#1E293B" : "#DC2626", fontWeight: u.fl ? 400 : 600, fontSize: 9 }}>{u.fl || "Never"}</div>
+                      <div style={{ color: u.ll ? "#1E293B" : "#DC2626", fontWeight: u.ll ? 400 : 600, fontSize: 9 }}>{u.ll || "Never"}</div>
+                      <div style={{ fontWeight: 700, color: u.tl === 0 ? "#DC2626" : u.tl < 10 ? "#D97706" : "#10B981" }}>{u.tl}</div>
+                      <div style={{ color: "#0369A1", fontSize: 9 }}>{u.email}</div>
+                      <div style={{ color: "#64748B", fontSize: 9 }}>{u.ph}</div>
+                      <div style={{ color: "#64748B", fontFamily: "monospace", fontSize: 9 }}>{u.dpn}</div>
+                      <div style={{ color: "#64748B", fontFamily: "monospace", fontSize: 9 }}>{u.duid}</div>
+                      <div style={{ color: "#64748B", fontSize: 9 }}>{u.esrc}</div>
+                      <div style={{ color: "#94A3B8", fontSize: 9 }}>{u.epwd}</div>
+                      <div style={{ color: "#64748B", fontSize: 9 }}>{u.besrc}</div>
+                      <div style={{ color: "#94A3B8", fontSize: 9 }}>{u.bepwd}</div>
+                      <div style={{ color: "#64748B", fontSize: 9 }}>{u.baddr}</div>
+                      <div style={{ color: "#94A3B8", fontSize: 9 }}>{u.enpwd}</div>
+                      <div style={{ color: "#94A3B8", fontSize: 9 }}>{u.benpwd}</div>
+                      <div style={{ color: "#64748B", fontFamily: "monospace", fontSize: 9 }}>{u.cid}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {sel && user && (
           <div>

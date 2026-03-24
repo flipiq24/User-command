@@ -51,6 +51,7 @@ The dashboard is a single-page React component with embedded data arrays and inl
 3. **Heat map** — 7 category columns (Plan/Find/Comms/Prop/Analysis/Offers/Tools), color-coded cells, tooltips
 4. **Emails** — Coaching email cards with Generate button, BECAUSE root cause, yesterday/goal stats, plus Communication Log table at bottom
 5. **Email logic** — Reference table of all trigger rules across P1/P2/P3 phases
+6. **User list** — Full user directory with login history (first/last/total), company, email, phone, Dialpad phone, email source/bulk configs, and contact IDs
 
 ### User Detail View
 - Pipeline stage cards in header: Active Pipeline → Offers → In Negotiations → Offer Accepted → Acquired
