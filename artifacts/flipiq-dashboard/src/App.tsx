@@ -236,11 +236,15 @@ const UR = [
 function genDeals() {
   const deals = [];
   let did = 1;
+  const TARGET = 280;
   const seed = (i) => ((i * 7919 + 104729) % 2147483647) / 2147483647;
-  UR.forEach((u) => {
-    const totalOffers = u.s.of + u.s.ng + u.s.ac + u.s.aq + Math.max(0, Math.floor(u.s.op * 0.3));
-    if (totalOffers === 0) return;
-    const cnt = Math.max(1, totalOffers);
+  const rawCounts = UR.map(u => u.s.of + u.s.ng + u.s.ac + u.s.aq + Math.max(0, Math.floor(u.s.op * 0.3)));
+  const rawTotal = rawCounts.reduce((a, b) => a + b, 0) || 1;
+  const scale = TARGET / rawTotal;
+  UR.forEach((u, ui) => {
+    const rawCnt = rawCounts[ui];
+    if (rawCnt === 0) return;
+    const cnt = Math.max(1, Math.round(rawCnt * scale));
     for (let j = 0; j < cnt; j++) {
       const s1 = seed(did * 31 + j * 17);
       const s2 = seed(did * 53 + j * 23);
@@ -1353,7 +1357,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: dlSrc === "MLS" ? "1fr 1fr 1fr 1fr" : "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
                 <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}><Tip text="Deal count and percentage by source: MLS, Off Market, or Wholesaler.">By source</Tip></div>
                   {srcBreak.map(s => (
@@ -1378,6 +1382,31 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     ))}
                   </div>
                 </div>
+
+                {dlSrc === "MLS" && (() => {
+                  const mlsDeals = fd.filter(d => d.src === "MLS");
+                  const mlsTotal = mlsDeals.length || 1;
+                  const mlsSub = DL_PTYPES.map(p => ({ n: p, cnt: mlsDeals.filter(d => d.pt === p).length })).filter(p => p.cnt > 0).sort((a, b) => b.cnt - a.cnt);
+                  return (
+                    <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 9, padding: "14px 16px" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#2563EB", marginBottom: 8 }}><Tip text="MLS deal breakdown by property subtype. Only visible when source filter is set to MLS.">MLS subtypes</Tip></div>
+                      {mlsSub.map(p => {
+                        const pct = Math.round(p.cnt / mlsTotal * 100);
+                        return (
+                          <div key={p.n} style={{ marginBottom: 5 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                              <span style={{ fontSize: 10, fontWeight: 600, color: "#1E293B" }}>{p.n}</span>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: "#2563EB" }}>{p.cnt} <span style={{ fontSize: 8, color: "#94A3B8", fontWeight: 400 }}>{pct}%</span></span>
+                            </div>
+                            <div style={{ height: 4, background: "#DBEAFE", borderRadius: 2 }}>
+                              <div style={{ height: 4, width: pct + "%", background: "#3B82F6", borderRadius: 2 }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
 
                 <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", marginBottom: 8 }}><Tip text="Deal intent: Flip (buy, renovate, sell for profit) vs Wholesale (assign contract to another buyer for a fee).">By intent</Tip></div>
@@ -1423,13 +1452,13 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     </div>
                     {dlExp[r.aid] && (
                       <div style={{ background: "#F8FAFB", borderBottom: "1px solid #E2E8F0" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "220px 80px 55px 55px 90px 90px 70px 120px", padding: "4px 28px", fontSize: 7, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>
-                          <div>Address</div><div>Source</div><div>Type</div><div>Intent</div><div>Price</div><div>Commission</div><div>Comm type</div><div>Stage</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "200px 70px 50px 50px 80px 80px 65px 100px 100px", padding: "4px 28px", fontSize: 7, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>
+                          <div>Address</div><div>Source</div><div>Type</div><div>Intent</div><div>Price</div><div>Commission</div><div>Comm type</div><div>Close date</div><div>Stage</div>
                         </div>
                         {r.deals.map(d => {
                           const stgColor = d.stg === "Acquired" ? "#059669" : d.stg === "Offer Accepted" ? "#10B981" : d.stg === "In Negotiations" ? "#8B5CF6" : d.stg === "Offers" ? "#F97316" : "#3B82F6";
                           return (
-                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "220px 80px 55px 55px 90px 90px 70px 120px", padding: "5px 28px", borderBottom: "1px solid #F1F5F9", fontSize: 9, alignItems: "center" }}>
+                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "200px 70px 50px 50px 80px 80px 65px 100px 100px", padding: "5px 28px", borderBottom: "1px solid #F1F5F9", fontSize: 9, alignItems: "center" }}>
                               <div style={{ color: "#1E293B", fontWeight: 500 }}>{d.addr}</div>
                               <div><span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 3, background: d.src === "MLS" ? "#EFF6FF" : d.src === "Off Market" ? "#FFF7ED" : "#F5F3FF", color: d.src === "MLS" ? "#3B82F6" : d.src === "Off Market" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.src}</span></div>
                               <div style={{ color: "#64748B", fontWeight: 600 }}>{d.pt}</div>
@@ -1437,6 +1466,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                               <div style={{ color: "#1E293B", fontWeight: 600 }}>{fmt$(d.price)}</div>
                               <div style={{ color: "#10B981", fontWeight: 700 }}>{fmt$(d.comm)}</div>
                               <div style={{ fontSize: 7, color: "#94A3B8" }}>{d.commType}</div>
+                              <div style={{ fontSize: 8, color: "#64748B" }}>{d.closeDate}</div>
                               <div><span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 3, background: stgColor + "15", color: stgColor, fontWeight: 600 }}>{d.stg}</span></div>
                             </div>
                           );
