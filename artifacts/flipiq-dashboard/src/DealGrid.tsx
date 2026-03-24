@@ -183,7 +183,7 @@ export default function DealGrid({ users, orgs, flt }) {
     const url = `${apiBase}/api/deals${params.toString() ? "?" + params.toString() : ""}`;
     fetch(url)
       .then(r => { if (!r.ok) throw new Error("API error"); return r.json(); })
-      .then(data => { if (!cancelled) { setDeals(Array.isArray(data) && data.length > 0 ? data : mockDeals); setLoading(false); } })
+      .then(data => { if (!cancelled) { setDeals(Array.isArray(data) ? data : []); setLoading(false); } })
       .catch(() => {
         if (!cancelled) {
           let fallback = mockDeals;
@@ -482,8 +482,8 @@ export default function DealGrid({ users, orgs, flt }) {
 
                     {expanded[`aa-${aa.uid}`] && (
                       <div style={{ background: "#F8FAFB", borderBottom: "1px solid #E2E8F0" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "minmax(140px,1fr) 65px 55px 80px 80px 80px 75px 65px 130px", padding: "6px 18px 6px 60px", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", minWidth: 800, gap: "0 4px" }}>
-                          <div>Address</div><div>Source</div><div>Intent</div><div>Price</div><div>Commission</div><div>Est. close</div><div>Stage</div><div>Days</div><div>Invoice</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "minmax(130px,1fr) 60px 52px 75px 75px 65px 70px 70px 45px 130px", padding: "6px 18px 6px 60px", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", minWidth: 850, gap: "0 4px" }}>
+                          <div>Address</div><div>Source</div><div>Intent</div><div>Price</div><div>Commission</div><div>Success fee</div><div>Est. close</div><div>Stage</div><div>Days</div><div>Invoice</div>
                         </div>
                         {aa.deals.map(d => {
                           const stgColor = d.stage === "Acquired" ? "#059669" : d.stage === "Offer Accepted" ? "#10B981" : d.stage === "In Negotiations" ? "#8B5CF6" : d.stage === "Contract Submitted" ? "#F97316" : "#3B82F6";
@@ -492,8 +492,8 @@ export default function DealGrid({ users, orgs, flt }) {
                           const invSt = d.invoice_status || "need_to_invoice";
                           return (
                             <div key={d.id} style={{
-                              display: "grid", gridTemplateColumns: "minmax(140px,1fr) 65px 55px 80px 80px 80px 75px 65px 130px",
-                              padding: "6px 18px 6px 60px", borderBottom: "1px solid #F1F5F9", fontSize: 10, alignItems: "center", minWidth: 800, gap: "0 4px",
+                              display: "grid", gridTemplateColumns: "minmax(130px,1fr) 60px 52px 75px 75px 65px 70px 70px 45px 130px",
+                              padding: "6px 18px 6px 60px", borderBottom: "1px solid #F1F5F9", fontSize: 10, alignItems: "center", minWidth: 850, gap: "0 4px",
                               background: pastDue === "red" ? "#FEF2F2" : pastDue === "yellow" ? "#FEFCE8" : undefined,
                             }}>
                               <div style={{ color: "#1E293B", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.address}</div>
@@ -501,6 +501,7 @@ export default function DealGrid({ users, orgs, flt }) {
                               <div><span style={{ fontSize: 10, padding: "2px 5px", borderRadius: 4, background: d.intent === "Flip" ? "#FFF7ED" : d.intent === "Portfolio" ? "#ECFDF5" : "#F5F3FF", color: d.intent === "Flip" ? "#F97316" : d.intent === "Portfolio" ? "#059669" : "#8B5CF6", fontWeight: 600 }}>{d.intent}</span></div>
                               <div style={{ color: "#1E293B", fontWeight: 700 }}>{fmt$(d.price || 0)}</div>
                               <div style={{ color: "#10B981", fontWeight: 700 }}>{fmt$(d.commission || 0)}</div>
+                              <div style={{ color: "#8B5CF6", fontWeight: 600 }}>{d.success_fee ? fmt$(d.success_fee) : "—"}</div>
                               <div style={{ color: "#475569", fontSize: 10 }}>{d.expected_close_date ? new Date(d.expected_close_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}</div>
                               <div><span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: stgColor + "15", color: stgColor, fontWeight: 600, whiteSpace: "nowrap" }}>{d.stage}</span></div>
                               <div style={{ fontSize: 10, fontWeight: 700, color: dayColor }}>{d.days_in_stage || 0}d</div>
