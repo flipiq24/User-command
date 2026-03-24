@@ -178,6 +178,14 @@ const UL = [
   { uid: 20, fn: "Josh", ln: "Santos", lid: "jsantos", st: "Active", fl: "Dec 22, 2025 07:45", ll: "Mar 21, 2026 11:30", tl: 180, co: "Fair Close", email: "josh.santos@fairclose.com", ph: "(555) 304-2002", esrc: "smtp.fairclose.com", epwd: "••••••••", besrc: "bulk.fairclose.com", bepwd: "••••••••", baddr: "outreach@fairclose.com", enpwd: "••••••••", benpwd: "••••••••", cid: "CID-10020", dpn: "+15553042002", duid: "dp-jsantos" },
 ];
 
+const DL_SOURCES = ["MLS", "Off Market", "Wholesaler"];
+const DL_PTYPES = ["STD","SPAY","NOD","REO","PRO","AUC","TRUS","TPA","HUD","BK","FORC","CONS"];
+const DL_INTENTS = ["Flip", "Wholesale"];
+const DL_STAGES = ["Active Pipeline", "Offers", "In Negotiations", "Offer Accepted", "Acquired"];
+const DL_STREETS = ["Oak","Elm","Maple","Cedar","Pine","Birch","Walnut","Cherry","Ash","Spruce","Willow","Poplar","Magnolia","Cypress","Sycamore","Redwood","Hickory","Juniper","Laurel","Holly","Ivy","Hazel","Aspen","Alder","Beech","Olive","Palm","Peach","Fig","Sage"];
+const DL_SUFFIXES = ["St","Ave","Dr","Ln","Ct","Blvd","Way","Pl","Rd","Cir"];
+const DL_CITIES = ["Phoenix","Scottsdale","Mesa","Tempe","Chandler","Gilbert","Glendale","Peoria","Surprise","Goodyear","Avondale","Buckeye","Tolleson","Litchfield Park"];
+
 const vc = (v, g) => {
   if (g <= 0) return "#64748B";
   const p = v / g;
@@ -224,6 +232,59 @@ const UR = [
   { id: 17, n: "Steve Medina", org: 4, ph: 3, day: 40, health: "green", ps: 4, gaps: [], agenda: "On target.", vid: null, ec: 0, s: { tx: 140, em: 75, ca: 35, cc: 26, nr: 16, up: 6, op: 90, re: 32, of: 48, ng: 8, ac: 3, aq: 2, mn: 4800, piq: 400, comp: 340, ia: 280, off: 320, ag: 520, ck: true, mls: 58, dm: 12, cold: 14, ref: 6, pH: 10, pW: 6 }, y: { tx: 9, em: 4, ca: 7, of: 3, op: 6 }, g: { ca: 50, of: 5, ct: 50 } },
   { id: 20, n: "Josh Santos", org: 5, ph: 3, day: 90, health: "green", ps: 4, gaps: [], agenda: "Model AA. 4 deals.", vid: null, ec: 0, s: { tx: 280, em: 150, ca: 50, cc: 40, nr: 30, up: 15, op: 200, re: 80, of: 95, ng: 15, ac: 8, aq: 4, mn: 10800, piq: 900, comp: 750, ia: 620, off: 700, ag: 1000, ck: true, mls: 120, dm: 30, cold: 35, ref: 15, pH: 20, pW: 12 }, y: { tx: 14, em: 7, ca: 10, of: 5, op: 12 }, g: { ca: 50, of: 5, ct: 50 } },
 ];
+
+function genDeals() {
+  const deals = [];
+  let did = 1;
+  const seed = (i) => ((i * 7919 + 104729) % 2147483647) / 2147483647;
+  UR.forEach((u) => {
+    const totalOffers = u.s.of + u.s.ng + u.s.ac + u.s.aq + Math.max(0, Math.floor(u.s.op * 0.3));
+    if (totalOffers === 0) return;
+    const cnt = Math.max(1, totalOffers);
+    for (let j = 0; j < cnt; j++) {
+      const s1 = seed(did * 31 + j * 17);
+      const s2 = seed(did * 53 + j * 23);
+      const s3 = seed(did * 71 + j * 37);
+      const s4 = seed(did * 97 + j * 41);
+      const s5 = seed(did * 113 + j * 43);
+      const s6 = seed(did * 131 + j * 47);
+      const s7 = seed(did * 149 + j * 53);
+      const src = s1 < 0.46 ? "MLS" : s1 < 0.83 ? "Off Market" : "Wholesaler";
+      const pt = DL_PTYPES[Math.floor(s2 * DL_PTYPES.length)];
+      const intent = s3 < 0.6 ? "Flip" : "Wholesale";
+      let stg;
+      if (j < u.s.aq) stg = "Acquired";
+      else if (j < u.s.aq + u.s.ac) stg = "Offer Accepted";
+      else if (j < u.s.aq + u.s.ac + u.s.ng) stg = "In Negotiations";
+      else if (j < u.s.aq + u.s.ac + u.s.ng + u.s.of) stg = "Offers";
+      else stg = "Active Pipeline";
+      const price = Math.round((80000 + s4 * 420000) / 1000) * 1000;
+      const profitPct = 0.08 + s5 * 0.22;
+      const projProfit = Math.round(price * profitPct);
+      let comm;
+      if (src === "Wholesaler") {
+        comm = Math.round(projProfit * 0.25);
+      } else {
+        if (intent === "Flip") {
+          comm = s6 < 0.5 ? Math.round(price * 0.005) : Math.round(projProfit * 0.25);
+        } else {
+          comm = s6 < 0.5 ? Math.round(projProfit * 0.10) : Math.round(projProfit * 0.25);
+        }
+      }
+      const commType = src === "Wholesaler" ? "25% profit"
+        : intent === "Flip" ? (s6 < 0.5 ? "0.5% price" : "25% profit")
+        : (s6 < 0.5 ? "10% profit" : "25% profit");
+      const closeMonth = stg === "Acquired" ? 3 : stg === "Offer Accepted" ? (s7 < 0.5 ? 3 : 4) : stg === "In Negotiations" ? (s7 < 0.33 ? 3 : s7 < 0.66 ? 4 : 5) : (s7 < 0.2 ? 4 : s7 < 0.5 ? 5 : 6);
+      const closeDay = Math.floor(1 + s5 * 27);
+      const closeDate = `${["","Jan","Feb","Mar","Apr","May","Jun"][closeMonth]} ${closeDay}, 2026`;
+      const closeWeek = closeMonth === 3 ? (closeDay <= 7 ? "W1" : closeDay <= 14 ? "W2" : closeDay <= 21 ? "W3" : "W4") : null;
+      const addr = `${Math.floor(100 + s4 * 9900)} ${DL_STREETS[Math.floor(s2 * DL_STREETS.length)]} ${DL_SUFFIXES[Math.floor(s3 * DL_SUFFIXES.length)]}, ${DL_CITIES[Math.floor(s7 * DL_CITIES.length)]}`;
+      deals.push({ id: did++, aaId: u.id, src, pt, intent, stg, price, projProfit, comm, commType, closeDate, closeMonth, closeWeek, addr });
+    }
+  });
+  return deals;
+}
+const DL = genDeals();
 
 const U = UR.map((u) => {
   const ev = C.map((cat, ci) => ({
@@ -509,6 +570,8 @@ export default function App() {
   const [dR, sDR] = useState("Today");
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState("desc");
+  const [dlSrc, setDlSrc] = useState("All");
+  const [dlExp, setDlExp] = useState({});
   const [aiMsgs, setAiMsgs] = useState([]);
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -714,7 +777,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
       </div>
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "0 24px", display: "flex" }}>
-        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."],["users","User list","Complete user directory with login history, contact info, company, email sources, and Dialpad phone numbers."]].map(([t, label, tip]) => (
+        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."],["users","User list","Complete user directory with login history, contact info, company, email sources, and Dialpad phone numbers."],["deals","Deal dashboard","Financial overview of all deals — pipeline stages, dollar forecasting, source/property type/intent breakdowns, and AA-grouped deal table."]].map(([t, label, tip]) => (
           <Tip key={t} text={tip}><button onClick={() => { st(t); ss(null); seV(null); sE(null); }} style={{ padding: "10px 14px", fontSize: 12, fontWeight: tab === t ? 700 : 500, color: tab === t ? "#F97316" : "#64748B", background: "none", border: "none", borderBottom: tab === t ? "2px solid #F97316" : "2px solid transparent", cursor: "pointer" }}>
             {label}
           </button></Tip>
@@ -1192,6 +1255,196 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {tab === "deals" && !sel && !eV && (() => {
+          const fIds = new Set(fU.map(x => x.id));
+          let fd = DL.filter(d => fIds.has(d.aaId));
+          if (dlSrc !== "All") fd = fd.filter(d => d.src === dlSrc);
+          const isFiltered = flt.org || flt.phase || flt.health || dlSrc !== "All";
+          const fmt$ = (v) => v >= 1000000 ? "$" + (v / 1000000).toFixed(1) + "M" : v >= 1000 ? "$" + (v / 1000).toFixed(0) + "K" : "$" + v;
+          const pipeStages = DL_STAGES.map(stg => {
+            const sd = fd.filter(d => d.stg === stg);
+            return { n: stg, cnt: sd.length, total: sd.reduce((s, d) => s + d.price, 0), comm: sd.reduce((s, d) => s + d.comm, 0) };
+          });
+          const pipeColors = [{ color: "#3B82F6", bg: "#EFF6FF", bc: "#BFDBFE" }, { color: "#F97316", bg: "#FFF7ED", bc: "#FED7AA" }, { color: "#8B5CF6", bg: "#F5F3FF", bc: "#DDD6FE" }, { color: "#10B981", bg: "#ECFDF5", bc: "#A7F3D0" }, { color: "#059669", bg: "#D1FAE5", bc: "#6EE7B7" }];
+          const srcBreak = DL_SOURCES.map(s => ({ n: s, cnt: fd.filter(d => d.src === s).length }));
+          const srcTotal = fd.length || 1;
+          const ptBreak = DL_PTYPES.map(p => ({ n: p, cnt: fd.filter(d => d.pt === p).length }));
+          const intBreak = DL_INTENTS.map(i => ({ n: i, cnt: fd.filter(d => d.intent === i).length }));
+          const fcW = [
+            { l: "Mar W1 (1-7)", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W1") },
+            { l: "Mar W2 (8-14)", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W2") },
+            { l: "Mar W3 (15-21)", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W3") },
+            { l: "Mar W4 (22-31)", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W4") },
+          ];
+          const fcM = [
+            { l: "April", ds: fd.filter(d => d.closeMonth === 4) },
+            { l: "May", ds: fd.filter(d => d.closeMonth === 5) },
+            { l: "June", ds: fd.filter(d => d.closeMonth === 6) },
+          ];
+          const fcAll = [...fcW, ...fcM];
+          const fcMax = Math.max(...fcAll.map(f => f.ds.reduce((s, d) => s + d.comm, 0)), 1);
+          const aaGroups = {};
+          fd.forEach(d => {
+            if (!aaGroups[d.aaId]) aaGroups[d.aaId] = [];
+            aaGroups[d.aaId].push(d);
+          });
+          const aaRows = Object.keys(aaGroups).map(aid => {
+            const ds = aaGroups[aid];
+            const u = U.find(x => x.id === +aid);
+            const org = O.find(o => o.id === u?.org);
+            return { aid: +aid, n: u?.n || "Unknown", co: org?.n || "", cnt: ds.length, totalPrice: ds.reduce((s, d) => s + d.price, 0), totalComm: ds.reduce((s, d) => s + d.comm, 0), deals: ds };
+          }).sort((a, b) => b.totalComm - a.totalComm);
+          const grandTotal = fd.reduce((s, d) => s + d.price, 0);
+          const grandComm = fd.reduce((s, d) => s + d.comm, 0);
+          return (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 800 }}>Deal dashboard</div>
+                  <div style={{ fontSize: 10, color: "#94A3B8" }}>{isFiltered ? `Showing ${fd.length} of ${DL.length} deals` : `All ${DL.length} deals`} across {aaRows.length} AAs — {fmt$(grandTotal)} total pipeline · {fmt$(grandComm)} projected commission</div>
+                </div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <Tip text="Filter deals by source: MLS, Off Market, or Wholesaler."><select value={dlSrc} onChange={e => setDlSrc(e.target.value)} style={{ padding: "6px 28px 6px 10px", fontSize: 11, fontWeight: 500, border: "1px solid #E2E8F0", borderRadius: 7, background: "#FFF", appearance: "none", WebkitAppearance: "none", cursor: "pointer", backgroundImage: sel0, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
+                    <option value="All">All sources</option>
+                    {DL_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select></Tip>
+                  <div style={{ fontSize: 11, color: isFiltered ? "#F97316" : "#64748B", background: isFiltered ? "#FFF7ED" : "#F1F5F9", padding: "4px 10px", borderRadius: 5, fontWeight: 600 }}>{fd.length} deals</div>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 14 }}>
+                {pipeStages.map((p, pi) => (
+                  <Tip key={p.n} text={`${p.n}: ${p.cnt} deals, ${fmt$(p.total)} value, ${fmt$(p.comm)} commission`}><div style={{ background: pipeColors[pi].bg, border: "1px solid " + pipeColors[pi].bc, borderRadius: 10, padding: "12px 10px 10px", position: "relative" }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: pipeColors[pi].color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>{p.n}</div>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                      <span style={{ fontSize: 22, fontWeight: 800, color: pipeColors[pi].color }}>{p.cnt}</span>
+                      <span style={{ fontSize: 9, color: "#94A3B8" }}>deals</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: "#64748B", marginTop: 2 }}>{fmt$(p.total)}</div>
+                    <div style={{ fontSize: 9, color: pipeColors[pi].color, fontWeight: 600, marginTop: 1 }}>{fmt$(p.comm)} comm</div>
+                    {pi < 4 && <div style={{ position: "absolute", right: -8, top: "50%", transform: "translateY(-50%)", fontSize: 10, color: "#CBD5E1" }}>{"\u25B6"}</div>}
+                  </div></Tip>
+                ))}
+              </div>
+
+              <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 18px", marginBottom: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}><Tip text="4-month revenue forecast. March is broken into weekly projections, followed by April/May/June monthly totals. Shows projected commission from deals expected to close in each period.">Revenue forecast — Commission</Tip></div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 8 }}>
+                  {fcAll.map((f, fi) => {
+                    const total = f.ds.reduce((s, d) => s + d.comm, 0);
+                    const pct = total / fcMax * 100;
+                    const isMar = fi < 4;
+                    return (
+                      <Tip key={f.l} text={`${f.l}: ${f.ds.length} deals closing, ${fmt$(total)} commission`}><div style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: 8, fontWeight: 600, color: "#94A3B8", textTransform: "uppercase", marginBottom: 4 }}>{f.l}</div>
+                        <div style={{ height: 80, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+                          <div style={{ width: "60%", height: Math.max(4, pct) + "%", background: isMar ? "#F97316" : "#3B82F6", borderRadius: "4px 4px 0 0", transition: "height 0.3s" }} />
+                        </div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: isMar ? "#F97316" : "#3B82F6", marginTop: 4 }}>{fmt$(total)}</div>
+                        <div style={{ fontSize: 8, color: "#94A3B8" }}>{f.ds.length} deals</div>
+                      </div></Tip>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
+                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}><Tip text="Deal count and percentage by source: MLS, Off Market, or Wholesaler.">By source</Tip></div>
+                  {srcBreak.map(s => (
+                    <div key={s.n} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                      <span style={{ fontSize: 11, color: "#1E293B", fontWeight: 500 }}>{s.n}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "#1E293B" }}>{s.cnt}</span>
+                        <span style={{ fontSize: 9, color: "#94A3B8" }}>{Math.round(s.cnt / srcTotal * 100)}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#F97316", marginBottom: 8 }}><Tip text="Deal count by property type (MLS subtype classification).">By property type</Tip></div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+                    {ptBreak.map(p => (
+                      <div key={p.n} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, padding: "2px 4px", background: p.cnt > 0 ? "#FFF7ED" : "transparent", borderRadius: 3 }}>
+                        <span style={{ color: "#64748B", fontWeight: 600 }}>{p.n}</span>
+                        <span style={{ fontWeight: 700, color: p.cnt > 0 ? "#F97316" : "#CBD5E1" }}>{p.cnt}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", marginBottom: 8 }}><Tip text="Deal intent: Flip (buy, renovate, sell for profit) vs Wholesale (assign contract to another buyer for a fee).">By intent</Tip></div>
+                  {intBreak.map(i => {
+                    const pct = Math.round(i.cnt / srcTotal * 100);
+                    return (
+                      <div key={i.n} style={{ marginBottom: 8 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: "#1E293B" }}>{i.n}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: i.n === "Flip" ? "#F97316" : "#8B5CF6" }}>{i.cnt} <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 400 }}>{pct}%</span></span>
+                        </div>
+                        <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3 }}>
+                          <div style={{ height: 6, width: pct + "%", background: i.n === "Flip" ? "#F97316" : "#8B5CF6", borderRadius: 3 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
+                <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700 }}>Deals by AA</div>
+                    <div style={{ fontSize: 10, color: "#94A3B8" }}>Click an AA to see individual deal details. Sorted by projected commission.</div>
+                  </div>
+                  <div style={{ fontSize: 10, color: "#64748B" }}>{fmt$(grandTotal)} pipeline · {fmt$(grandComm)} commission</div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "200px 120px 60px 120px 120px", padding: "6px 18px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
+                  <div>AA</div><div>Company</div><div>Deals</div><div>Total value</div><div>Commission</div>
+                </div>
+                {aaRows.map((r, ri) => (
+                  <div key={r.aid}>
+                    <div onClick={() => setDlExp(p => ({ ...p, [r.aid]: !p[r.aid] }))} style={{ display: "grid", gridTemplateColumns: "200px 120px 60px 120px 120px", padding: "8px 18px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", cursor: "pointer", alignItems: "center", transition: "background 0.15s" }} onMouseEnter={e => e.currentTarget.style.background = "#F0F7FF"} onMouseLeave={e => e.currentTarget.style.background = ri % 2 === 0 ? "#FFF" : "#FAFBFC"}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 10, color: "#CBD5E1" }}>{dlExp[r.aid] ? "\u25BC" : "\u25B6"}</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: "#0369A1", textDecoration: "underline", textDecorationColor: "#CBD5E1" }}>{r.n}</span>
+                      </div>
+                      <div style={{ fontSize: 10, color: "#F97316", fontWeight: 600 }}>{r.co}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#1E293B" }}>{r.cnt}</div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "#1E293B" }}>{fmt$(r.totalPrice)}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981" }}>{fmt$(r.totalComm)}</div>
+                    </div>
+                    {dlExp[r.aid] && (
+                      <div style={{ background: "#F8FAFB", borderBottom: "1px solid #E2E8F0" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "220px 80px 55px 55px 90px 90px 70px 120px", padding: "4px 28px", fontSize: 7, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0" }}>
+                          <div>Address</div><div>Source</div><div>Type</div><div>Intent</div><div>Price</div><div>Commission</div><div>Comm type</div><div>Stage</div>
+                        </div>
+                        {r.deals.map(d => {
+                          const stgColor = d.stg === "Acquired" ? "#059669" : d.stg === "Offer Accepted" ? "#10B981" : d.stg === "In Negotiations" ? "#8B5CF6" : d.stg === "Offers" ? "#F97316" : "#3B82F6";
+                          return (
+                            <div key={d.id} style={{ display: "grid", gridTemplateColumns: "220px 80px 55px 55px 90px 90px 70px 120px", padding: "5px 28px", borderBottom: "1px solid #F1F5F9", fontSize: 9, alignItems: "center" }}>
+                              <div style={{ color: "#1E293B", fontWeight: 500 }}>{d.addr}</div>
+                              <div><span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 3, background: d.src === "MLS" ? "#EFF6FF" : d.src === "Off Market" ? "#FFF7ED" : "#F5F3FF", color: d.src === "MLS" ? "#3B82F6" : d.src === "Off Market" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.src}</span></div>
+                              <div style={{ color: "#64748B", fontWeight: 600 }}>{d.pt}</div>
+                              <div><span style={{ fontSize: 8, padding: "1px 4px", borderRadius: 3, background: d.intent === "Flip" ? "#FFF7ED" : "#F5F3FF", color: d.intent === "Flip" ? "#F97316" : "#8B5CF6", fontWeight: 600 }}>{d.intent}</span></div>
+                              <div style={{ color: "#1E293B", fontWeight: 600 }}>{fmt$(d.price)}</div>
+                              <div style={{ color: "#10B981", fontWeight: 700 }}>{fmt$(d.comm)}</div>
+                              <div style={{ fontSize: 7, color: "#94A3B8" }}>{d.commType}</div>
+                              <div><span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 3, background: stgColor + "15", color: stgColor, fontWeight: 600 }}>{d.stg}</span></div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           );

@@ -52,6 +52,7 @@ The dashboard is a single-page React component with embedded data arrays and inl
 4. **Emails** — Coaching email cards with Generate button, BECAUSE root cause, yesterday/goal stats, plus Communication Log table at bottom
 5. **Email logic** — Reference table of all trigger rules across P1/P2/P3 phases
 6. **User list** — Full user directory with login history (first/last/total), company, email, phone, Dialpad phone, email source/bulk configs, and contact IDs
+7. **Deal dashboard** — Financial overview of all deals: 5 pipeline stage cards (Active Pipeline → Offers → In Negotiations → Offer Accepted → Acquired) with counts + dollar values; 4-month revenue forecast (March weeks + April/May/June); source/property-type/intent breakdown cards; AA-grouped deal table with expandable individual deal rows. Filtered by `dlSrc` dropdown (All/MLS/Off Market/Wholesaler) plus all existing org/phase/health filters. Commission rules: Wholesaler = 25% profit; MLS/Off Market Flip = 0.5% price or 25% profit; MLS/Off Market Wholesale = 10% or 25% profit. Deal data generated from `genDeals()` function using AA stats.
 
 ### User Detail View
 - Pipeline stage cards in header: Active Pipeline → Offers → In Negotiations → Offer Accepted → Acquired
