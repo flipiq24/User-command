@@ -1319,18 +1319,53 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             return { n: stg, cnt: sd.length, total: sd.reduce((s, d) => s + d.price, 0), comm: sd.reduce((s, d) => s + d.comm, 0), avgDays, stuck };
           });
           const pipeColors = [{ color: "#3B82F6", bg: "#EFF6FF", bc: "#BFDBFE" }, { color: "#F97316", bg: "#FFF7ED", bc: "#FED7AA" }, { color: "#8B5CF6", bg: "#F5F3FF", bc: "#DDD6FE" }, { color: "#10B981", bg: "#ECFDF5", bc: "#A7F3D0" }, { color: "#059669", bg: "#D1FAE5", bc: "#6EE7B7" }];
-          const fcW = [
-            { l: "W1", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W1") },
-            { l: "W2", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W2") },
-            { l: "W3", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W3") },
-            { l: "W4", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W4") },
-          ];
-          const fcM = [
-            { l: "Apr", ds: fd.filter(d => d.closeMonth === 4) },
-            { l: "May", ds: fd.filter(d => d.closeMonth === 5) },
-            { l: "Jun", ds: fd.filter(d => d.closeMonth === 6) },
-          ];
-          const fcAll = [...fcW, ...fcM];
+          const fcAll = (() => {
+            const today = new Date(2026, 2, 21);
+            if (dlRange === "30 days") {
+              const buckets = [];
+              for (let w = 0; w < 5; w++) {
+                const wStart = new Date(today); wStart.setDate(today.getDate() - 30 + w * 7);
+                const wEnd = new Date(wStart); wEnd.setDate(wStart.getDate() + 6);
+                const wStartMs = wStart.getTime(); const wEndMs = wEnd.getTime();
+                const label = `${wStart.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+                buckets.push({ l: label, ds: fd.filter(d => d.closeDateMs >= wStartMs && d.closeDateMs <= wEndMs), start: wStart, end: wEnd });
+              }
+              return buckets;
+            }
+            if (dlRange === "90 days") {
+              const buckets = [];
+              for (let m = 0; m < 3; m++) {
+                const mStart = new Date(2026, m, 1);
+                const mEnd = new Date(2026, m + 1, 0);
+                const ml = mStart.toLocaleDateString("en-US", { month: "short" });
+                const half1 = { l: `${ml} 1-15`, ds: fd.filter(d => { const dd = new Date(d.closeDateMs); return dd.getMonth() === m && dd.getDate() <= 15; }), start: mStart, end: new Date(2026, m, 15) };
+                const half2 = { l: `${ml} 16+`, ds: fd.filter(d => { const dd = new Date(d.closeDateMs); return dd.getMonth() === m && dd.getDate() > 15; }), start: new Date(2026, m, 16), end: mEnd };
+                buckets.push(half1, half2);
+              }
+              return buckets;
+            }
+            if (dlRange === "180 days") {
+              return [0, 1, 2, 3, 4, 5].map(m => {
+                const mo = new Date(2026, m, 1);
+                return { l: mo.toLocaleDateString("en-US", { month: "short" }), ds: fd.filter(d => new Date(d.closeDateMs).getMonth() === m), start: new Date(2026, m, 1), end: new Date(2026, m + 1, 0) };
+              });
+            }
+            if (dlRange === "YTD") {
+              return [0, 1, 2, 3, 4, 5].map(m => {
+                const mo = new Date(2026, m, 1);
+                return { l: mo.toLocaleDateString("en-US", { month: "short" }), ds: fd.filter(d => new Date(d.closeDateMs).getMonth() === m), start: new Date(2026, m, 1), end: new Date(2026, m + 1, 0) };
+              });
+            }
+            return [
+              { l: "W1", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W1") },
+              { l: "W2", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W2") },
+              { l: "W3", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W3") },
+              { l: "W4", ds: fd.filter(d => d.closeMonth === 3 && d.closeWeek === "W4") },
+              { l: "Apr", ds: fd.filter(d => d.closeMonth === 4) },
+              { l: "May", ds: fd.filter(d => d.closeMonth === 5) },
+              { l: "Jun", ds: fd.filter(d => d.closeMonth === 6) },
+            ];
+          })();
           const fcVals = fcAll.map(f => f.ds.reduce((s, d) => s + d.comm, 0));
           const avgComm = fd.length > 0 ? fd.reduce((s, d) => s + d.comm, 0) / fd.length : 0;
           const targetCommLine = 2 * 21 * avgComm;
@@ -1469,38 +1504,56 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               </div>
 
               <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 18px", marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 10 }}><Tip text="4-month revenue forecast. March is broken into weekly projections, followed by April/May/June monthly totals. Line chart shows projected commission trend. Hover over points for details.">Revenue forecast — Commission</Tip></div>
-                <div style={{ position: "relative", height: 140, marginBottom: 8 }}>
-                  <svg width="100%" height="140" viewBox="0 0 700 140" preserveAspectRatio="none">
-                    {[0, 0.25, 0.5, 0.75, 1].map((p, i) => <line key={i} x1="50" y1={10 + p * 90} x2="680" y2={10 + p * 90} stroke="#F1F5F9" strokeWidth="1" />)}
-                    {fcAll.map((f, fi) => {
-                      const x = 80 + fi * 90;
-                      return <text key={fi} x={x} y={115} textAnchor="middle" fontSize="10" fill="#64748B" fontWeight="600">{f.l}</text>;
-                    })}
-                    {(() => { const tY = 100 - (targetCommLine / fcMax) * 85; return <g><line x1="50" y1={tY} x2="680" y2={tY} stroke="#10B981" strokeWidth="1.5" strokeDasharray="6 4" opacity="0.7" /><text x="685" y={tY + 3} fontSize="10" fill="#10B981" fontWeight="700">Target</text></g>; })()}
-                    <polyline points={fcVals.map((v, i) => `${80 + i * 90},${100 - (v / fcMax) * 85}`).join(" ")} fill="none" stroke="#F97316" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-                    {fcVals.map((v, i) => {
-                      const x = 80 + i * 90;
-                      const y = 100 - (v / fcMax) * 85;
-                      const isHovered = dlHover === i;
-                      const period = fcAll[i];
-                      const dealCount = period.ds.length;
-                      const totalVal = period.ds.reduce((s, d) => s + d.price, 0);
-                      const periodLabel = i < 4 ? `March ${period.l} 2026` : `${period.l} 2026`;
-                      return <g key={i}>
-                        <circle cx={x} cy={y} r={isHovered ? 7 : 4} fill={isHovered ? "#F97316" : "#FFF"} stroke="#F97316" strokeWidth="2" style={{ transition: "r 0.15s, fill 0.15s", cursor: "pointer" }} />
-                        <circle cx={x} cy={y} r="16" fill="transparent" style={{ cursor: "pointer" }} onMouseEnter={() => setDlHover(i)} onMouseLeave={() => setDlHover(null)} />
-                        {!isHovered && <text x={x} y={y - 8} textAnchor="middle" fontSize="10" fill="#F97316" fontWeight="700">{fmt$(v)}</text>}
-                        {isHovered && <g>
-                          <rect x={x - 76} y={y - 60} width="152" height="50" rx="6" fill="#1E293B" opacity="0.95" />
-                          <polygon points={`${x - 5},${y - 10} ${x + 5},${y - 10} ${x},${y - 4}`} fill="#1E293B" opacity="0.95" />
-                          <text x={x} y={y - 44} textAnchor="middle" fontSize="10" fill="#FFF" fontWeight="700">{periodLabel}</text>
-                          <text x={x} y={y - 31} textAnchor="middle" fontSize="10" fill="#F97316" fontWeight="700">Commission: {fmt$(v)}</text>
-                          <text x={x} y={y - 18} textAnchor="middle" fontSize="10" fill="#64748B">{dealCount} deals · {fmt$(totalVal)} value</text>
-                        </g>}
-                      </g>;
-                    })}
-                  </svg>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700 }}><Tip text="Revenue forecast tied to date range. Points adjust based on the selected time range. Hover over any point to see deals for that period.">Revenue forecast — Commission</Tip></div>
+                  <div style={{ fontSize: 10, color: "#64748B" }}>{fcAll.length} periods · {dlRange}</div>
+                </div>
+                <div style={{ position: "relative", height: 160, marginBottom: 8 }}>
+                  {(() => {
+                    const n = fcAll.length;
+                    const svgW = Math.max(700, n * 80);
+                    const padL = 50;
+                    const padR = 60;
+                    const usable = svgW - padL - padR;
+                    const spacing = n > 1 ? usable / (n - 1) : 0;
+                    const getX = (i) => padL + i * spacing;
+                    return (
+                      <div style={{ overflowX: n > 9 ? "auto" : "visible" }}>
+                        <svg width={n > 9 ? svgW : "100%"} height="160" viewBox={`0 0 ${svgW} 160`} preserveAspectRatio={n > 9 ? "xMinYMid" : "none"}>
+                          {[0, 0.25, 0.5, 0.75, 1].map((p, i) => <line key={i} x1={padL - 10} y1={12 + p * 100} x2={svgW - 20} y2={12 + p * 100} stroke="#F1F5F9" strokeWidth="1" />)}
+                          {fcAll.map((f, fi) => <text key={fi} x={getX(fi)} y={130} textAnchor="middle" fontSize="10" fill="#64748B" fontWeight="600">{f.l}</text>)}
+                          {(() => { const tY = 112 - (targetCommLine / fcMax) * 95; return <g><line x1={padL - 10} y1={tY} x2={svgW - 20} y2={tY} stroke="#10B981" strokeWidth="1.5" strokeDasharray="6 4" opacity="0.7" /><text x={svgW - 15} y={tY + 3} fontSize="10" fill="#10B981" fontWeight="700">Target</text></g>; })()}
+                          <polyline points={fcVals.map((v, i) => `${getX(i)},${112 - (v / fcMax) * 95}`).join(" ")} fill="none" stroke="#F97316" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+                          {fcVals.map((v, i) => {
+                            const x = getX(i);
+                            const y = 112 - (v / fcMax) * 95;
+                            const isHovered = dlHover === i;
+                            const period = fcAll[i];
+                            const dealCount = period.ds.length;
+                            const totalVal = period.ds.reduce((s, d) => s + d.price, 0);
+                            const topDeals = [...period.ds].sort((a, b) => b.comm - a.comm).slice(0, 5);
+                            const tooltipH = 62 + topDeals.length * 13;
+                            const tooltipW = 220;
+                            const tx = Math.max(5, Math.min(x - tooltipW / 2, svgW - tooltipW - 5));
+                            return <g key={i}>
+                              <circle cx={x} cy={y} r={isHovered ? 7 : 4} fill={isHovered ? "#F97316" : "#FFF"} stroke="#F97316" strokeWidth="2" style={{ transition: "r 0.15s, fill 0.15s", cursor: "pointer" }} />
+                              <circle cx={x} cy={y} r="18" fill="transparent" style={{ cursor: "pointer" }} onMouseEnter={() => setDlHover(i)} onMouseLeave={() => setDlHover(null)} />
+                              {!isHovered && <text x={x} y={y - 10} textAnchor="middle" fontSize="10" fill="#F97316" fontWeight="700">{fmt$(v)}</text>}
+                              {isHovered && <g>
+                                <rect x={tx} y={Math.max(2, y - tooltipH - 12)} width={tooltipW} height={tooltipH} rx="8" fill="#1E293B" opacity="0.97" />
+                                <polygon points={`${x - 5},${y - 8} ${x + 5},${y - 8} ${x},${y - 2}`} fill="#1E293B" opacity="0.97" />
+                                <text x={tx + tooltipW / 2} y={Math.max(2, y - tooltipH - 12) + 16} textAnchor="middle" fontSize="11" fill="#FFF" fontWeight="700">{period.l}</text>
+                                <text x={tx + tooltipW / 2} y={Math.max(2, y - tooltipH - 12) + 30} textAnchor="middle" fontSize="10" fill="#F97316" fontWeight="700">{fmt$(v)} commission · {dealCount} deals</text>
+                                <text x={tx + tooltipW / 2} y={Math.max(2, y - tooltipH - 12) + 43} textAnchor="middle" fontSize="10" fill="#64748B">{fmt$(totalVal)} total value</text>
+                                <line x1={tx + 8} y1={Math.max(2, y - tooltipH - 12) + 48} x2={tx + tooltipW - 8} y2={Math.max(2, y - tooltipH - 12) + 48} stroke="#334155" strokeWidth="0.5" />
+                                {topDeals.map((d, di) => <text key={di} x={tx + 10} y={Math.max(2, y - tooltipH - 12) + 60 + di * 13} fontSize="10" fill="#94A3B8">{d.addr.split(",")[0].substring(0, 18)} <tspan fill="#10B981" fontWeight="700">{fmt$(d.comm)}</tspan> <tspan fill="#64748B">{d.estCloseDate.replace(", 2026", "")}</tspan></text>)}
+                              </g>}
+                            </g>;
+                          })}
+                        </svg>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
