@@ -579,9 +579,9 @@ export default function App() {
   const [dR, sDR] = useState("Today");
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState("desc");
-  const [dlSrc, setDlSrc] = useState(null);
-  const [dlPt, setDlPt] = useState(null);
-  const [dlInt, setDlInt] = useState(null);
+  const [dlSrc, setDlSrc] = useState([]);
+  const [dlPt, setDlPt] = useState([]);
+  const [dlInt, setDlInt] = useState([]);
   const [dlExp, setDlExp] = useState({});
   const [dlRange, setDlRange] = useState("All time");
   const [dlHover, setDlHover] = useState(null);
@@ -1283,16 +1283,16 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             : 0;
           const fIds = new Set(fU.map(x => x.id));
           let fd = DL.filter(d => fIds.has(d.aaId) && d.closeDateMs >= rangeStart);
-          if (dlSrc) fd = fd.filter(d => d.src === dlSrc);
-          if (dlPt) fd = fd.filter(d => d.pt === dlPt);
-          if (dlInt) fd = fd.filter(d => d.intent === dlInt);
-          const isFiltered = flt.org || flt.phase || flt.health || dlSrc || dlPt || dlInt || dlRange !== "All time";
+          if (dlSrc.length) fd = fd.filter(d => dlSrc.includes(d.src));
+          if (dlPt.length) fd = fd.filter(d => dlPt.includes(d.pt));
+          if (dlInt.length) fd = fd.filter(d => dlInt.includes(d.intent));
+          const isFiltered = flt.org || flt.phase || flt.health || dlSrc.length || dlPt.length || dlInt.length || dlRange !== "All time";
           const fmt$ = (v) => v >= 1000000 ? "$" + (v / 1000000).toFixed(1) + "M" : v >= 1000 ? "$" + (v / 1000).toFixed(0) + "K" : "$" + v;
           const srcBreak = DL_SOURCES.map(s => ({ n: s, cnt: fd.filter(d => d.src === s).length }));
           const srcTotal = fd.length || 1;
           const ptBreak = DL_PTYPES.map(p => ({ n: p, cnt: fd.filter(d => d.pt === p).length })).filter(p => p.cnt > 0).sort((a, b) => b.cnt - a.cnt);
           const intBreak = DL_INTENTS.map(i => ({ n: i, cnt: fd.filter(d => d.intent === i).length }));
-          const activeFilters = [dlSrc, dlPt, dlInt].filter(Boolean);
+          const activeFilters = [...dlSrc, ...dlPt, ...dlInt];
           const pipeStages = DL_STAGES.map(stg => {
             const sd = fd.filter(d => d.stg === stg);
             return { n: stg, cnt: sd.length, total: sd.reduce((s, d) => s + d.price, 0), comm: sd.reduce((s, d) => s + d.comm, 0) };
@@ -1346,24 +1346,24 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
                 <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Source</div>
                 {DL_SOURCES.map(s => {
-                  const active = dlSrc === s;
+                  const active = dlSrc.includes(s);
                   const cnt = fd.filter(d => d.src === s).length;
-                  return <Tip key={s} text={`Filter by ${s} deals (${cnt}). Click to toggle.`}><button onClick={() => setDlSrc(active ? null : s)} style={{ padding: "4px 10px", fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#3B82F6", background: active ? "#3B82F6" : "#EFF6FF", border: active ? "2px solid #2563EB" : "1px solid #BFDBFE", borderRadius: 6, cursor: "pointer" }}>{s} ({cnt})</button></Tip>;
+                  return <Tip key={s} text={`Filter by ${s} deals (${cnt}). Click to toggle.`}><button onClick={() => setDlSrc(active ? dlSrc.filter(x => x !== s) : [...dlSrc, s])} style={{ padding: "4px 10px", fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#3B82F6", background: active ? "#3B82F6" : "#EFF6FF", border: active ? "2px solid #2563EB" : "1px solid #BFDBFE", borderRadius: 6, cursor: "pointer" }}>{s} ({cnt})</button></Tip>;
                 })}
                 <div style={{ width: 1, background: "#E2E8F0", margin: "0 6px" }} />
                 <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Type</div>
                 {ptBreak.slice(0, 8).map(p => {
-                  const active = dlPt === p.n;
-                  return <Tip key={p.n} text={`Filter by ${p.n} property type (${p.cnt} deals). Click to toggle.`}><button onClick={() => setDlPt(active ? null : p.n)} style={{ padding: "4px 8px", fontSize: 9, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#F97316", background: active ? "#F97316" : "#FFF7ED", border: active ? "2px solid #EA580C" : "1px solid #FED7AA", borderRadius: 6, cursor: "pointer" }}>{p.n} ({p.cnt})</button></Tip>;
+                  const active = dlPt.includes(p.n);
+                  return <Tip key={p.n} text={`Filter by ${p.n} property type (${p.cnt} deals). Click to toggle.`}><button onClick={() => setDlPt(active ? dlPt.filter(x => x !== p.n) : [...dlPt, p.n])} style={{ padding: "4px 8px", fontSize: 9, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#F97316", background: active ? "#F97316" : "#FFF7ED", border: active ? "2px solid #EA580C" : "1px solid #FED7AA", borderRadius: 6, cursor: "pointer" }}>{p.n} ({p.cnt})</button></Tip>;
                 })}
                 <div style={{ width: 1, background: "#E2E8F0", margin: "0 6px" }} />
                 <div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Intent</div>
                 {DL_INTENTS.map(i => {
-                  const active = dlInt === i;
+                  const active = dlInt.includes(i);
                   const cnt = fd.filter(d => d.intent === i).length;
-                  return <Tip key={i} text={`Filter by ${i} intent (${cnt} deals). Click to toggle.`}><button onClick={() => setDlInt(active ? null : i)} style={{ padding: "4px 10px", fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#8B5CF6", background: active ? "#8B5CF6" : "#F5F3FF", border: active ? "2px solid #7C3AED" : "1px solid #DDD6FE", borderRadius: 6, cursor: "pointer" }}>{i} ({cnt})</button></Tip>;
+                  return <Tip key={i} text={`Filter by ${i} intent (${cnt} deals). Click to toggle.`}><button onClick={() => setDlInt(active ? dlInt.filter(x => x !== i) : [...dlInt, i])} style={{ padding: "4px 10px", fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#8B5CF6", background: active ? "#8B5CF6" : "#F5F3FF", border: active ? "2px solid #7C3AED" : "1px solid #DDD6FE", borderRadius: 6, cursor: "pointer" }}>{i} ({cnt})</button></Tip>;
                 })}
-                {activeFilters.length > 0 && <Tip text="Clear all deal filters"><button onClick={() => { setDlSrc(null); setDlPt(null); setDlInt(null); }} style={{ padding: "4px 10px", fontSize: 9, fontWeight: 600, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 6, cursor: "pointer" }}>Clear filters</button></Tip>}
+                {activeFilters.length > 0 && <Tip text="Clear all deal filters"><button onClick={() => { setDlSrc([]); setDlPt([]); setDlInt([]); }} style={{ padding: "4px 10px", fontSize: 9, fontWeight: 600, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 6, cursor: "pointer" }}>Clear filters</button></Tip>}
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 14 }}>
@@ -1429,9 +1429,9 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}>By source</div>
                   {srcBreak.map(s => {
-                    const active = dlSrc === s.n;
+                    const active = dlSrc.includes(s.n);
                     return (
-                      <div key={s.n} onClick={() => setDlSrc(active ? null : s.n)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, padding: "3px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#EFF6FF" : "transparent", border: active ? "1px solid #BFDBFE" : "1px solid transparent" }}>
+                      <div key={s.n} onClick={() => setDlSrc(active ? dlSrc.filter(x => x !== s.n) : [...dlSrc, s.n])} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, padding: "3px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#EFF6FF" : "transparent", border: active ? "1px solid #BFDBFE" : "1px solid transparent" }}>
                         <span style={{ fontSize: 11, color: "#1E293B", fontWeight: active ? 700 : 500 }}>{s.n}</span>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <span style={{ fontSize: 13, fontWeight: 700, color: active ? "#3B82F6" : "#1E293B" }}>{s.cnt}</span>
@@ -1447,9 +1447,9 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
                     {DL_PTYPES.map(p => {
                       const cnt = fd.filter(d => d.pt === p).length;
-                      const active = dlPt === p;
+                      const active = dlPt.includes(p);
                       return (
-                        <div key={p} onClick={() => setDlPt(active ? null : p)} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, padding: "2px 4px", background: active ? "#FFF7ED" : cnt > 0 ? "#FEFCE8" : "transparent", borderRadius: 3, cursor: "pointer", border: active ? "1px solid #FED7AA" : "1px solid transparent" }}>
+                        <div key={p} onClick={() => setDlPt(active ? dlPt.filter(x => x !== p) : [...dlPt, p])} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, padding: "2px 4px", background: active ? "#FFF7ED" : cnt > 0 ? "#FEFCE8" : "transparent", borderRadius: 3, cursor: "pointer", border: active ? "1px solid #FED7AA" : "1px solid transparent" }}>
                           <span style={{ color: "#64748B", fontWeight: active ? 700 : 600 }}>{p}</span>
                           <span style={{ fontWeight: 700, color: active ? "#F97316" : cnt > 0 ? "#F97316" : "#CBD5E1" }}>{cnt}</span>
                         </div>
@@ -1462,9 +1462,9 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", marginBottom: 8 }}>By intent</div>
                   {intBreak.map(i => {
                     const pct = Math.round(i.cnt / srcTotal * 100);
-                    const active = dlInt === i.n;
+                    const active = dlInt.includes(i.n);
                     return (
-                      <div key={i.n} onClick={() => setDlInt(active ? null : i.n)} style={{ marginBottom: 8, padding: "4px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#F5F3FF" : "transparent", border: active ? "1px solid #DDD6FE" : "1px solid transparent" }}>
+                      <div key={i.n} onClick={() => setDlInt(active ? dlInt.filter(x => x !== i.n) : [...dlInt, i.n])} style={{ marginBottom: 8, padding: "4px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#F5F3FF" : "transparent", border: active ? "1px solid #DDD6FE" : "1px solid transparent" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                           <span style={{ fontSize: 12, fontWeight: active ? 700 : 600, color: "#1E293B" }}>{i.n}</span>
                           <span style={{ fontSize: 13, fontWeight: 700, color: i.n === "Flip" ? "#F97316" : "#8B5CF6" }}>{i.cnt} <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 400 }}>{pct}%</span></span>
@@ -1478,7 +1478,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 </div>
               </div>
 
-              {dlSrc === "MLS" && (() => {
+              {dlSrc.includes("MLS") && (() => {
                 const mlsDeals = fd.filter(d => d.src === "MLS");
                 const mlsTotal = mlsDeals.length || 1;
                 const mlsSub = DL_PTYPES.map(p => ({ n: p, cnt: mlsDeals.filter(d => d.pt === p).length })).filter(p => p.cnt > 0).sort((a, b) => b.cnt - a.cnt);
