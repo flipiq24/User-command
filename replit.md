@@ -134,6 +134,15 @@ All routes under `/api/`:
 - `POST /deals` — create a deal
 - `PATCH /deals/:id` — update deal (stage, invoice status, dates, etc.)
 
+## Auto-Seed
+
+The API server includes an auto-seed module (`artifacts/api-server/src/auto-seed.ts`) that runs on startup. It checks if the `deals` table is empty and, if so, seeds:
+- 5 organizations (Coko Homes, Hegemark, TD Realty, STJ Investments, Fair Close)
+- 21 users (acquisition associates) across all orgs
+- ~280 deals distributed across all users with realistic stages, prices, commissions, and invoice statuses
+
+This ensures the production database gets populated on first deploy without manual intervention.
+
 ## Claude Integration
 
 Claude calls `/api/claude/read-all` at 5 AM to read all user data, then:
