@@ -153,7 +153,7 @@ function worstStatus(statuses) {
 function getMonthColumns() {
   const now = new Date();
   const cols = [];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 7; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
     cols.push({
       year: d.getFullYear(),
