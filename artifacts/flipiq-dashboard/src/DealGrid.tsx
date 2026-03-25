@@ -12,7 +12,7 @@ function Tip({ text, children }) {
   };
   return (
     <>
-      <span ref={ref} onMouseEnter={enter} onMouseLeave={() => setShow(false)} style={{ cursor: "help", borderBottom: "1px dotted #CBD5E1", display: "inline" }}>
+      <span ref={ref} onMouseEnter={enter} onMouseLeave={() => setShow(false)} style={{ cursor: "help", display: "inline" }}>
         {children}
       </span>
       {show && (
@@ -26,10 +26,10 @@ function Tip({ text, children }) {
 }
 
 const STAGE_GROUPS = [
-  { key: "qualifying", label: "Qualifying Deals", stages: ["Initial Contact", "Backup", "Offer Terms Sent"], color: "#3B82F6", bg: "#EFF6FF", bc: "#BFDBFE", showRevenue: false },
-  { key: "sent_offer", label: "Sent Offer Deals", stages: ["Contract Submitted", "In Negotiations"], color: "#F97316", bg: "#FFF7ED", bc: "#FED7AA", showRevenue: true },
-  { key: "offer_accepted", label: "Offer Accepted", stages: ["Offer Accepted"], color: "#10B981", bg: "#ECFDF5", bc: "#A7F3D0", showRevenue: true },
-  { key: "acquired", label: "Acquired", stages: ["Acquired"], color: "#059669", bg: "#D1FAE5", bc: "#6EE7B7", showRevenue: true },
+  { key: "qualifying", label: "Qualifying Deals", stages: ["Initial Contact", "Backup", "Offer Terms Sent"], color: "#3B82F6", bg: "#EFF6FF", showRevenue: false },
+  { key: "sent_offer", label: "Sent Offer Deals", stages: ["Contract Submitted", "In Negotiations"], color: "#F97316", bg: "#FFF7ED", showRevenue: true },
+  { key: "offer_accepted", label: "Offer Accepted", stages: ["Offer Accepted"], color: "#10B981", bg: "#ECFDF5", showRevenue: true },
+  { key: "acquired", label: "Acquired", stages: ["Acquired"], color: "#059669", bg: "#D1FAE5", showRevenue: true },
 ];
 
 const DL_SOURCES = ["MLS", "Off Market"];
@@ -38,7 +38,6 @@ const DL_PTYPES = ["STD", "SPAY", "NOD", "REO", "PRO", "AUC", "TRUS", "TPA", "HU
 const DL_STREETS = ["Oak","Elm","Maple","Cedar","Pine","Birch","Walnut","Cherry","Ash","Spruce","Willow","Poplar","Magnolia","Cypress","Sycamore","Redwood","Hickory","Juniper","Laurel","Holly","Ivy","Hazel","Aspen","Alder","Beech","Olive","Palm","Peach","Fig","Sage"];
 const DL_SUFFIXES = ["St","Ave","Dr","Ln","Ct","Blvd","Way","Pl","Rd","Cir"];
 const DL_CITIES = ["Phoenix","Scottsdale","Mesa","Tempe","Chandler","Gilbert","Glendale","Peoria","Surprise","Goodyear","Avondale","Buckeye","Tolleson","Litchfield Park"];
-const NEW_STAGES = ["Initial Contact", "Backup", "Offer Terms Sent", "Contract Submitted", "In Negotiations", "Offer Accepted", "Acquired"];
 
 function genDeals(users, orgs) {
   const deals = [];
@@ -119,6 +118,8 @@ const INVOICE_STATUSES = [
   { key: "payment_received", label: "Payment Received", color: "#10B981", bg: "#ECFDF5", bc: "#A7F3D0" },
 ];
 
+const INVOICE_ORDER = ["need_to_invoice", "invoiced", "payment_received"];
+
 function getStageGroup(stage) {
   for (const sg of STAGE_GROUPS) {
     if (sg.stages.includes(stage)) return sg.key;
@@ -132,7 +133,15 @@ function getPastDueStatus(deal) {
   const close = new Date(deal.expected_close_date);
   const diff = Math.floor((now - close) / 86400000);
   if (diff <= 0) return null;
-  return diff > 7 ? "red" : "yellow";
+  return diff >= 7 ? "red" : "yellow";
+}
+
+function getDaysToClose(deal) {
+  if (!deal.expected_close_date) return null;
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const close = new Date(deal.expected_close_date);
+  return Math.round((close - now) / 86400000);
 }
 
 function worstStatus(statuses) {
@@ -144,13 +153,13 @@ function worstStatus(statuses) {
 function getMonthColumns() {
   const now = new Date();
   const cols = [];
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 6; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
     cols.push({
       year: d.getFullYear(),
       month: d.getMonth() + 1,
-      label: d.toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
-      shortLabel: d.toLocaleDateString("en-US", { month: "short" }),
+      label: d.toLocaleDateString("en-US", { month: "short" }),
+      isCurrent: i === 0,
     });
   }
   return cols;
@@ -161,9 +170,6 @@ export default function DealGrid({ users, orgs, flt }) {
   const [dlInt, setDlInt] = useState([]);
   const [invFilter, setInvFilter] = useState(null);
   const [expanded, setExpanded] = useState({});
-  const [analytics, setAnalytics] = useState(false);
-  const [dlRange, setDlRange] = useState("All time");
-  const [pipeExp, setPipeExp] = useState({});
 
   const apiBase = useMemo(() => {
     const base = import.meta.env.BASE_URL || "/";
@@ -251,6 +257,12 @@ export default function DealGrid({ users, orgs, flt }) {
     return grid;
   }, [fd, monthCols]);
 
+  const acquiredThisMonth = useMemo(() => {
+    const now = new Date();
+    const curKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
+    return gridData["acquired"]?.[curKey]?.count || 0;
+  }, [gridData]);
+
   const orgGroups = useMemo(() => {
     const groups = {};
     fd.forEach(d => {
@@ -306,296 +318,288 @@ export default function DealGrid({ users, orgs, flt }) {
     } catch (e) {}
   };
 
+  const advanceInvoice = (deal) => {
+    const cur = deal.invoice_status || "need_to_invoice";
+    const idx = INVOICE_ORDER.indexOf(cur);
+    if (idx < INVOICE_ORDER.length - 1) {
+      updateInvoiceStatus(deal.id, INVOICE_ORDER[idx + 1]);
+    }
+  };
+
   const pastDueBg = (status) => {
     if (status === "red") return "#FEF2F2";
     if (status === "yellow") return "#FEFCE8";
     return undefined;
   };
 
-  const pastDueBorder = (status) => {
-    if (status === "red") return "2px solid #FECACA";
-    if (status === "yellow") return "2px solid #FEF08A";
-    return undefined;
-  };
+  const srcCounts = useMemo(() => {
+    const counts = {};
+    DL_SOURCES.forEach(s => { counts[s] = 0; });
+    fd.forEach(d => { if (counts[d.source] !== undefined) counts[d.source]++; });
+    return counts;
+  }, [fd]);
 
-  const srcBreak = DL_SOURCES.map(s => ({ n: s, cnt: fd.filter(d => d.source === s).length }));
-  const srcTotal = fd.length || 1;
-  const ptBreak = DL_PTYPES.map(p => ({ n: p, cnt: fd.filter(d => d.property_type === p).length })).filter(p => p.cnt > 0).sort((a, b) => b.cnt - a.cnt);
-  const allPtBreak = DL_PTYPES.map(p => ({ n: p, cnt: fd.filter(d => d.property_type === p).length }));
-  const intBreak = DL_INTENTS.map(i => ({ n: i, cnt: fd.filter(d => d.intent === i).length }));
-  const activeFilters = [...dlSrc, ...dlInt];
-
-  const grandTotal = fd.reduce((s, d) => s + (d.price || 0), 0);
-  const grandComm = fd.reduce((s, d) => s + (d.commission || 0), 0);
-  const isFiltered = flt.org || flt.phase || flt.health || dlSrc.length || dlInt.length || invFilter;
-
-  const DL_RANGES = ["30 days", "90 days", "180 days", "YTD", "All time"];
-  const now = new Date();
-  const nowMs = now.getTime();
-  const rangeStart = dlRange === "30 days" ? nowMs - 30 * 86400000
-    : dlRange === "90 days" ? nowMs - 90 * 86400000
-    : dlRange === "180 days" ? nowMs - 180 * 86400000
-    : dlRange === "YTD" ? new Date(now.getFullYear(), 0, 1).getTime()
-    : 0;
-
-  const rangeFd = useMemo(() => {
-    if (rangeStart === 0) return fd;
-    return fd.filter(d => {
-      if (!d.expected_close_date) return true;
-      return new Date(d.expected_close_date).getTime() >= rangeStart;
-    });
-  }, [fd, rangeStart]);
-
-  const OLD_PIPE_STAGES = [
-    { key: "ap", label: "Active Pipeline", stages: ["Initial Contact", "Backup"], color: "#3B82F6" },
-    { key: "of", label: "Offers", stages: ["Offer Terms Sent", "Contract Submitted"], color: "#F97316" },
-    { key: "ng", label: "In Negotiations", stages: ["In Negotiations"], color: "#8B5CF6" },
-    { key: "ac", label: "Offer Accepted", stages: ["Offer Accepted"], color: "#10B981" },
-    { key: "aq", label: "Acquired", stages: ["Acquired"], color: "#059669" },
-  ];
-
-  const pipeCards = OLD_PIPE_STAGES.map(ps => {
-    const stageDeals = rangeFd.filter(d => ps.stages.includes(d.stage));
-    return { ...ps, count: stageDeals.length, value: stageDeals.reduce((s, d) => s + (d.price || 0), 0), deals: stageDeals };
-  });
-
-  const uniqueAAs = useMemo(() => new Set(rangeFd.map(d => d.user_id)).size, [rangeFd]);
-
-  const oldSrcBreak = ["MLS", "Off Market", "Wholesaler"].map(s => ({ n: s, cnt: rangeFd.filter(d => d.source === s).length }));
-  const oldPtBreak = DL_PTYPES.map(p => ({ n: p, cnt: rangeFd.filter(d => d.property_type === p).length }));
-  const oldIntBreak = ["Flip", "Wholesale"].map(i => ({ n: i, cnt: rangeFd.filter(d => d.intent === i).length }));
-  const oldSrcTotal = rangeFd.length || 1;
-  const rangePipeline = rangeFd.reduce((s, d) => s + (d.price || 0), 0);
-  const rangeComm = rangeFd.reduce((s, d) => s + (d.commission || 0), 0);
-
-  const fcData = useMemo(() => {
-    const curMonth = now.getMonth();
-    const curDay = now.getDate();
-    const w1End = 7, w2End = 14, w3End = 21;
-    const periods = [];
-    periods.push({ label: "W1", start: new Date(now.getFullYear(), curMonth, 1), end: new Date(now.getFullYear(), curMonth, w1End + 1) });
-    periods.push({ label: "W2", start: new Date(now.getFullYear(), curMonth, w1End + 1), end: new Date(now.getFullYear(), curMonth, w2End + 1) });
-    periods.push({ label: "W3", start: new Date(now.getFullYear(), curMonth, w2End + 1), end: new Date(now.getFullYear(), curMonth, w3End + 1) });
-    periods.push({ label: "W4", start: new Date(now.getFullYear(), curMonth, w3End + 1), end: new Date(now.getFullYear(), curMonth + 1, 1) });
-    for (let m = 1; m <= 3; m++) {
-      const mIdx = curMonth + m;
-      const mLabel = new Date(now.getFullYear(), mIdx, 1).toLocaleDateString("en-US", { month: "short" });
-      periods.push({ label: mLabel, start: new Date(now.getFullYear(), mIdx, 1), end: new Date(now.getFullYear(), mIdx + 1, 1) });
-    }
-    return periods.map(p => {
-      const comm = rangeFd.filter(d => {
-        if (!d.expected_close_date) return false;
-        const dt = new Date(d.expected_close_date);
-        return dt >= p.start && dt < p.end;
-      }).reduce((s, d) => s + (d.commission || 0), 0);
-      return { label: p.label, comm };
-    });
-  }, [rangeFd, now]);
+  const intCounts = useMemo(() => {
+    const counts = {};
+    DL_INTENTS.forEach(i => { counts[i] = 0; });
+    fd.forEach(d => { if (counts[d.intent] !== undefined) counts[d.intent]++; });
+    return counts;
+  }, [fd]);
 
   return (
     <div>
-      <div style={{ marginBottom: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 800 }}>Deal dashboard</div>
-          <div style={{ fontSize: 11, color: "#64748B" }}>
-            {isFiltered ? `Showing ${fd.length} deals` : `All ${fd.length} deals`} across {orgGroups.length} companies — {fmt$(grandTotal)} total pipeline · {fmt$(grandComm)} projected commission
-          </div>
+      {/* === TOP BAR: Filters (left) + Invoice Status (right) === */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 5, alignItems: "center", flexWrap: "wrap" }}>
+          {DL_SOURCES.map(s => {
+            const active = dlSrc.includes(s);
+            return (
+              <button key={s} onClick={() => setDlSrc(active ? dlSrc.filter(x => x !== s) : [...dlSrc, s])} style={{
+                padding: "5px 12px", fontSize: 11, fontWeight: active ? 700 : 500, borderRadius: 20,
+                color: active ? "#FFF" : "#3B82F6", background: active ? "#3B82F6" : "#EFF6FF",
+                border: active ? "2px solid #2563EB" : "1px solid #BFDBFE", cursor: "pointer",
+              }}>{s} ({srcCounts[s]})</button>
+            );
+          })}
+          <div style={{ width: 1, height: 20, background: "#E2E8F0", margin: "0 4px" }} />
+          {DL_INTENTS.map(i => {
+            const active = dlInt.includes(i);
+            return (
+              <button key={i} onClick={() => setDlInt(active ? dlInt.filter(x => x !== i) : [...dlInt, i])} style={{
+                padding: "5px 12px", fontSize: 11, fontWeight: active ? 700 : 500, borderRadius: 20,
+                color: active ? "#FFF" : "#8B5CF6", background: active ? "#8B5CF6" : "#F5F3FF",
+                border: active ? "2px solid #7C3AED" : "1px solid #DDD6FE", cursor: "pointer",
+              }}>{i} ({intCounts[i]})</button>
+            );
+          })}
+          {(dlSrc.length > 0 || dlInt.length > 0) && (
+            <button onClick={() => { setDlSrc([]); setDlInt([]); }} style={{
+              padding: "5px 10px", fontSize: 10, fontWeight: 600, color: "#DC2626", background: "#FEF2F2",
+              border: "1px solid #FECACA", borderRadius: 20, cursor: "pointer", marginLeft: 2,
+            }}>Clear</button>
+          )}
         </div>
-      </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
-        {INVOICE_STATUSES.map(inv => {
-          const data = invSummary[inv.key] || { count: 0, total: 0 };
-          const isActive = invFilter === inv.key;
-          return (
-            <div key={inv.key} onClick={() => setInvFilter(isActive ? null : inv.key)} style={{ background: isActive ? inv.bg : "#FFF", border: isActive ? `2px solid ${inv.color}` : `1px solid ${inv.bc}`, borderRadius: 9, padding: "12px 16px", cursor: "pointer", transition: "all 0.15s" }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.5 }}>{inv.label}</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
-                <span style={{ fontSize: 24, fontWeight: 800, color: inv.color }}>{fmt$(data.total)}</span>
-                <span style={{ fontSize: 11, color: "#64748B" }}>{data.count} deals</span>
+        <div style={{ display: "flex", gap: 8 }}>
+          {INVOICE_STATUSES.map(inv => {
+            const data = invSummary[inv.key] || { count: 0, total: 0 };
+            const isActive = invFilter === inv.key;
+            return (
+              <div key={inv.key} onClick={() => setInvFilter(isActive ? null : inv.key)} style={{
+                background: isActive ? inv.bg : "#FFF", border: isActive ? `2px solid ${inv.color}` : `1px solid #E2E8F0`,
+                borderRadius: 8, padding: "6px 14px", cursor: "pointer", transition: "all 0.15s", minWidth: 100, textAlign: "center",
+              }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: 0.3 }}>{inv.label}</div>
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 4, marginTop: 2 }}>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: inv.color }}>{fmt$(data.total)}</span>
+                  <span style={{ fontSize: 10, color: "#94A3B8" }}>{data.count}</span>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12, alignItems: "center" }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Source</div>
-        {DL_SOURCES.map(s => {
-          const active = dlSrc.includes(s);
-          const cnt = fd.filter(d => d.source === s).length;
-          return <Tip key={s} text={`Filter by ${s} deals (${cnt}). Click to toggle.`}><button onClick={() => setDlSrc(active ? dlSrc.filter(x => x !== s) : [...dlSrc, s])} style={{ padding: "6px 12px", fontSize: 11, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#3B82F6", background: active ? "#3B82F6" : "#EFF6FF", border: active ? "2px solid #2563EB" : "1px solid #BFDBFE", borderRadius: 6, cursor: "pointer", minHeight: 32 }}>{s} ({cnt})</button></Tip>;
-        })}
-        <div style={{ width: 1, background: "#E2E8F0", margin: "0 6px", height: 20 }} />
-        <div style={{ fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", display: "flex", alignItems: "center", marginRight: 4 }}>Intent</div>
-        {DL_INTENTS.map(i => {
-          const active = dlInt.includes(i);
-          const cnt = fd.filter(d => d.intent === i).length;
-          return <Tip key={i} text={`Filter by ${i} intent (${cnt} deals). Click to toggle.`}><button onClick={() => setDlInt(active ? dlInt.filter(x => x !== i) : [...dlInt, i])} style={{ padding: "6px 12px", fontSize: 11, fontWeight: active ? 700 : 500, color: active ? "#FFF" : "#8B5CF6", background: active ? "#8B5CF6" : "#F5F3FF", border: active ? "2px solid #7C3AED" : "1px solid #DDD6FE", borderRadius: 6, cursor: "pointer", minHeight: 32 }}>{i} ({cnt})</button></Tip>;
-        })}
-        {activeFilters.length > 0 && <Tip text="Clear all deal filters"><button onClick={() => { setDlSrc([]); setDlInt([]); }} style={{ padding: "6px 12px", fontSize: 10, fontWeight: 600, color: "#DC2626", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 6, cursor: "pointer", minHeight: 32 }}>Clear filters</button></Tip>}
+            );
+          })}
+        </div>
       </div>
 
       {loading ? (
         <div style={{ padding: 40, textAlign: "center", color: "#64748B", fontSize: 13 }}>Loading deals...</div>
       ) : (
         <>
-          <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden", marginBottom: 14 }}>
-            <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0" }}>
-              <div style={{ fontSize: 13, fontWeight: 700 }}>Pipeline Grid — by Stage Group & Month</div>
-              <div style={{ fontSize: 10, color: "#64748B" }}>Current month + 6 months forward</div>
-            </div>
+          {/* === PIPELINE GRID === */}
+          <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, overflow: "hidden", marginBottom: 16 }}>
             <div style={{ overflowX: "auto" }}>
-              <div style={{ minWidth: 800 }}>
-                <div style={{ display: "grid", gridTemplateColumns: `180px repeat(${monthCols.length}, 1fr)`, padding: "8px 16px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", gap: "0 4px" }}>
-                  <div>Stage Group</div>
-                  {monthCols.map(mc => <div key={`${mc.year}-${mc.month}`} style={{ textAlign: "center" }}>{mc.label}</div>)}
-                </div>
-                {STAGE_GROUPS.map(sg => (
-                  <div key={sg.key}>
-                    <div style={{ display: "grid", gridTemplateColumns: `180px repeat(${monthCols.length}, 1fr)`, padding: "10px 16px", borderBottom: "1px solid #F1F5F9", background: sg.bg + "60", alignItems: "center", gap: "0 4px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <div style={{ width: 10, height: 10, borderRadius: 3, background: sg.color }} />
-                        <span style={{ fontSize: 11, fontWeight: 700, color: sg.color }}>{sg.label}</span>
-                      </div>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
+                <thead>
+                  <tr style={{ background: "#F8FAFC" }}>
+                    <th style={{ padding: "10px 16px", textAlign: "left", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", width: 170 }}>Stage Group</th>
+                    {monthCols.map(mc => (
+                      <th key={`${mc.year}-${mc.month}`} style={{ padding: "10px 8px", textAlign: "center", fontSize: 10, fontWeight: 700, color: mc.isCurrent ? "#1E293B" : "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", background: mc.isCurrent ? "#EFF6FF" : undefined }}>
+                        {mc.label}
+                        {mc.isCurrent && (
+                          <div style={{ fontSize: 18, fontWeight: 900, color: "#059669", marginTop: 2 }}>{acquiredThisMonth} <span style={{ fontSize: 9, fontWeight: 600, color: "#64748B" }}>closed</span></div>
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {STAGE_GROUPS.map(sg => (
+                    <tr key={sg.key}>
+                      <td style={{ padding: "10px 16px", borderBottom: "1px solid #F1F5F9", borderLeft: `4px solid ${sg.color}`, background: sg.bg + "40" }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: sg.color }}>{sg.label}</span>
+                      </td>
                       {monthCols.map(mc => {
                         const k = `${mc.year}-${mc.month}`;
                         const cell = gridData[sg.key]?.[k] || { count: 0, revenue: 0 };
                         return (
-                          <div key={k} style={{ textAlign: "center" }}>
-                            <div style={{ fontSize: 14, fontWeight: 800, color: cell.count > 0 ? sg.color : "#CBD5E1" }}>{cell.count}</div>
-                            {sg.showRevenue && <div style={{ fontSize: 10, color: cell.revenue > 0 ? "#10B981" : "#CBD5E1", fontWeight: 600 }}>{cell.revenue > 0 ? fmt$(cell.revenue) : "—"}</div>}
-                          </div>
+                          <td key={k} style={{ padding: "10px 8px", textAlign: "center", borderBottom: "1px solid #F1F5F9", background: mc.isCurrent ? "#FAFCFF" : undefined }}>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: cell.count > 0 ? sg.color : "#CBD5E1" }}>{cell.count}</div>
+                            {sg.showRevenue && <div style={{ fontSize: 10, color: cell.revenue > 0 ? "#10B981" : "#CBD5E1", fontWeight: 600, marginTop: 1 }}>{cell.revenue > 0 ? fmt$(cell.revenue) : "—"}</div>}
+                          </td>
                         );
                       })}
-                    </div>
-                  </div>
-                ))}
-                <div style={{ display: "grid", gridTemplateColumns: `180px repeat(${monthCols.length}, 1fr)`, padding: "10px 16px", background: "#F8FAFB", borderTop: "1px solid #E2E8F0", alignItems: "center", gap: "0 4px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: "#1E293B" }}>Total</div>
-                  {monthCols.map(mc => {
-                    const k = `${mc.year}-${mc.month}`;
-                    let totalCount = 0, totalRev = 0;
-                    STAGE_GROUPS.forEach(sg => {
-                      const cell = gridData[sg.key]?.[k] || { count: 0, revenue: 0 };
-                      totalCount += cell.count;
-                      totalRev += cell.revenue;
-                    });
-                    return (
-                      <div key={k} style={{ textAlign: "center" }}>
-                        <div style={{ fontSize: 14, fontWeight: 800, color: totalCount > 0 ? "#1E293B" : "#CBD5E1" }}>{totalCount}</div>
-                        <div style={{ fontSize: 10, color: totalRev > 0 ? "#10B981" : "#CBD5E1", fontWeight: 700 }}>{totalRev > 0 ? fmt$(totalRev) : "—"}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+                    </tr>
+                  ))}
+                  <tr style={{ background: "#F8FAFC" }}>
+                    <td style={{ padding: "10px 16px", borderTop: "2px solid #E2E8F0", fontWeight: 800, fontSize: 12, color: "#1E293B" }}>Total</td>
+                    {monthCols.map(mc => {
+                      const k = `${mc.year}-${mc.month}`;
+                      let totalCount = 0, totalRev = 0;
+                      STAGE_GROUPS.forEach(sg => {
+                        const cell = gridData[sg.key]?.[k] || { count: 0, revenue: 0 };
+                        totalCount += cell.count;
+                        totalRev += cell.revenue;
+                      });
+                      return (
+                        <td key={k} style={{ padding: "10px 8px", textAlign: "center", borderTop: "2px solid #E2E8F0" }}>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: totalCount > 0 ? "#1E293B" : "#CBD5E1" }}>{totalCount}</div>
+                          <div style={{ fontSize: 10, color: totalRev > 0 ? "#10B981" : "#CBD5E1", fontWeight: 700, marginTop: 1 }}>{totalRev > 0 ? fmt$(totalRev) : "—"}</div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden", marginBottom: 14 }}>
-            <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>Deals by Company → AA → Deal</div>
-                <div style={{ fontSize: 11, color: "#64748B" }}>{orgGroups.length} companies · {fd.length} deals · {fmt$(grandComm)} commission</div>
-              </div>
+          {/* === COMPANY → AA → DEAL DRILL-DOWN === */}
+          <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, overflow: "hidden" }}>
+            <div style={{ padding: "12px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1E293B" }}>Company → AA → Deal</div>
+              <div style={{ fontSize: 11, color: "#64748B" }}>{orgGroups.length} companies · {fd.length} deals</div>
             </div>
 
             {orgGroups.map((org, oi) => (
               <div key={org.orgId}>
+                {/* Company row */}
                 <div
                   onClick={() => toggleExpand(`org-${org.orgId}`)}
                   style={{
-                    display: "grid", gridTemplateColumns: "1fr 100px 100px 100px",
+                    display: "grid", gridTemplateColumns: "1fr 90px 100px 100px",
                     padding: "10px 18px", borderBottom: "1px solid #F1F5F9",
                     background: pastDueBg(org.pastDue) || (oi % 2 === 0 ? "#FFF" : "#FAFBFC"),
-                    border: pastDueBorder(org.pastDue) || undefined,
-                    cursor: "pointer", alignItems: "center", transition: "background 0.15s"
+                    cursor: "pointer", alignItems: "center", transition: "background 0.15s",
                   }}
                   onMouseEnter={e => { if (!org.pastDue) e.currentTarget.style.background = "#F0F7FF"; }}
-                  onMouseLeave={e => { if (!org.pastDue) e.currentTarget.style.background = oi % 2 === 0 ? "#FFF" : "#FAFBFC"; }}
+                  onMouseLeave={e => { if (!org.pastDue) e.currentTarget.style.background = pastDueBg(org.pastDue) || (oi % 2 === 0 ? "#FFF" : "#FAFBFC"); }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 10, color: "#CBD5E1" }}>{expanded[`org-${org.orgId}`] ? "\u25BC" : "\u25B6"}</span>
+                    <span style={{ fontSize: 10, color: "#94A3B8", width: 12 }}>{expanded[`org-${org.orgId}`] ? "\u25BC" : "\u25B6"}</span>
                     <span style={{ fontSize: 13, fontWeight: 700, color: "#1E293B" }}>{org.orgName}</span>
                     {org.pastDue && <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 4, background: org.pastDue === "red" ? "#DC2626" : "#EAB308", color: "#FFF", fontWeight: 700 }}>PAST DUE</span>}
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#64748B", textAlign: "center" }}>{org.totalDeals} deals</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#1E293B", textAlign: "center" }}>{fmt$(org.totalPrice)}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#10B981", textAlign: "right" }}>{fmt$(org.totalComm)}</div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#64748B", textAlign: "center" }}>{org.totalDeals} deals</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#1E293B", textAlign: "center" }}>{fmt$(org.totalPrice)}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981", textAlign: "right" }}>{fmt$(org.totalComm)}</div>
                 </div>
 
+                {/* AA rows */}
                 {expanded[`org-${org.orgId}`] && org.aaList.map((aa, ai) => (
                   <div key={aa.uid}>
                     <div
                       onClick={() => toggleExpand(`aa-${aa.uid}`)}
                       style={{
-                        display: "grid", gridTemplateColumns: "1fr 100px 100px 100px",
+                        display: "grid", gridTemplateColumns: "1fr 90px 100px 100px",
                         padding: "8px 18px 8px 40px", borderBottom: "1px solid #F1F5F9",
                         background: pastDueBg(aa.pastDue) || (ai % 2 === 0 ? "#FAFBFC" : "#F8FAFB"),
-                        cursor: "pointer", alignItems: "center"
+                        cursor: "pointer", alignItems: "center",
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 10, color: "#CBD5E1" }}>{expanded[`aa-${aa.uid}`] ? "\u25BC" : "\u25B6"}</span>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: "#0369A1", textDecoration: "underline", textDecorationColor: "#CBD5E1" }}>{aa.name}</span>
-                        {aa.pastDue && <span style={{ fontSize: 8, padding: "1px 4px", borderRadius: 3, background: aa.pastDue === "red" ? "#DC2626" : "#EAB308", color: "#FFF", fontWeight: 700 }}>!</span>}
+                        <span style={{ fontSize: 10, color: "#94A3B8", width: 12 }}>{expanded[`aa-${aa.uid}`] ? "\u25BC" : "\u25B6"}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#0369A1" }}>{aa.name}</span>
+                        {aa.pastDue && <span style={{ fontSize: 8, padding: "1px 5px", borderRadius: 3, background: aa.pastDue === "red" ? "#DC2626" : "#EAB308", color: "#FFF", fontWeight: 700 }}>PAST DUE</span>}
                       </div>
                       <div style={{ fontSize: 11, fontWeight: 600, color: "#64748B", textAlign: "center" }}>{aa.dealCount}</div>
                       <div style={{ fontSize: 11, fontWeight: 600, color: "#1E293B", textAlign: "center" }}>{fmt$(aa.totalPrice)}</div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981", textAlign: "right" }}>{fmt$(aa.totalComm)}</div>
                     </div>
 
+                    {/* Deal rows */}
                     {expanded[`aa-${aa.uid}`] && (
-                      <div style={{ background: "#F8FAFB", borderBottom: "1px solid #E2E8F0" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "minmax(130px,1fr) 60px 52px 75px 75px 65px 70px 70px 45px 130px", padding: "6px 18px 6px 60px", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", minWidth: 850, gap: "0 4px" }}>
-                          <div>Address</div><div>Source</div><div>Intent</div><div>Price</div><div>Commission</div><div>Success fee</div><div>Est. close</div><div>Stage</div><div>Days</div><div>Invoice</div>
-                        </div>
+                      <div style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
                         {aa.deals.map(d => {
-                          const stgColor = d.stage === "Acquired" ? "#059669" : d.stage === "Offer Accepted" ? "#10B981" : d.stage === "In Negotiations" ? "#8B5CF6" : d.stage === "Contract Submitted" ? "#F97316" : "#3B82F6";
                           const pastDue = getPastDueStatus(d);
-                          const dayColor = (d.days_in_stage || 0) >= 14 ? "#DC2626" : (d.days_in_stage || 0) >= 7 ? "#F97316" : "#10B981";
+                          const daysToClose = getDaysToClose(d);
                           const invSt = d.invoice_status || "need_to_invoice";
+                          const invIdx = INVOICE_ORDER.indexOf(invSt);
                           return (
                             <div key={d.id} style={{
-                              display: "grid", gridTemplateColumns: "minmax(130px,1fr) 60px 52px 75px 75px 65px 70px 70px 45px 130px",
-                              padding: "6px 18px 6px 60px", borderBottom: "1px solid #F1F5F9", fontSize: 10, alignItems: "center", minWidth: 850, gap: "0 4px",
+                              display: "flex", alignItems: "center", gap: 10, padding: "8px 18px 8px 60px",
+                              borderBottom: "1px solid #F1F5F9", fontSize: 11,
                               background: pastDue === "red" ? "#FEF2F2" : pastDue === "yellow" ? "#FEFCE8" : undefined,
                             }}>
-                              <div style={{ color: "#1E293B", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.address}</div>
-                              <div><span style={{ fontSize: 10, padding: "2px 5px", borderRadius: 4, background: d.source === "MLS" ? "#EFF6FF" : "#FFF7ED", color: d.source === "MLS" ? "#3B82F6" : "#F97316", fontWeight: 600 }}>{d.source}</span></div>
-                              <div><span style={{ fontSize: 10, padding: "2px 5px", borderRadius: 4, background: d.intent === "Flip" ? "#FFF7ED" : d.intent === "Portfolio" ? "#ECFDF5" : "#F5F3FF", color: d.intent === "Flip" ? "#F97316" : d.intent === "Portfolio" ? "#059669" : "#8B5CF6", fontWeight: 600 }}>{d.intent}</span></div>
-                              <div style={{ color: "#1E293B", fontWeight: 700 }}>{fmt$(d.price || 0)}</div>
-                              <div style={{ color: "#10B981", fontWeight: 700 }}>{fmt$(d.commission || 0)}</div>
-                              <div style={{ color: "#8B5CF6", fontWeight: 600 }}>{d.success_fee ? fmt$(d.success_fee) : "—"}</div>
-                              <div style={{ color: "#475569", fontSize: 10 }}>{d.expected_close_date ? new Date(d.expected_close_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}</div>
-                              <div><span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: stgColor + "15", color: stgColor, fontWeight: 600, whiteSpace: "nowrap" }}>{d.stage}</span></div>
-                              <div style={{ fontSize: 10, fontWeight: 700, color: dayColor }}>{d.days_in_stage || 0}d</div>
-                              <div style={{ display: "flex", gap: 2, alignItems: "center" }}>
+                              {/* Thumbnail */}
+                              <div style={{ width: 36, height: 36, borderRadius: 6, background: "#E2E8F0", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                {d.thumbnail_url ? (
+                                  <img src={d.thumbnail_url} alt="" style={{ width: 36, height: 36, objectFit: "cover" }} />
+                                ) : (
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="1.5"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" /></svg>
+                                )}
+                              </div>
+
+                              {/* Address */}
+                              <div style={{ flex: "1 1 140px", minWidth: 0 }}>
+                                <div style={{ fontWeight: 600, color: "#1E293B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.address}</div>
+                              </div>
+
+                              {/* Source badge */}
+                              <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 10, background: d.source === "MLS" ? "#EFF6FF" : "#FFF7ED", color: d.source === "MLS" ? "#3B82F6" : "#F97316", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>{d.source}</span>
+
+                              {/* Intent badge */}
+                              <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 10, background: d.intent === "Flip" ? "#FFF7ED" : d.intent === "Portfolio" ? "#ECFDF5" : "#F5F3FF", color: d.intent === "Flip" ? "#F97316" : d.intent === "Portfolio" ? "#059669" : "#8B5CF6", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>{d.intent}</span>
+
+                              {/* Price */}
+                              <div style={{ width: 65, textAlign: "right", fontWeight: 700, color: "#1E293B", flexShrink: 0 }}>{fmt$(d.price || 0)}</div>
+
+                              {/* Expected Revenue (commission) */}
+                              <div style={{ width: 65, textAlign: "right", fontWeight: 700, color: "#10B981", flexShrink: 0 }}>{fmt$(d.commission || 0)}</div>
+
+                              {/* Expected Close Date */}
+                              <div style={{ width: 60, textAlign: "center", color: "#475569", fontSize: 10, flexShrink: 0 }}>{d.expected_close_date ? new Date(d.expected_close_date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}</div>
+
+                              {/* Days to Close */}
+                              <div style={{ width: 50, textAlign: "center", flexShrink: 0 }}>
+                                {daysToClose !== null ? (
+                                  <span style={{ fontSize: 11, fontWeight: 700, color: daysToClose < 0 ? "#DC2626" : daysToClose <= 7 ? "#F97316" : "#10B981" }}>
+                                    {daysToClose}d
+                                  </span>
+                                ) : "—"}
+                              </div>
+
+                              {/* Success Fee */}
+                              <div style={{ width: 55, textAlign: "right", color: "#8B5CF6", fontWeight: 600, fontSize: 10, flexShrink: 0 }}>{d.success_fee ? fmt$(d.success_fee) : "—"}</div>
+
+                              {/* Invoice Status Stepper */}
+                              <div style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                                 {INVOICE_STATUSES.map((ist, idx) => {
-                                  const isChecked = invSt === ist.key || (idx === 0 && invSt === "invoiced") || (idx === 0 && invSt === "payment_received") || (idx === 1 && invSt === "payment_received");
-                                  const isActive = invSt === ist.key;
-                                  const nextStatus = ist.key;
+                                  const isReached = idx <= invIdx;
+                                  const isCurrent = idx === invIdx;
                                   return (
-                                    <Tip key={ist.key} text={`${ist.label}${isActive ? " (current)" : ""}`}>
+                                    <Tip key={ist.key} text={`${ist.label}${isCurrent ? " (current)" : ""}. Click to set.`}>
                                       <button
-                                        onClick={(e) => { e.stopPropagation(); updateInvoiceStatus(d.id, nextStatus); }}
+                                        onClick={() => updateInvoiceStatus(d.id, ist.key)}
                                         style={{
-                                          width: 16, height: 16, borderRadius: 3,
-                                          border: `1.5px solid ${isChecked ? ist.color : "#CBD5E1"}`,
-                                          background: isChecked ? ist.color + "20" : "#FFF",
+                                          width: 18, height: 18, borderRadius: "50%",
+                                          border: `2px solid ${isReached ? ist.color : "#CBD5E1"}`,
+                                          background: isReached ? ist.color : "#FFF",
                                           cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                                          fontSize: 10, color: ist.color, fontWeight: 700, padding: 0,
+                                          fontSize: 10, color: "#FFF", fontWeight: 700, padding: 0, transition: "all 0.15s",
                                         }}
                                       >
-                                        {isChecked ? "\u2713" : ""}
+                                        {isReached ? "\u2713" : ""}
                                       </button>
                                     </Tip>
                                   );
                                 })}
-                                <span style={{ fontSize: 9, color: INVOICE_STATUSES.find(i => i.key === invSt)?.color || "#64748B", fontWeight: 600, marginLeft: 2, whiteSpace: "nowrap" }}>
-                                  {invSt === "need_to_invoice" ? "Need inv." : invSt === "invoiced" ? "Invoiced" : "Paid"}
-                                </span>
+                                {invIdx < INVOICE_ORDER.length - 1 && (
+                                  <Tip text={`Advance to ${INVOICE_STATUSES[invIdx + 1]?.label}`}>
+                                    <button onClick={() => advanceInvoice(d)} style={{
+                                      fontSize: 9, padding: "2px 6px", borderRadius: 4, border: "1px solid #CBD5E1",
+                                      background: "#F8FAFC", color: "#64748B", cursor: "pointer", fontWeight: 600, marginLeft: 2,
+                                    }}>&rarr;</button>
+                                  </Tip>
+                                )}
                               </div>
                             </div>
                           );
@@ -606,180 +610,6 @@ export default function DealGrid({ users, orgs, flt }) {
                 ))}
               </div>
             ))}
-          </div>
-
-          <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
-            <div onClick={() => setAnalytics(!analytics)} style={{ padding: "12px 18px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#64748B" }}>Deal analytics</div>
-              <span style={{ fontSize: 10, color: "#64748B" }}>{analytics ? "\u25B2" : "\u25BC"} {analytics ? "Collapse" : "Expand"}</span>
-            </div>
-            {analytics && (
-              <div style={{ padding: "0 18px 18px" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-                  <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}>By source</div>
-                    {srcBreak.map(s => {
-                      const active = dlSrc.includes(s.n);
-                      return (
-                        <div key={s.n} onClick={() => setDlSrc(active ? dlSrc.filter(x => x !== s.n) : [...dlSrc, s.n])} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, padding: "3px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#EFF6FF" : "transparent", border: active ? "1px solid #BFDBFE" : "1px solid transparent" }}>
-                          <span style={{ fontSize: 11, color: "#1E293B", fontWeight: active ? 700 : 500 }}>{s.n}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: active ? "#3B82F6" : "#1E293B" }}>{s.cnt}</span>
-                            <span style={{ fontSize: 10, color: "#64748B" }}>{Math.round(s.cnt / srcTotal * 100)}%</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#F97316", marginBottom: 8 }}>By property type</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-                      {ptBreak.map(p => (
-                        <div key={p.n} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, padding: "2px 4px", background: p.cnt > 0 ? "#FEFCE8" : "transparent", borderRadius: 3 }}>
-                          <span style={{ color: "#64748B", fontWeight: 600 }}>{p.n}</span>
-                          <span style={{ fontWeight: 700, color: p.cnt > 0 ? "#F97316" : "#CBD5E1" }}>{p.cnt}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", marginBottom: 8 }}>By intent</div>
-                    {intBreak.map(i => {
-                      const pct = Math.round(i.cnt / srcTotal * 100);
-                      const active = dlInt.includes(i.n);
-                      return (
-                        <div key={i.n} onClick={() => setDlInt(active ? dlInt.filter(x => x !== i.n) : [...dlInt, i.n])} style={{ marginBottom: 8, padding: "4px 6px", borderRadius: 5, cursor: "pointer", background: active ? "#F5F3FF" : "transparent", border: active ? "1px solid #DDD6FE" : "1px solid transparent" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                            <span style={{ fontSize: 12, fontWeight: active ? 700 : 600, color: "#1E293B" }}>{i.n}</span>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: i.n === "Flip" ? "#F97316" : i.n === "Portfolio" ? "#059669" : "#8B5CF6" }}>{i.cnt} <span style={{ fontSize: 10, color: "#64748B", fontWeight: 400 }}>{pct}%</span></span>
-                          </div>
-                          <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3 }}>
-                            <div style={{ height: 6, width: pct + "%", background: i.n === "Flip" ? "#F97316" : i.n === "Portfolio" ? "#059669" : "#8B5CF6", borderRadius: 3 }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "18px 20px", marginTop: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <div style={{ fontSize: 11, color: "#64748B" }}>
-                Showing {rangeFd.length} of {fd.length} deals across {uniqueAAs} AAs — {fmt$(rangePipeline)} total pipeline · {fmt$(rangeComm)} projected commission
-              </div>
-              <select value={dlRange} onChange={e => setDlRange(e.target.value)} style={{ padding: "6px 28px 6px 10px", fontSize: 11, fontWeight: 600, border: "1px solid #E2E8F0", borderRadius: 7, background: "#FFF", color: "#1E293B", cursor: "pointer", appearance: "none", backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394A3B8'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
-                {DL_RANGES.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
-            </div>
-
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: "#94A3B8", marginBottom: 6 }}>Source</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-                {oldSrcBreak.map(s => (
-                  <span key={s.n} style={{ padding: "4px 10px", fontSize: 11, fontWeight: 600, color: "#3B82F6", background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 6 }}>{s.n} ({s.cnt})</span>
-                ))}
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 600, color: "#94A3B8", marginBottom: 6 }}>Type</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-                {oldPtBreak.filter(p => p.cnt > 0).map(p => (
-                  <span key={p.n} style={{ padding: "4px 10px", fontSize: 11, fontWeight: 600, color: "#F97316", background: "#FFF7ED", border: "1px solid #FED7AA", borderRadius: 6 }}>{p.n} ({p.cnt})</span>
-                ))}
-                {oldPtBreak.filter(p => p.cnt === 0).length > 0 && oldPtBreak.filter(p => p.cnt > 0).length === 0 && (
-                  <span style={{ fontSize: 11, color: "#94A3B8" }}>No types with deals</span>
-                )}
-              </div>
-              <div style={{ fontSize: 10, fontWeight: 600, color: "#94A3B8", marginBottom: 6 }}>Intent</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {oldIntBreak.map(i => (
-                  <span key={i.n} style={{ padding: "4px 10px", fontSize: 11, fontWeight: 600, color: "#8B5CF6", background: "#F5F3FF", border: "1px solid #DDD6FE", borderRadius: 6 }}>{i.n} ({i.cnt})</span>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 14 }}>
-              {pipeCards.map(pc => (
-                <div key={pc.key} onClick={() => setPipeExp(p => ({ ...p, [pc.key]: !p[pc.key] }))} style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px", cursor: "pointer", borderTop: `3px solid ${pc.color}` }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: pc.color, marginBottom: 6 }}>{pc.label}</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: "#1E293B" }}>{pc.count}</div>
-                  <div style={{ fontSize: 10, color: "#64748B" }}>deals</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#1E293B", marginTop: 4 }}>{fmt$(pc.value)}</div>
-                  <div style={{ textAlign: "right", fontSize: 10, color: "#94A3B8", marginTop: 6 }}>{pipeExp[pc.key] ? "\u25BC" : "\u25B6"}</div>
-                  {pipeExp[pc.key] && pc.deals.length > 0 && (
-                    <div style={{ marginTop: 8, borderTop: "1px solid #E2E8F0", paddingTop: 8 }}>
-                      {pc.deals.slice(0, 10).map(d => (
-                        <div key={d.id} style={{ fontSize: 10, padding: "3px 0", borderBottom: "1px solid #F1F5F9", display: "flex", justifyContent: "space-between" }}>
-                          <span style={{ color: "#1E293B", fontWeight: 500 }}>{d.user_name || "—"}</span>
-                          <span style={{ color: "#64748B" }}>{fmt$(d.price || 0)}</span>
-                        </div>
-                      ))}
-                      {pc.deals.length > 10 && <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 4 }}>+{pc.deals.length - 10} more</div>}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px", marginBottom: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", marginBottom: 10 }}>Revenue forecast — Commission</div>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 120 }}>
-                {(() => {
-                  const maxComm = Math.max(...fcData.map(f => f.comm), 1);
-                  return fcData.map((f, i) => (
-                    <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: "#1E293B", marginBottom: 4 }}>{fmt$(f.comm)}</div>
-                      <div style={{ width: "100%", background: f.comm > 0 ? "#F97316" : "#E2E8F0", borderRadius: "4px 4px 0 0", height: Math.max(4, (f.comm / maxComm) * 80) }} />
-                      <div style={{ fontSize: 10, color: "#64748B", marginTop: 4, fontWeight: 600 }}>{f.label}</div>
-                    </div>
-                  ));
-                })()}
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-              <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#3B82F6", marginBottom: 8 }}>By source</div>
-                {oldSrcBreak.map(s => (
-                  <div key={s.n} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5, padding: "3px 6px" }}>
-                    <span style={{ fontSize: 11, color: "#1E293B", fontWeight: 500 }}>{s.n}</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: "#1E293B" }}>{s.cnt}</span>
-                      <span style={{ fontSize: 10, color: "#64748B" }}>{Math.round(s.cnt / oldSrcTotal * 100)}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#F97316", marginBottom: 8 }}>By property type</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
-                  {allPtBreak.map(p => (
-                    <div key={p.n} style={{ display: "flex", justifyContent: "space-between", fontSize: 10, padding: "2px 4px", background: p.cnt > 0 ? "#FEFCE8" : "transparent", borderRadius: 3 }}>
-                      <span style={{ color: "#64748B", fontWeight: 600 }}>{p.n}</span>
-                      <span style={{ fontWeight: 700, color: p.cnt > 0 ? "#F97316" : "#CBD5E1" }}>{p.cnt}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 9, padding: "14px 16px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", marginBottom: 8 }}>By intent</div>
-                {oldIntBreak.map(i => {
-                  const pct = Math.round(i.cnt / oldSrcTotal * 100);
-                  return (
-                    <div key={i.n} style={{ marginBottom: 8, padding: "4px 6px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: "#1E293B" }}>{i.n}</span>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: i.n === "Flip" ? "#F97316" : "#8B5CF6" }}>{i.cnt} <span style={{ fontSize: 10, color: "#64748B", fontWeight: 400 }}>{pct}%</span></span>
-                      </div>
-                      <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3 }}>
-                        <div style={{ height: 6, width: pct + "%", background: i.n === "Flip" ? "#F97316" : "#8B5CF6", borderRadius: 3 }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         </>
       )}
