@@ -26,7 +26,6 @@ function Tip({ text, children }) {
 }
 
 const STAGE_GROUPS = [
-  { key: "qualifying", label: "Qualifying Deals", stages: ["Initial Contact", "Backup", "Offer Terms Sent"], color: "#3B82F6", bg: "#EFF6FF", showRevenue: false },
   { key: "sent_offer", label: "Sent Offer Deals", stages: ["Contract Submitted", "In Negotiations"], color: "#F97316", bg: "#FFF7ED", showRevenue: true },
   { key: "offer_accepted", label: "Offer Accepted", stages: ["Offer Accepted"], color: "#10B981", bg: "#ECFDF5", showRevenue: true },
   { key: "acquired", label: "Acquired", stages: ["Acquired"], color: "#059669", bg: "#D1FAE5", showRevenue: true },
@@ -124,7 +123,7 @@ function getStageGroup(stage) {
   for (const sg of STAGE_GROUPS) {
     if (sg.stages.includes(stage)) return sg.key;
   }
-  return "qualifying";
+  return "sent_offer";
 }
 
 function getPastDueStatus(deal) {
