@@ -25,6 +25,7 @@ export const users = pgTable("users", {
   goals_offers_per_day: integer("goals_offers_per_day").default(3),
   goals_contacts_per_day: integer("goals_contacts_per_day").default(50),
   discussion_agenda: text("discussion_agenda"),
+  tech_level: text("tech_level").default("traditional"),
   active: boolean("active").default(true),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),

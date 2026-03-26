@@ -26,6 +26,42 @@ function Tip({ text, children }) {
   );
 }
 
+function TechDot({ u, tlOverrides, setTlOverrides }) {
+  const [open, setOpen] = useState(false);
+  const curTl = tlOverrides[u.id] || u.tl || "traditional";
+  const tl = TL[curTl] || TL.traditional;
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [open]);
+  const update = async (newTl) => {
+    setTlOverrides((prev) => ({ ...prev, [u.id]: newTl }));
+    setOpen(false);
+    const base = import.meta.env.BASE_URL || "/";
+    const apiBase = base.replace(/\/$/, "").replace(/\/[^/]*$/, "") || "";
+    try { await fetch(apiBase + "/api/users/" + u.id, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tech_level: newTl }) }); } catch {}
+  };
+  return (
+    <span ref={ref} style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+      <Tip text={tl.label + ": " + tl.tip}><span onClick={(e) => { e.stopPropagation(); setOpen(!open); }} style={{ width: 8, height: 8, borderRadius: "50%", background: tl.color, display: "inline-block", cursor: "pointer", border: "1.5px solid " + tl.color + "80", flexShrink: 0 }} /></Tip>
+      {open && (
+        <div style={{ position: "absolute", top: 14, left: -4, background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.12)", zIndex: 9999, width: 130, padding: 4 }}>
+          {TL_KEYS.map((k) => (
+            <div key={k} onClick={(e) => { e.stopPropagation(); update(k); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 8px", borderRadius: 4, cursor: "pointer", background: curTl === k ? "#F1F5F9" : "transparent", fontSize: 11, fontWeight: curTl === k ? 700 : 400 }}
+              onMouseEnter={(e) => e.currentTarget.style.background = "#F8FAFC"} onMouseLeave={(e) => e.currentTarget.style.background = curTl === k ? "#F1F5F9" : "transparent"}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: TL[k].color }} />
+              {TL[k].label}
+            </div>
+          ))}
+        </div>
+      )}
+    </span>
+  );
+}
+
 const O = [
   { id: 1, n: "Coko Homes", am: "Gregory Patterson" },
   { id: 2, n: "Hegemark", am: "Jeffrey Kuo" },
@@ -33,6 +69,14 @@ const O = [
   { id: 4, n: "STJ Investments", am: "Andruw Tafolla" },
   { id: 5, n: "Fair Close", am: "Tony Fletcher" },
 ];
+
+const TL = {
+  novice: { label: "Novice", color: "#DC2626", tip: "Needs hand-holding on every click. Struggles with basic navigation, requires step-by-step walkthroughs." },
+  traditional: { label: "Traditional", color: "#EAB308", tip: "Knows how to use a computer but resists new systems. Can follow instructions but won't explore on their own." },
+  capable: { label: "Capable", color: "#10B981", tip: "Picks things up with minimal guidance. Comfortable navigating new software, asks smart questions." },
+  power_user: { label: "Power User", color: "#3B82F6", tip: "Gets it fast, explores features on their own, and often finds shortcuts before being taught." },
+};
+const TL_KEYS = ["novice", "traditional", "capable", "power_user"];
 
 const V = {
   nav: ["Navigation", "3-5m"],
@@ -204,27 +248,27 @@ function g3(h, ci, ei) {
 }
 
 const UR = [
-  { id: 14, n: "Johnny Catala", org: 3, ph: 1, day: 3, health: "red", ps: 1, gaps: ["NEVER LOGGED IN"], agenda: "CRITICAL: Day 3, NEVER logged in.", vid: "nav", ec: 2, s: { tx: 0, em: 0, ca: 0, cc: 0, nr: 0, up: 0, op: 0, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 0, piq: 0, comp: 0, ia: 0, off: 0, ag: 0, ck: false, mls: 0, dm: 0, cold: 0, ref: 0, pH: 0, pW: 0 }, y: { tx: 0, em: 0, ca: 0, of: 0, op: 0 }, g: { ca: 30, of: 3, ct: 50 } },
-  { id: 15, n: "Daniel Worby", org: 3, ph: 1, day: 3, health: "red", ps: 1, gaps: ["2 days inactive"], agenda: "Day 3, disappeared.", vid: "nav", ec: 1, s: { tx: 1, em: 0, ca: 1, cc: 1, nr: 0, up: 0, op: 2, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 12, piq: 0, comp: 0, ia: 0, off: 0, ag: 5, ck: false, mls: 2, dm: 0, cold: 0, ref: 0, pH: 0, pW: 0 }, y: { tx: 0, em: 0, ca: 0, of: 0, op: 0 }, g: { ca: 30, of: 3, ct: 50 } },
-  { id: 11, n: "Roman Bracamonte", org: 2, ph: 1, day: 6, health: "red", ps: 1, gaps: ["3 days inactive"], agenda: "ESCALATE to AM.", vid: "outreach", ec: 3, s: { tx: 3, em: 2, ca: 5, cc: 3, nr: 1, up: 0, op: 8, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 45, piq: 5, comp: 0, ia: 0, off: 0, ag: 15, ck: false, mls: 6, dm: 0, cold: 2, ref: 0, pH: 0, pW: 0 }, y: { tx: 0, em: 0, ca: 0, of: 0, op: 0 }, g: { ca: 30, of: 3, ct: 50 } },
-  { id: 5, n: "Jesus Valdez", org: 1, ph: 1, day: 4, health: "red", ps: 1, gaps: ["Zero calls"], agenda: "Day 4, zero calls.", vid: "nav", ec: 2, s: { tx: 2, em: 0, ca: 0, cc: 0, nr: 0, up: 0, op: 1, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 8, piq: 0, comp: 0, ia: 0, off: 0, ag: 0, ck: false, mls: 1, dm: 0, cold: 0, ref: 0, pH: 0, pW: 0 }, y: { tx: 0, em: 0, ca: 0, of: 0, op: 0 }, g: { ca: 30, of: 3, ct: 50 } },
-  { id: 21, n: "Trevor Kelly", org: 5, ph: 3, day: 75, health: "orange", ps: 2, gaps: ["3 days offline"], agenda: "75-day vet, 3 days off.", vid: null, ec: 1, s: { tx: 180, em: 95, ca: 220, cc: 165, nr: 15, up: 8, op: 120, re: 45, of: 42, ng: 8, ac: 3, aq: 1, mn: 4800, piq: 400, comp: 350, ia: 280, off: 320, ag: 600, ck: false, mls: 80, dm: 15, cold: 20, ref: 5, pH: 12, pW: 8 }, y: { tx: 0, em: 0, ca: 0, of: 0, op: 0 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 4, n: "Duk Lim", org: 1, ph: 1, day: 5, health: "orange", ps: 2, gaps: ["No micro-skills"], agenda: "Day 5, 3 calls.", vid: "property", ec: 1, s: { tx: 5, em: 1, ca: 3, cc: 2, nr: 1, up: 0, op: 4, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 35, piq: 5, comp: 0, ia: 0, off: 0, ag: 10, ck: true, mls: 4, dm: 0, cold: 0, ref: 0, pH: 0, pW: 0 }, y: { tx: 2, em: 0, ca: 1, of: 0, op: 2 }, g: { ca: 30, of: 3, ct: 50 } },
-  { id: 16, n: "Brooke Stiner", org: 3, ph: 1, day: 3, health: "orange", ps: 2, gaps: ["Micro-skills incomplete"], agenda: "Day 3.", vid: "property", ec: 0, s: { tx: 3, em: 0, ca: 2, cc: 1, nr: 0, up: 0, op: 3, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 22, piq: 0, comp: 0, ia: 0, off: 0, ag: 8, ck: true, mls: 3, dm: 0, cold: 0, ref: 0, pH: 0, pW: 0 }, y: { tx: 1, em: 0, ca: 1, of: 0, op: 1 }, g: { ca: 30, of: 3, ct: 50 } },
-  { id: 19, n: "Isaac Haro", org: 4, ph: 1, day: 7, health: "yellow", ps: 2, gaps: ["No offers"], agenda: "Day 7 graduation.", vid: "offer", ec: 0, s: { tx: 8, em: 3, ca: 6, cc: 4, nr: 2, up: 0, op: 10, re: 1, of: 0, ng: 0, ac: 0, aq: 0, mn: 120, piq: 15, comp: 0, ia: 0, off: 0, ag: 30, ck: true, mls: 8, dm: 1, cold: 1, ref: 0, pH: 1, pW: 0 }, y: { tx: 2, em: 1, ca: 2, of: 0, op: 3 }, g: { ca: 30, of: 3, ct: 50 } },
-  { id: 3, n: "Chris Dragich", org: 1, ph: 2, day: 14, health: "yellow", ps: 3, gaps: ["Comps never opened"], agenda: "1 offer without comps.", vid: "comps", ec: 1, s: { tx: 45, em: 20, ca: 15, cc: 10, nr: 5, up: 2, op: 30, re: 8, of: 1, ng: 0, ac: 0, aq: 0, mn: 680, piq: 60, comp: 0, ia: 0, off: 15, ag: 120, ck: true, mls: 25, dm: 3, cold: 2, ref: 0, pH: 3, pW: 2 }, y: { tx: 5, em: 2, ca: 3, of: 0, op: 4 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 13, n: "Juan Torres", org: 3, ph: 2, day: 10, health: "yellow", ps: 3, gaps: ["Low calls"], agenda: "8 calls vs 50.", vid: "ia", ec: 0, s: { tx: 25, em: 12, ca: 8, cc: 5, nr: 3, up: 1, op: 18, re: 3, of: 1, ng: 0, ac: 0, aq: 0, mn: 420, piq: 35, comp: 20, ia: 0, off: 10, ag: 80, ck: true, mls: 15, dm: 2, cold: 1, ref: 0, pH: 2, pW: 1 }, y: { tx: 3, em: 1, ca: 2, of: 0, op: 2 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 10, n: "Maxwell Irungu", org: 2, ph: 2, day: 12, health: "yellow", ps: 3, gaps: ["Comps unused"], agenda: "1 offer without comps.", vid: "comps", ec: 1, s: { tx: 30, em: 15, ca: 10, cc: 7, nr: 4, up: 1, op: 22, re: 5, of: 1, ng: 0, ac: 0, aq: 0, mn: 540, piq: 45, comp: 0, ia: 10, off: 12, ag: 100, ck: true, mls: 18, dm: 2, cold: 2, ref: 0, pH: 2, pW: 2 }, y: { tx: 4, em: 2, ca: 3, of: 1, op: 3 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 2, n: "Jared Lynch", org: 1, ph: 3, day: 38, health: "yellow", ps: 3, gaps: ["Comps unused 8d"], agenda: "1 deal. Comps cold.", vid: "priority", ec: 1, s: { tx: 120, em: 65, ca: 22, cc: 16, nr: 12, up: 5, op: 85, re: 30, of: 28, ng: 4, ac: 2, aq: 1, mn: 3200, piq: 280, comp: 180, ia: 150, off: 200, ag: 420, ck: true, mls: 60, dm: 10, cold: 10, ref: 5, pH: 8, pW: 5 }, y: { tx: 8, em: 4, ca: 5, of: 2, op: 6 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 7, n: "Shaun Alan", org: 1, ph: 2, day: 18, health: "yellow", ps: 3, gaps: ["Notes empty"], agenda: "2 offers no deals.", vid: "property", ec: 0, s: { tx: 40, em: 22, ca: 18, cc: 12, nr: 6, up: 2, op: 28, re: 6, of: 2, ng: 0, ac: 0, aq: 0, mn: 780, piq: 65, comp: 40, ia: 20, off: 25, ag: 140, ck: true, mls: 22, dm: 3, cold: 3, ref: 0, pH: 3, pW: 2 }, y: { tx: 4, em: 3, ca: 4, of: 1, op: 3 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 6, n: "Rod Vianna", org: 1, ph: 3, day: 26, health: "yellow", ps: 3, gaps: ["Campaigns cold 12d"], agenda: "Campaigns cold.", vid: "campaigns", ec: 1, s: { tx: 90, em: 48, ca: 28, cc: 20, nr: 10, up: 4, op: 65, re: 22, of: 18, ng: 3, ac: 1, aq: 1, mn: 2400, piq: 200, comp: 140, ia: 120, off: 160, ag: 350, ck: true, mls: 45, dm: 8, cold: 8, ref: 4, pH: 6, pW: 4 }, y: { tx: 6, em: 3, ca: 4, of: 1, op: 5 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 12, n: "Elizabeth Puga", org: 2, ph: 2, day: 15, health: "yellow", ps: 3, gaps: ["Agent Profile unused"], agenda: "Surface outreach.", vid: "agentprofile", ec: 0, s: { tx: 35, em: 18, ca: 12, cc: 8, nr: 5, up: 2, op: 25, re: 4, of: 2, ng: 0, ac: 0, aq: 0, mn: 620, piq: 50, comp: 35, ia: 25, off: 18, ag: 110, ck: true, mls: 20, dm: 3, cold: 2, ref: 0, pH: 3, pW: 1 }, y: { tx: 4, em: 2, ca: 3, of: 1, op: 4 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 18, n: "Lauren Robles", org: 4, ph: 2, day: 16, health: "yellow", ps: 3, gaps: ["IA once"], agenda: "1 offer.", vid: "ia", ec: 0, s: { tx: 38, em: 20, ca: 14, cc: 9, nr: 5, up: 3, op: 24, re: 5, of: 1, ng: 0, ac: 0, aq: 0, mn: 700, piq: 55, comp: 40, ia: 8, off: 15, ag: 120, ck: true, mls: 19, dm: 3, cold: 2, ref: 0, pH: 2, pW: 2 }, y: { tx: 5, em: 2, ca: 3, of: 0, op: 3 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 1, n: "Miguel Rivera", org: 1, ph: 3, day: 45, health: "green", ps: 4, gaps: [], agenda: "2 deals.", vid: null, ec: 0, s: { tx: 160, em: 85, ca: 38, cc: 28, nr: 18, up: 8, op: 110, re: 40, of: 52, ng: 6, ac: 4, aq: 2, mn: 5400, piq: 450, comp: 380, ia: 300, off: 350, ag: 550, ck: true, mls: 70, dm: 15, cold: 18, ref: 7, pH: 10, pW: 6 }, y: { tx: 10, em: 5, ca: 8, of: 3, op: 8 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 8, n: "Michael May", org: 2, ph: 3, day: 60, health: "green", ps: 4, gaps: [], agenda: "Star. 3 deals.", vid: null, ec: 0, s: { tx: 200, em: 110, ca: 45, cc: 34, nr: 22, up: 12, op: 140, re: 55, of: 68, ng: 10, ac: 5, aq: 3, mn: 7200, piq: 600, comp: 500, ia: 420, off: 480, ag: 700, ck: true, mls: 90, dm: 20, cold: 22, ref: 8, pH: 15, pW: 8 }, y: { tx: 12, em: 6, ca: 9, of: 4, op: 10 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 9, n: "Alek Tan", org: 2, ph: 3, day: 50, health: "green", ps: 4, gaps: [], agenda: "2 deals.", vid: null, ec: 0, s: { tx: 150, em: 80, ca: 30, cc: 22, nr: 14, up: 7, op: 95, re: 35, of: 45, ng: 7, ac: 4, aq: 2, mn: 6000, piq: 500, comp: 420, ia: 350, off: 400, ag: 600, ck: true, mls: 60, dm: 14, cold: 15, ref: 6, pH: 12, pW: 7 }, y: { tx: 8, em: 4, ca: 6, of: 3, op: 7 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 17, n: "Steve Medina", org: 4, ph: 3, day: 40, health: "green", ps: 4, gaps: [], agenda: "On target.", vid: null, ec: 0, s: { tx: 140, em: 75, ca: 35, cc: 26, nr: 16, up: 6, op: 90, re: 32, of: 48, ng: 8, ac: 3, aq: 2, mn: 4800, piq: 400, comp: 340, ia: 280, off: 320, ag: 520, ck: true, mls: 58, dm: 12, cold: 14, ref: 6, pH: 10, pW: 6 }, y: { tx: 9, em: 4, ca: 7, of: 3, op: 6 }, g: { ca: 50, of: 5, ct: 50 } },
-  { id: 20, n: "Josh Santos", org: 5, ph: 3, day: 90, health: "green", ps: 4, gaps: [], agenda: "Model AA. 4 deals.", vid: null, ec: 0, s: { tx: 280, em: 150, ca: 50, cc: 40, nr: 30, up: 15, op: 200, re: 80, of: 95, ng: 15, ac: 8, aq: 4, mn: 10800, piq: 900, comp: 750, ia: 620, off: 700, ag: 1000, ck: true, mls: 120, dm: 30, cold: 35, ref: 15, pH: 20, pW: 12 }, y: { tx: 14, em: 7, ca: 10, of: 5, op: 12 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 14, n: "Johnny Catala", org: 3, ph: 1, day: 3, health: "red", ps: 1, gaps: ["NEVER LOGGED IN"], agenda: "CRITICAL: Day 3, NEVER logged in.", vid: "nav", ec: 2, tl: "novice", s: { tx: 0, em: 0, ca: 0, cc: 0, nr: 0, up: 0, op: 0, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 0, piq: 0, comp: 0, ia: 0, off: 0, ag: 0, ck: false, mls: 0, dm: 0, cold: 0, ref: 0, pH: 0, pW: 0 }, y: { tx: 0, em: 0, ca: 0, of: 0, op: 0 }, g: { ca: 30, of: 3, ct: 50 } },
+  { id: 15, n: "Daniel Worby", org: 3, ph: 1, day: 3, health: "red", ps: 1, gaps: ["2 days inactive"], agenda: "Day 3, disappeared.", vid: "nav", ec: 1, tl: "novice", s: { tx: 1, em: 0, ca: 1, cc: 1, nr: 0, up: 0, op: 2, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 12, piq: 0, comp: 0, ia: 0, off: 0, ag: 5, ck: false, mls: 2, dm: 0, cold: 0, ref: 0, pH: 0, pW: 0 }, y: { tx: 0, em: 0, ca: 0, of: 0, op: 0 }, g: { ca: 30, of: 3, ct: 50 } },
+  { id: 11, n: "Roman Bracamonte", org: 2, ph: 1, day: 6, health: "red", ps: 1, gaps: ["3 days inactive"], agenda: "ESCALATE to AM.", vid: "outreach", ec: 3, tl: "traditional", s: { tx: 3, em: 2, ca: 5, cc: 3, nr: 1, up: 0, op: 8, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 45, piq: 5, comp: 0, ia: 0, off: 0, ag: 15, ck: false, mls: 6, dm: 0, cold: 2, ref: 0, pH: 0, pW: 0 }, y: { tx: 0, em: 0, ca: 0, of: 0, op: 0 }, g: { ca: 30, of: 3, ct: 50 } },
+  { id: 5, n: "Jesus Valdez", org: 1, ph: 1, day: 4, health: "red", ps: 1, gaps: ["Zero calls"], agenda: "Day 4, zero calls.", vid: "nav", ec: 2, tl: "novice", s: { tx: 2, em: 0, ca: 0, cc: 0, nr: 0, up: 0, op: 1, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 8, piq: 0, comp: 0, ia: 0, off: 0, ag: 0, ck: false, mls: 1, dm: 0, cold: 0, ref: 0, pH: 0, pW: 0 }, y: { tx: 0, em: 0, ca: 0, of: 0, op: 0 }, g: { ca: 30, of: 3, ct: 50 } },
+  { id: 21, n: "Trevor Kelly", org: 5, ph: 3, day: 75, health: "orange", ps: 2, gaps: ["3 days offline"], agenda: "75-day vet, 3 days off.", vid: null, ec: 1, tl: "capable", s: { tx: 180, em: 95, ca: 220, cc: 165, nr: 15, up: 8, op: 120, re: 45, of: 42, ng: 8, ac: 3, aq: 1, mn: 4800, piq: 400, comp: 350, ia: 280, off: 320, ag: 600, ck: false, mls: 80, dm: 15, cold: 20, ref: 5, pH: 12, pW: 8 }, y: { tx: 0, em: 0, ca: 0, of: 0, op: 0 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 4, n: "Duk Lim", org: 1, ph: 1, day: 5, health: "orange", ps: 2, gaps: ["No micro-skills"], agenda: "Day 5, 3 calls.", vid: "property", ec: 1, tl: "traditional", s: { tx: 5, em: 1, ca: 3, cc: 2, nr: 1, up: 0, op: 4, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 35, piq: 5, comp: 0, ia: 0, off: 0, ag: 10, ck: true, mls: 4, dm: 0, cold: 0, ref: 0, pH: 0, pW: 0 }, y: { tx: 2, em: 0, ca: 1, of: 0, op: 2 }, g: { ca: 30, of: 3, ct: 50 } },
+  { id: 16, n: "Brooke Stiner", org: 3, ph: 1, day: 3, health: "orange", ps: 2, gaps: ["Micro-skills incomplete"], agenda: "Day 3.", vid: "property", ec: 0, tl: "traditional", s: { tx: 3, em: 0, ca: 2, cc: 1, nr: 0, up: 0, op: 3, re: 0, of: 0, ng: 0, ac: 0, aq: 0, mn: 22, piq: 0, comp: 0, ia: 0, off: 0, ag: 8, ck: true, mls: 3, dm: 0, cold: 0, ref: 0, pH: 0, pW: 0 }, y: { tx: 1, em: 0, ca: 1, of: 0, op: 1 }, g: { ca: 30, of: 3, ct: 50 } },
+  { id: 19, n: "Isaac Haro", org: 4, ph: 1, day: 7, health: "yellow", ps: 2, gaps: ["No offers"], agenda: "Day 7 graduation.", vid: "offer", ec: 0, tl: "capable", s: { tx: 8, em: 3, ca: 6, cc: 4, nr: 2, up: 0, op: 10, re: 1, of: 0, ng: 0, ac: 0, aq: 0, mn: 120, piq: 15, comp: 0, ia: 0, off: 0, ag: 30, ck: true, mls: 8, dm: 1, cold: 1, ref: 0, pH: 1, pW: 0 }, y: { tx: 2, em: 1, ca: 2, of: 0, op: 3 }, g: { ca: 30, of: 3, ct: 50 } },
+  { id: 3, n: "Chris Dragich", org: 1, ph: 2, day: 14, health: "yellow", ps: 3, gaps: ["Comps never opened"], agenda: "1 offer without comps.", vid: "comps", ec: 1, tl: "traditional", s: { tx: 45, em: 20, ca: 15, cc: 10, nr: 5, up: 2, op: 30, re: 8, of: 1, ng: 0, ac: 0, aq: 0, mn: 680, piq: 60, comp: 0, ia: 0, off: 15, ag: 120, ck: true, mls: 25, dm: 3, cold: 2, ref: 0, pH: 3, pW: 2 }, y: { tx: 5, em: 2, ca: 3, of: 0, op: 4 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 13, n: "Juan Torres", org: 3, ph: 2, day: 10, health: "yellow", ps: 3, gaps: ["Low calls"], agenda: "8 calls vs 50.", vid: "ia", ec: 0, tl: "traditional", s: { tx: 25, em: 12, ca: 8, cc: 5, nr: 3, up: 1, op: 18, re: 3, of: 1, ng: 0, ac: 0, aq: 0, mn: 420, piq: 35, comp: 20, ia: 0, off: 10, ag: 80, ck: true, mls: 15, dm: 2, cold: 1, ref: 0, pH: 2, pW: 1 }, y: { tx: 3, em: 1, ca: 2, of: 0, op: 2 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 10, n: "Maxwell Irungu", org: 2, ph: 2, day: 12, health: "yellow", ps: 3, gaps: ["Comps unused"], agenda: "1 offer without comps.", vid: "comps", ec: 1, tl: "capable", s: { tx: 30, em: 15, ca: 10, cc: 7, nr: 4, up: 1, op: 22, re: 5, of: 1, ng: 0, ac: 0, aq: 0, mn: 540, piq: 45, comp: 0, ia: 10, off: 12, ag: 100, ck: true, mls: 18, dm: 2, cold: 2, ref: 0, pH: 2, pW: 2 }, y: { tx: 4, em: 2, ca: 3, of: 1, op: 3 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 2, n: "Jared Lynch", org: 1, ph: 3, day: 38, health: "yellow", ps: 3, gaps: ["Comps unused 8d"], agenda: "1 deal. Comps cold.", vid: "priority", ec: 1, tl: "capable", s: { tx: 120, em: 65, ca: 22, cc: 16, nr: 12, up: 5, op: 85, re: 30, of: 28, ng: 4, ac: 2, aq: 1, mn: 3200, piq: 280, comp: 180, ia: 150, off: 200, ag: 420, ck: true, mls: 60, dm: 10, cold: 10, ref: 5, pH: 8, pW: 5 }, y: { tx: 8, em: 4, ca: 5, of: 2, op: 6 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 7, n: "Shaun Alan", org: 1, ph: 2, day: 18, health: "yellow", ps: 3, gaps: ["Notes empty"], agenda: "2 offers no deals.", vid: "property", ec: 0, tl: "capable", s: { tx: 40, em: 22, ca: 18, cc: 12, nr: 6, up: 2, op: 28, re: 6, of: 2, ng: 0, ac: 0, aq: 0, mn: 780, piq: 65, comp: 40, ia: 20, off: 25, ag: 140, ck: true, mls: 22, dm: 3, cold: 3, ref: 0, pH: 3, pW: 2 }, y: { tx: 4, em: 3, ca: 4, of: 1, op: 3 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 6, n: "Rod Vianna", org: 1, ph: 3, day: 26, health: "yellow", ps: 3, gaps: ["Campaigns cold 12d"], agenda: "Campaigns cold.", vid: "campaigns", ec: 1, tl: "traditional", s: { tx: 90, em: 48, ca: 28, cc: 20, nr: 10, up: 4, op: 65, re: 22, of: 18, ng: 3, ac: 1, aq: 1, mn: 2400, piq: 200, comp: 140, ia: 120, off: 160, ag: 350, ck: true, mls: 45, dm: 8, cold: 8, ref: 4, pH: 6, pW: 4 }, y: { tx: 6, em: 3, ca: 4, of: 1, op: 5 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 12, n: "Elizabeth Puga", org: 2, ph: 2, day: 15, health: "yellow", ps: 3, gaps: ["Agent Profile unused"], agenda: "Surface outreach.", vid: "agentprofile", ec: 0, tl: "capable", s: { tx: 35, em: 18, ca: 12, cc: 8, nr: 5, up: 2, op: 25, re: 4, of: 2, ng: 0, ac: 0, aq: 0, mn: 620, piq: 50, comp: 35, ia: 25, off: 18, ag: 110, ck: true, mls: 20, dm: 3, cold: 2, ref: 0, pH: 3, pW: 1 }, y: { tx: 4, em: 2, ca: 3, of: 1, op: 4 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 18, n: "Lauren Robles", org: 4, ph: 2, day: 16, health: "yellow", ps: 3, gaps: ["IA once"], agenda: "1 offer.", vid: "ia", ec: 0, tl: "capable", s: { tx: 38, em: 20, ca: 14, cc: 9, nr: 5, up: 3, op: 24, re: 5, of: 1, ng: 0, ac: 0, aq: 0, mn: 700, piq: 55, comp: 40, ia: 8, off: 15, ag: 120, ck: true, mls: 19, dm: 3, cold: 2, ref: 0, pH: 2, pW: 2 }, y: { tx: 5, em: 2, ca: 3, of: 0, op: 3 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 1, n: "Miguel Rivera", org: 1, ph: 3, day: 45, health: "green", ps: 4, gaps: [], agenda: "2 deals.", vid: null, ec: 0, tl: "power_user", s: { tx: 160, em: 85, ca: 38, cc: 28, nr: 18, up: 8, op: 110, re: 40, of: 52, ng: 6, ac: 4, aq: 2, mn: 5400, piq: 450, comp: 380, ia: 300, off: 350, ag: 550, ck: true, mls: 70, dm: 15, cold: 18, ref: 7, pH: 10, pW: 6 }, y: { tx: 10, em: 5, ca: 8, of: 3, op: 8 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 8, n: "Michael May", org: 2, ph: 3, day: 60, health: "green", ps: 4, gaps: [], agenda: "Star. 3 deals.", vid: null, ec: 0, tl: "power_user", s: { tx: 200, em: 110, ca: 45, cc: 34, nr: 22, up: 12, op: 140, re: 55, of: 68, ng: 10, ac: 5, aq: 3, mn: 7200, piq: 600, comp: 500, ia: 420, off: 480, ag: 700, ck: true, mls: 90, dm: 20, cold: 22, ref: 8, pH: 15, pW: 8 }, y: { tx: 12, em: 6, ca: 9, of: 4, op: 10 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 9, n: "Alek Tan", org: 2, ph: 3, day: 50, health: "green", ps: 4, gaps: [], agenda: "2 deals.", vid: null, ec: 0, tl: "power_user", s: { tx: 150, em: 80, ca: 30, cc: 22, nr: 14, up: 7, op: 95, re: 35, of: 45, ng: 7, ac: 4, aq: 2, mn: 6000, piq: 500, comp: 420, ia: 350, off: 400, ag: 600, ck: true, mls: 60, dm: 14, cold: 15, ref: 6, pH: 12, pW: 7 }, y: { tx: 8, em: 4, ca: 6, of: 3, op: 7 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 17, n: "Steve Medina", org: 4, ph: 3, day: 40, health: "green", ps: 4, gaps: [], agenda: "On target.", vid: null, ec: 0, tl: "power_user", s: { tx: 140, em: 75, ca: 35, cc: 26, nr: 16, up: 6, op: 90, re: 32, of: 48, ng: 8, ac: 3, aq: 2, mn: 4800, piq: 400, comp: 340, ia: 280, off: 320, ag: 520, ck: true, mls: 58, dm: 12, cold: 14, ref: 6, pH: 10, pW: 6 }, y: { tx: 9, em: 4, ca: 7, of: 3, op: 6 }, g: { ca: 50, of: 5, ct: 50 } },
+  { id: 20, n: "Josh Santos", org: 5, ph: 3, day: 90, health: "green", ps: 4, gaps: [], agenda: "Model AA. 4 deals.", vid: null, ec: 0, tl: "power_user", s: { tx: 280, em: 150, ca: 50, cc: 40, nr: 30, up: 15, op: 200, re: 80, of: 95, ng: 15, ac: 8, aq: 4, mn: 10800, piq: 900, comp: 750, ia: 620, off: 700, ag: 1000, ck: true, mls: 120, dm: 30, cold: 35, ref: 15, pH: 20, pW: 12 }, y: { tx: 14, em: 7, ca: 10, of: 5, op: 12 }, g: { ca: 50, of: 5, ct: 50 } },
 ];
 
 
@@ -512,6 +556,7 @@ export default function App() {
   const [dR, sDR] = useState("Today");
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState("desc");
+  const [tlOverrides, setTlOverrides] = useState({});
   const [aiMsgs, setAiMsgs] = useState([]);
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -743,6 +788,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                     <Tip text="Click to mark this task as complete. You'll choose what action you took (call, email, text, etc.)."><button onClick={() => { sm(u.id); saT(null); saN(""); }} style={{ width: 18, height: 18, borderRadius: 4, border: "2px solid " + PLC[u.ps], background: "none", cursor: "pointer", flexShrink: 0 }} /></Tip>
                     <Tip text={"Priority " + PL[u.ps] + ". " + (u.ps === 1 ? "Needs immediate attention today." : u.ps === 2 ? "Address before end of day." : u.ps === 3 ? "Monitor and coach when time allows." : "Low urgency — check in periodically.")}><span style={{ fontSize: 8, fontWeight: 800, color: "#fff", background: PLC[u.ps], padding: "1px 6px", borderRadius: 3 }}>{PL[u.ps]}</span></Tip>
+                    <TechDot u={u} tlOverrides={tlOverrides} setTlOverrides={setTlOverrides} />
                     <Tip text="Click to view this AA's full profile — stats, feature usage, and root cause."><span onClick={() => ss(u.id)} style={{ fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "underline", textDecorationColor: "#E2E8F0" }}>{u.n}</span></Tip>
                     <Tip text={"Organization: " + (O.find((o) => o.id === u.org)?.n || "") + ". Day " + u.day + " in " + PN[u.ph] + " phase."}><span style={{ fontSize: 10, color: "#94A3B8" }}>{O.find((o) => o.id === u.org)?.n} D{u.day} {PN[u.ph]}</span></Tip>
                     {u.ec >= 3 && <Tip text="This AA has been emailed 3 times with no response. STOP emailing — escalate to their Account Manager instead."><span style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 5px", borderRadius: 2, border: "1px solid #FECACA" }}>3-STRIKE</span></Tip>}
@@ -933,6 +979,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     <td style={{ padding: "10px 12px", borderRight: "1px solid #F1F5F9" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: HC[u.health], flexShrink: 0 }} />
+                        <TechDot u={u} tlOverrides={tlOverrides} setTlOverrides={setTlOverrides} />
                         <div>
                           <div style={{ fontWeight: 600, fontSize: 12 }}>{u.n}</div>
                           <div style={{ fontSize: 9, color: "#94A3B8" }}>{O.find((o) => o.id === u.org)?.n} &middot; D{u.day} &middot; P{u.ph}</div>
@@ -983,6 +1030,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   <div style={{ width: 16, height: 16, borderRadius: 3, background: PLC[u.ps] + "15", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 800, color: PLC[u.ps] }}>{u.ps}</div>
                   <div style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }} onClick={() => ss(u.id)}>
                     <div style={{ width: 5, height: 5, borderRadius: "50%", background: HC[u.health] }} />
+                    <TechDot u={u} tlOverrides={tlOverrides} setTlOverrides={setTlOverrides} />
                     <span style={{ fontSize: 11, fontWeight: 600 }}>{u.n}</span>
                   </div>
                   <div style={{ fontSize: 9, fontWeight: 600, color: PC[u.ph] }}>{PN[u.ph].slice(0, 3)}</div>
@@ -1211,7 +1259,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, padding: "16px 20px", marginBottom: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                 <div>
-                  <div style={{ fontSize: 18, fontWeight: 800 }}>{user.n}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, display: "flex", alignItems: "center", gap: 6 }}>{user.n} <TechDot u={user} tlOverrides={tlOverrides} setTlOverrides={setTlOverrides} /></div>
                   <div style={{ fontSize: 12, color: "#64748B" }}>{O.find((o) => o.id === user.org)?.n} &mdash; Day {user.day} &mdash; <span style={{ color: PC[user.ph], fontWeight: 700 }}>{PN[user.ph]}</span></div>
                   {user.agenda && <div style={{ fontSize: 11, color: "#EA580C", fontWeight: 600, marginTop: 6 }}>{user.agenda}</div>}
                 </div>

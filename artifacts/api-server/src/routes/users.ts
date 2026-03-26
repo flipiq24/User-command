@@ -12,7 +12,7 @@ router.get("/users", async (req, res) => {
         u.id, u.name, u.email, u.phase, u.day_number, u.start_date,
         u.health, u.priority_score,
         u.goals_calls_per_day, u.goals_offers_per_day, u.goals_contacts_per_day,
-        u.discussion_agenda, u.active,
+        u.discussion_agenda, u.tech_level, u.active,
         o.name AS org_name, o.am_name, o.am_email,
         ds.texts AS today_texts,
         ds.emails AS today_emails,
@@ -51,7 +51,7 @@ router.get("/users/:id", async (req, res) => {
         u.id, u.name, u.email, u.phase, u.day_number, u.start_date,
         u.health, u.priority_score,
         u.goals_calls_per_day, u.goals_offers_per_day, u.goals_contacts_per_day,
-        u.discussion_agenda, u.active,
+        u.discussion_agenda, u.tech_level, u.active,
         o.name AS org_name, o.am_name, o.am_email,
         ds.texts AS today_texts,
         ds.emails AS today_emails,
@@ -122,7 +122,7 @@ router.patch("/users/:id", async (req, res) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) return res.status(400).json({ error: "Invalid user ID" });
 
-  const { health, priority_score, discussion_agenda, goals_calls_per_day, goals_offers_per_day, goals_contacts_per_day } = req.body;
+  const { health, priority_score, discussion_agenda, goals_calls_per_day, goals_offers_per_day, goals_contacts_per_day, tech_level } = req.body;
 
   try {
     const updates: Record<string, unknown> = { updated_at: new Date() };
@@ -132,6 +132,7 @@ router.patch("/users/:id", async (req, res) => {
     if (goals_calls_per_day !== undefined) updates.goals_calls_per_day = goals_calls_per_day;
     if (goals_offers_per_day !== undefined) updates.goals_offers_per_day = goals_offers_per_day;
     if (goals_contacts_per_day !== undefined) updates.goals_contacts_per_day = goals_contacts_per_day;
+    if (tech_level !== undefined) updates.tech_level = tech_level;
 
     const result = await db.update(users).set(updates).where(eq(users.id, id)).returning();
     if (result.length === 0) return res.status(404).json({ error: "User not found" });

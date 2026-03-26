@@ -77,9 +77,15 @@ The dashboard is a single-page React component with embedded data arrays and inl
 ### Tooltips
 - Comprehensive tooltips on every interactive element, label, badge, button, tab, filter, column header, legend item, and pipeline card across all tabs
 
+### Tech Level Indicator
+- 4 levels: novice (red #DC2626), traditional (yellow #EAB308), capable (green #10B981), power_user (blue #3B82F6)
+- `TechDot` component: colored dot next to user name, click to open dropdown, select new level → optimistic update + PATCH to API
+- Present in 4 locations: task list rows, leaderboard rows, heat map rows, user detail header
+- `tlOverrides` state tracks local changes; persisted via `PATCH /api/users/:id` with `tech_level` field
+
 ### Data (Embedded)
 - 5 organizations: Coko Homes, Hegemark, TD Realty, STJ Investments, Fair Close
-- 21 users with full stats, health, phase, gaps, agenda, email count
+- 21 users with full stats, health, phase, gaps, agenda, email count, tech level (tl)
 - 7 event categories with 61 total events
 - 3-Track scoring function (g3) generates event usage data
 - Root cause logic (gc) identifies WHY behind each user's issues
@@ -117,7 +123,7 @@ All routes under `/api/`:
 - `GET /dashboard` — main dashboard (users + today emails + tasks)
 - `GET /users` — list all active users
 - `GET /users/:id` — user detail (with events, categories, gaps, tasks)
-- `PATCH /users/:id` — update health/priority/agenda/goals
+- `PATCH /users/:id` — update health/priority/agenda/goals/tech_level
 - `GET /emails?date=&status=` — list coaching emails
 - `POST /emails` — create coaching email
 - `POST /emails/:id/forward` — mark forwarded
