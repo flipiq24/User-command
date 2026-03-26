@@ -63,6 +63,9 @@ The dashboard is a single-page React component with embedded data arrays and inl
 - **Feature Adoption chart**: progress ring showing adoption %, color legend (Active/Cooling/Gap/Unused), 7 horizontal stacked bars per category, "New this week" callout for recently adopted events
 - Feature usage accordion with 7 categories and 61 sortable events
 - **Sent Emails popup**: button next to "Send email" opens a modal showing all coaching emails sent — date, time, type badge, subject, recipient, event target badges (color-coded by status), acted/ignored tracking (green strikethrough = completed), and video per email
+- **Training Milestones**: vertical timeline of 5 predefined milestones (Platform Tour, First Offer Walkthrough, Comp Analysis Training, Negotiation Coaching, Independent Workflow) with toggleable completion, hover tooltips, and completion timestamps
+- **Training Notes**: timestamped note feed with input for adding training observations, reverse chronological order
+- **Training Impact**: before/after comparison bars for avg daily calls and offers relative to milestone completion dates
 - **AI Assistant panel** at the bottom: auto-generated summary + top 3 priorities + interactive chat
 
 ### Event-Aware Email System
@@ -128,6 +131,8 @@ Key tables:
 - `events` — 62 reference events across 7 categories
 - `event_categories` — plan/find/comm/prop/analysis/offers/tools
 - `deals` — deal pipeline: address, source (MLS/Off Market), intent (Flip/Wholesale/Portfolio), 7 stages (Initial Contact → Acquired), price/profit/commission, invoice tracking (need_to_invoice/invoiced/payment_received), success_fee, expected/actual close dates
+- `training_milestones` — per-user milestone completions (user_id, milestone_key, completed_at, completed_by), unique on (user_id, milestone_key)
+- `training_notes` — timestamped training observations (user_id, note_text, created_at, created_by)
 
 ## API Routes
 
@@ -151,6 +156,12 @@ All routes under `/api/`:
 - `GET /deals/:id` — single deal detail
 - `POST /deals` — create a deal
 - `PATCH /deals/:id` — update deal (stage, invoice status, dates, etc.)
+- `GET /users/:userId/training/milestones` — list training milestones (5 predefined milestones with completion status)
+- `POST /users/:userId/training/milestones` — mark a milestone complete
+- `DELETE /users/:userId/training/milestones/:key` — remove milestone completion
+- `GET /users/:userId/training/notes` — list training notes (reverse chronological)
+- `POST /users/:userId/training/notes` — add a training note
+- `GET /users/:userId/training/impact` — before/after avg calls & offers per completed milestone
 
 ## Auto-Seed
 

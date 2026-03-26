@@ -23,6 +23,8 @@ tags:
     description: Claude API integration endpoints
   - name: deals
     description: Deal pipeline operations
+  - name: training
+    description: Training milestones and notes tracking
 paths:
   /healthz:
     get:
@@ -449,6 +451,137 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Deal"
+
+  /users/{userId}/training/milestones:
+    get:
+      operationId: listTrainingMilestones
+      tags: [training]
+      summary: List training milestones for a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of training milestones with completion status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrainingMilestone"
+    post:
+      operationId: completeTrainingMilestone
+      tags: [training]
+      summary: Mark a training milestone as complete
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteTrainingMilestoneRequest"
+      responses:
+        "201":
+          description: Completed milestone record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingMilestoneRecord"
+
+  /users/{userId}/training/milestones/{key}:
+    delete:
+      operationId: removeTrainingMilestone
+      tags: [training]
+      summary: Remove a training milestone completion
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /users/{userId}/training/notes:
+    get:
+      operationId: listTrainingNotes
+      tags: [training]
+      summary: List training notes for a user (reverse chronological)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of training notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrainingNote"
+    post:
+      operationId: createTrainingNote
+      tags: [training]
+      summary: Add a training note for a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTrainingNoteRequest"
+      responses:
+        "201":
+          description: Created training note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingNote"
+
+  /users/{userId}/training/impact:
+    get:
+      operationId: getTrainingImpact
+      tags: [training]
+      summary: Get training impact summary (before/after metrics for each milestone)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Training impact summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingImpactResponse"
 
 components:
   schemas:
@@ -1169,3 +1302,101 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PastDueDeal"
+
+    TrainingMilestone:
+      type: object
+      required: [milestone_key, label, tooltip, completed]
+      properties:
+        milestone_key:
+          type: string
+        label:
+          type: string
+        tooltip:
+          type: string
+        completed:
+          type: boolean
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_by:
+          type: string
+          nullable: true
+
+    TrainingMilestoneRecord:
+      type: object
+      required: [id, user_id, milestone_key]
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        milestone_key:
+          type: string
+        completed_at:
+          type: string
+          format: date-time
+        completed_by:
+          type: string
+
+    CompleteTrainingMilestoneRequest:
+      type: object
+      required: [milestone_key]
+      properties:
+        milestone_key:
+          type: string
+
+    TrainingNote:
+      type: object
+      required: [id, user_id, note_text]
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        note_text:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        created_by:
+          type: string
+
+    CreateTrainingNoteRequest:
+      type: object
+      required: [note_text]
+      properties:
+        note_text:
+          type: string
+
+    TrainingImpactItem:
+      type: object
+      required: [milestone_key, label]
+      properties:
+        milestone_key:
+          type: string
+        label:
+          type: string
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        before_avg_calls:
+          type: number
+        after_avg_calls:
+          type: number
+        before_avg_offers:
+          type: number
+        after_avg_offers:
+          type: number
+
+    TrainingImpactResponse:
+      type: object
+      required: [milestones_completed, impact]
+      properties:
+        milestones_completed:
+          type: integer
+        impact:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrainingImpactItem"

@@ -20,9 +20,11 @@ import type {
   ClaudeReadAllResponse,
   ClaudeUpdateHealthRequest,
   CoachingEmail,
+  CompleteTrainingMilestoneRequest,
   CreateDealRequest,
   CreateEmailRequest,
   CreateTaskRequest,
+  CreateTrainingNoteRequest,
   DashboardResponse,
   Deal,
   DealSummaryResponse,
@@ -35,6 +37,10 @@ import type {
   ListTasksParams,
   SuccessResponse,
   TaskCompletion,
+  TrainingImpactResponse,
+  TrainingMilestone,
+  TrainingMilestoneRecord,
+  TrainingNote,
   UpdateDealRequest,
   UpdateEmailStatusBody,
   UpdateUserRequest,
@@ -1664,3 +1670,538 @@ export const useUpdateDeal = <
 > => {
   return useMutation(getUpdateDealMutationOptions(options));
 };
+
+/**
+ * @summary List training milestones for a user
+ */
+export const getListTrainingMilestonesUrl = (userId: number) => {
+  return `/api/users/${userId}/training/milestones`;
+};
+
+export const listTrainingMilestones = async (
+  userId: number,
+  options?: RequestInit,
+): Promise<TrainingMilestone[]> => {
+  return customFetch<TrainingMilestone[]>(
+    getListTrainingMilestonesUrl(userId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListTrainingMilestonesQueryKey = (userId: number) => {
+  return [`/api/users/${userId}/training/milestones`] as const;
+};
+
+export const getListTrainingMilestonesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listTrainingMilestones>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listTrainingMilestones>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListTrainingMilestonesQueryKey(userId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listTrainingMilestones>>
+  > = ({ signal }) =>
+    listTrainingMilestones(userId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!userId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listTrainingMilestones>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListTrainingMilestonesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listTrainingMilestones>>
+>;
+export type ListTrainingMilestonesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List training milestones for a user
+ */
+
+export function useListTrainingMilestones<
+  TData = Awaited<ReturnType<typeof listTrainingMilestones>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listTrainingMilestones>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListTrainingMilestonesQueryOptions(userId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Mark a training milestone as complete
+ */
+export const getCompleteTrainingMilestoneUrl = (userId: number) => {
+  return `/api/users/${userId}/training/milestones`;
+};
+
+export const completeTrainingMilestone = async (
+  userId: number,
+  completeTrainingMilestoneRequest: CompleteTrainingMilestoneRequest,
+  options?: RequestInit,
+): Promise<TrainingMilestoneRecord> => {
+  return customFetch<TrainingMilestoneRecord>(
+    getCompleteTrainingMilestoneUrl(userId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(completeTrainingMilestoneRequest),
+    },
+  );
+};
+
+export const getCompleteTrainingMilestoneMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof completeTrainingMilestone>>,
+    TError,
+    { userId: number; data: BodyType<CompleteTrainingMilestoneRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof completeTrainingMilestone>>,
+  TError,
+  { userId: number; data: BodyType<CompleteTrainingMilestoneRequest> },
+  TContext
+> => {
+  const mutationKey = ["completeTrainingMilestone"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof completeTrainingMilestone>>,
+    { userId: number; data: BodyType<CompleteTrainingMilestoneRequest> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return completeTrainingMilestone(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CompleteTrainingMilestoneMutationResult = NonNullable<
+  Awaited<ReturnType<typeof completeTrainingMilestone>>
+>;
+export type CompleteTrainingMilestoneMutationBody =
+  BodyType<CompleteTrainingMilestoneRequest>;
+export type CompleteTrainingMilestoneMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Mark a training milestone as complete
+ */
+export const useCompleteTrainingMilestone = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof completeTrainingMilestone>>,
+    TError,
+    { userId: number; data: BodyType<CompleteTrainingMilestoneRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof completeTrainingMilestone>>,
+  TError,
+  { userId: number; data: BodyType<CompleteTrainingMilestoneRequest> },
+  TContext
+> => {
+  return useMutation(getCompleteTrainingMilestoneMutationOptions(options));
+};
+
+/**
+ * @summary Remove a training milestone completion
+ */
+export const getRemoveTrainingMilestoneUrl = (userId: number, key: string) => {
+  return `/api/users/${userId}/training/milestones/${key}`;
+};
+
+export const removeTrainingMilestone = async (
+  userId: number,
+  key: string,
+  options?: RequestInit,
+): Promise<SuccessResponse> => {
+  return customFetch<SuccessResponse>(
+    getRemoveTrainingMilestoneUrl(userId, key),
+    {
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getRemoveTrainingMilestoneMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof removeTrainingMilestone>>,
+    TError,
+    { userId: number; key: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof removeTrainingMilestone>>,
+  TError,
+  { userId: number; key: string },
+  TContext
+> => {
+  const mutationKey = ["removeTrainingMilestone"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof removeTrainingMilestone>>,
+    { userId: number; key: string }
+  > = (props) => {
+    const { userId, key } = props ?? {};
+
+    return removeTrainingMilestone(userId, key, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RemoveTrainingMilestoneMutationResult = NonNullable<
+  Awaited<ReturnType<typeof removeTrainingMilestone>>
+>;
+
+export type RemoveTrainingMilestoneMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Remove a training milestone completion
+ */
+export const useRemoveTrainingMilestone = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof removeTrainingMilestone>>,
+    TError,
+    { userId: number; key: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof removeTrainingMilestone>>,
+  TError,
+  { userId: number; key: string },
+  TContext
+> => {
+  return useMutation(getRemoveTrainingMilestoneMutationOptions(options));
+};
+
+/**
+ * @summary List training notes for a user (reverse chronological)
+ */
+export const getListTrainingNotesUrl = (userId: number) => {
+  return `/api/users/${userId}/training/notes`;
+};
+
+export const listTrainingNotes = async (
+  userId: number,
+  options?: RequestInit,
+): Promise<TrainingNote[]> => {
+  return customFetch<TrainingNote[]>(getListTrainingNotesUrl(userId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListTrainingNotesQueryKey = (userId: number) => {
+  return [`/api/users/${userId}/training/notes`] as const;
+};
+
+export const getListTrainingNotesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listTrainingNotes>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listTrainingNotes>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListTrainingNotesQueryKey(userId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listTrainingNotes>>
+  > = ({ signal }) => listTrainingNotes(userId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!userId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listTrainingNotes>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListTrainingNotesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listTrainingNotes>>
+>;
+export type ListTrainingNotesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List training notes for a user (reverse chronological)
+ */
+
+export function useListTrainingNotes<
+  TData = Awaited<ReturnType<typeof listTrainingNotes>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listTrainingNotes>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListTrainingNotesQueryOptions(userId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Add a training note for a user
+ */
+export const getCreateTrainingNoteUrl = (userId: number) => {
+  return `/api/users/${userId}/training/notes`;
+};
+
+export const createTrainingNote = async (
+  userId: number,
+  createTrainingNoteRequest: CreateTrainingNoteRequest,
+  options?: RequestInit,
+): Promise<TrainingNote> => {
+  return customFetch<TrainingNote>(getCreateTrainingNoteUrl(userId), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createTrainingNoteRequest),
+  });
+};
+
+export const getCreateTrainingNoteMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createTrainingNote>>,
+    TError,
+    { userId: number; data: BodyType<CreateTrainingNoteRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createTrainingNote>>,
+  TError,
+  { userId: number; data: BodyType<CreateTrainingNoteRequest> },
+  TContext
+> => {
+  const mutationKey = ["createTrainingNote"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createTrainingNote>>,
+    { userId: number; data: BodyType<CreateTrainingNoteRequest> }
+  > = (props) => {
+    const { userId, data } = props ?? {};
+
+    return createTrainingNote(userId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateTrainingNoteMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createTrainingNote>>
+>;
+export type CreateTrainingNoteMutationBody =
+  BodyType<CreateTrainingNoteRequest>;
+export type CreateTrainingNoteMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a training note for a user
+ */
+export const useCreateTrainingNote = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createTrainingNote>>,
+    TError,
+    { userId: number; data: BodyType<CreateTrainingNoteRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createTrainingNote>>,
+  TError,
+  { userId: number; data: BodyType<CreateTrainingNoteRequest> },
+  TContext
+> => {
+  return useMutation(getCreateTrainingNoteMutationOptions(options));
+};
+
+/**
+ * @summary Get training impact summary (before/after metrics for each milestone)
+ */
+export const getGetTrainingImpactUrl = (userId: number) => {
+  return `/api/users/${userId}/training/impact`;
+};
+
+export const getTrainingImpact = async (
+  userId: number,
+  options?: RequestInit,
+): Promise<TrainingImpactResponse> => {
+  return customFetch<TrainingImpactResponse>(getGetTrainingImpactUrl(userId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTrainingImpactQueryKey = (userId: number) => {
+  return [`/api/users/${userId}/training/impact`] as const;
+};
+
+export const getGetTrainingImpactQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTrainingImpact>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getTrainingImpact>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetTrainingImpactQueryKey(userId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getTrainingImpact>>
+  > = ({ signal }) => getTrainingImpact(userId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!userId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTrainingImpact>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetTrainingImpactQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTrainingImpact>>
+>;
+export type GetTrainingImpactQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get training impact summary (before/after metrics for each milestone)
+ */
+
+export function useGetTrainingImpact<
+  TData = Awaited<ReturnType<typeof getTrainingImpact>>,
+  TError = ErrorType<unknown>,
+>(
+  userId: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getTrainingImpact>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetTrainingImpactQueryOptions(userId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

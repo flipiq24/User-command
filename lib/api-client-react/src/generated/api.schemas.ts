@@ -471,6 +471,54 @@ export interface DealSummaryResponse {
   past_due?: PastDueDeal[];
 }
 
+export interface TrainingMilestone {
+  milestone_key: string;
+  label: string;
+  tooltip: string;
+  completed: boolean;
+  completed_at?: string | null;
+  completed_by?: string | null;
+}
+
+export interface TrainingMilestoneRecord {
+  id: number;
+  user_id: number;
+  milestone_key: string;
+  completed_at?: string;
+  completed_by?: string;
+}
+
+export interface CompleteTrainingMilestoneRequest {
+  milestone_key: string;
+}
+
+export interface TrainingNote {
+  id: number;
+  user_id: number;
+  note_text: string;
+  created_at?: string;
+  created_by?: string;
+}
+
+export interface CreateTrainingNoteRequest {
+  note_text: string;
+}
+
+export interface TrainingImpactItem {
+  milestone_key: string;
+  label: string;
+  completed_at?: string | null;
+  before_avg_calls?: number;
+  after_avg_calls?: number;
+  before_avg_offers?: number;
+  after_avg_offers?: number;
+}
+
+export interface TrainingImpactResponse {
+  milestones_completed: number;
+  impact: TrainingImpactItem[];
+}
+
 export type ListEmailsParams = {
   date?: string;
   status?: ListEmailsStatus;

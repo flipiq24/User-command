@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
-import { useUserDetail, useUpdateUserMutation, useCreateTaskMutation } from "@/hooks/use-flipiq";
+import {
+  useUserDetail, useUpdateUserMutation, useCreateTaskMutation,
+  useTrainingMilestones, useCompleteTrainingMilestoneMutation, useRemoveTrainingMilestoneMutation,
+  useTrainingNotes, useCreateTrainingNoteMutation, useTrainingImpact,
+} from "@/hooks/use-flipiq";
 import { Topbar } from "@/components/layout/topbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { formatHealthBg, formatHealthColor, cn } from "@/lib/utils";
-import { Loader2, ArrowLeft, Target, Mail, CheckSquare, Calendar, AlertCircle, Save, Phone, CheckCircle2 } from "lucide-react";
+import { Loader2, ArrowLeft, Target, Mail, CheckSquare, Calendar, AlertCircle, Save, Phone, CheckCircle2, GraduationCap, StickyNote, TrendingUp, Info, Check, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, CartesianGrid } from 'recharts';
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 
@@ -172,10 +176,14 @@ export default function UserDetailPage() {
                 )}
               </CardContent>
             </Card>
+
+            <TrainingMilestonesCard userId={userId} />
+            <TrainingNotesCard userId={userId} />
           </div>
 
           {/* Middle & Right Column: Analytics & Events */}
           <div className="lg:col-span-2 space-y-8">
+            <TrainingImpactCard userId={userId} />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Card className="overflow-hidden">
@@ -334,4 +342,207 @@ function formatHealthBorder(health: string) {
     case 'green': return 'border-health-green/50';
     default: return 'border-border';
   }
+}
+
+function TrainingMilestonesCard({ userId }: { userId: number }) {
+  const { data: milestones, isLoading } = useTrainingMilestones(userId);
+  const completeMutation = useCompleteTrainingMilestoneMutation(userId);
+  const removeMutation = useRemoveTrainingMilestoneMutation(userId);
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+
+  const handleToggle = (key: string, completed: boolean) => {
+    if (completed) {
+      removeMutation.mutate({ userId, key });
+    } else {
+      completeMutation.mutate({ userId, data: { milestone_key: key } });
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-3 border-b border-border/50">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <GraduationCap className="w-5 h-5 text-primary" /> Training Milestones
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-4">
+        {isLoading ? (
+          <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin" /></div>
+        ) : (
+          <div className="relative pl-6">
+            <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-border" />
+            {milestones?.map((m, i) => (
+              <div key={m.milestone_key} className="relative flex items-start gap-3 pb-5 last:pb-0">
+                <button
+                  onClick={() => handleToggle(m.milestone_key, m.completed)}
+                  className={cn(
+                    "relative z-10 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all -ml-[18px]",
+                    m.completed
+                      ? "bg-primary border-primary text-primary-foreground"
+                      : "bg-background border-muted-foreground/40 hover:border-primary"
+                  )}
+                >
+                  {m.completed && <Check className="w-3 h-3" />}
+                </button>
+                <div
+                  className="flex-1 min-w-0"
+                  onMouseEnter={() => setHoveredKey(m.milestone_key)}
+                  onMouseLeave={() => setHoveredKey(null)}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={cn("text-sm font-medium", m.completed ? "text-foreground" : "text-muted-foreground")}>
+                      {m.label}
+                    </span>
+                    <Info className="w-3.5 h-3.5 text-muted-foreground/50 flex-shrink-0" />
+                  </div>
+                  {m.completed && m.completed_at && (
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {new Date(m.completed_at).toLocaleDateString()} by {m.completed_by}
+                    </p>
+                  )}
+                  {hoveredKey === m.milestone_key && (
+                    <div className="mt-2 p-3 bg-secondary/50 rounded-lg border border-border/50 text-xs text-muted-foreground leading-relaxed animate-in fade-in slide-in-from-top-1 duration-150">
+                      {m.tooltip}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TrainingNotesCard({ userId }: { userId: number }) {
+  const { data: notes, isLoading } = useTrainingNotes(userId);
+  const createMutation = useCreateTrainingNoteMutation(userId);
+  const [noteText, setNoteText] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!noteText.trim()) return;
+    createMutation.mutate(
+      { userId, data: { note_text: noteText.trim() } },
+      { onSuccess: () => setNoteText("") }
+    );
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-3 border-b border-border/50">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <StickyNote className="w-5 h-5 text-primary" /> Training Notes
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-4 space-y-4">
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <input
+            type="text"
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
+            placeholder="Add a training observation..."
+            className="flex-1 px-3 py-2 text-sm bg-secondary/30 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          <Button type="submit" size="sm" disabled={createMutation.isPending || !noteText.trim()}>
+            {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          </Button>
+        </form>
+
+        {isLoading ? (
+          <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin" /></div>
+        ) : notes && notes.length > 0 ? (
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {notes.map((n) => (
+              <div key={n.id} className="p-3 bg-secondary/20 rounded-lg border border-border/50">
+                <p className="text-sm text-foreground">{n.note_text}</p>
+                <div className="flex items-center gap-2 mt-1.5 text-[11px] text-muted-foreground">
+                  <span>{n.created_at ? new Date(n.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                  <span>-</span>
+                  <span>{n.created_by}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground italic text-center py-4">No training notes yet.</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TrainingImpactCard({ userId }: { userId: number }) {
+  const { data, isLoading } = useTrainingImpact(userId);
+
+  if (isLoading) return null;
+  if (!data || data.milestones_completed === 0) return null;
+
+  const chartData = data.impact.map((item) => ({
+    name: item.label.length > 15 ? item.label.substring(0, 15) + '...' : item.label,
+    fullName: item.label,
+    "Calls Before": item.before_avg_calls,
+    "Calls After": item.after_avg_calls,
+    "Offers Before": item.before_avg_offers,
+    "Offers After": item.after_avg_offers,
+  }));
+
+  return (
+    <Card>
+      <CardHeader className="pb-3 border-b border-border/50">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <TrendingUp className="w-5 h-5 text-primary" /> Training Impact
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Avg Daily Calls</p>
+            <div className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                  <RechartsTooltip
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                  />
+                  <Bar dataKey="Calls Before" fill="hsl(var(--muted-foreground))" radius={[0, 4, 4, 0]} barSize={12} />
+                  <Bar dataKey="Calls After" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} barSize={12} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Avg Daily Offers</p>
+            <div className="h-[200px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                  <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                  <RechartsTooltip
+                    contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                  />
+                  <Bar dataKey="Offers Before" fill="hsl(var(--muted-foreground))" radius={[0, 4, 4, 0]} barSize={12} />
+                  <Bar dataKey="Offers After" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} barSize={12} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 mt-3 justify-center text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-sm bg-muted-foreground" />
+            <span>Before Milestone</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-sm bg-primary" />
+            <span>After Milestone</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }

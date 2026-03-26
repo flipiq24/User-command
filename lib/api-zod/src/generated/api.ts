@@ -798,3 +798,97 @@ export const UpdateDealResponse = zod.object({
   created_at: zod.date().optional(),
   updated_at: zod.date().optional(),
 });
+
+/**
+ * @summary List training milestones for a user
+ */
+export const ListTrainingMilestonesParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
+export const ListTrainingMilestonesResponseItem = zod.object({
+  milestone_key: zod.string(),
+  label: zod.string(),
+  tooltip: zod.string(),
+  completed: zod.boolean(),
+  completed_at: zod.date().nullish(),
+  completed_by: zod.string().nullish(),
+});
+export const ListTrainingMilestonesResponse = zod.array(
+  ListTrainingMilestonesResponseItem,
+);
+
+/**
+ * @summary Mark a training milestone as complete
+ */
+export const CompleteTrainingMilestoneParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
+export const CompleteTrainingMilestoneBody = zod.object({
+  milestone_key: zod.string(),
+});
+
+/**
+ * @summary Remove a training milestone completion
+ */
+export const RemoveTrainingMilestoneParams = zod.object({
+  userId: zod.coerce.number(),
+  key: zod.coerce.string(),
+});
+
+export const RemoveTrainingMilestoneResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string().optional(),
+});
+
+/**
+ * @summary List training notes for a user (reverse chronological)
+ */
+export const ListTrainingNotesParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
+export const ListTrainingNotesResponseItem = zod.object({
+  id: zod.number(),
+  user_id: zod.number(),
+  note_text: zod.string(),
+  created_at: zod.date().optional(),
+  created_by: zod.string().optional(),
+});
+export const ListTrainingNotesResponse = zod.array(
+  ListTrainingNotesResponseItem,
+);
+
+/**
+ * @summary Add a training note for a user
+ */
+export const CreateTrainingNoteParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
+export const CreateTrainingNoteBody = zod.object({
+  note_text: zod.string(),
+});
+
+/**
+ * @summary Get training impact summary (before/after metrics for each milestone)
+ */
+export const GetTrainingImpactParams = zod.object({
+  userId: zod.coerce.number(),
+});
+
+export const GetTrainingImpactResponse = zod.object({
+  milestones_completed: zod.number(),
+  impact: zod.array(
+    zod.object({
+      milestone_key: zod.string(),
+      label: zod.string(),
+      completed_at: zod.date().nullish(),
+      before_avg_calls: zod.number().optional(),
+      after_avg_calls: zod.number().optional(),
+      before_avg_offers: zod.number().optional(),
+      after_avg_offers: zod.number().optional(),
+    }),
+  ),
+});

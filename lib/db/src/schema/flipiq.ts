@@ -172,6 +172,22 @@ export const triggerLog = pgTable("trigger_log", {
   fired_at: timestamp("fired_at", { withTimezone: true }).defaultNow(),
 });
 
+export const trainingMilestones = pgTable("training_milestones", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+  milestone_key: text("milestone_key").notNull(),
+  completed_at: timestamp("completed_at", { withTimezone: true }).defaultNow(),
+  completed_by: text("completed_by").default("Ramy"),
+}, (t) => [unique().on(t.user_id, t.milestone_key)]);
+
+export const trainingNotes = pgTable("training_notes", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+  note_text: text("note_text").notNull(),
+  created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  created_by: text("created_by").default("Ramy"),
+});
+
 export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
   user_id: integer("user_id").references(() => users.id, { onDelete: "cascade" }),

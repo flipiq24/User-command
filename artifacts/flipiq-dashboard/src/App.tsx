@@ -26,6 +26,170 @@ function Tip({ text, children }) {
   );
 }
 
+function TrainingSection({ userId, userName }) {
+  const [milestones, setMilestones] = useState([]);
+  const [notes, setNotes] = useState([]);
+  const [impact, setImpact] = useState(null);
+  const [noteText, setNoteText] = useState("");
+  const [hoveredKey, setHoveredKey] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAll = useCallback(() => {
+    Promise.all([
+      fetch("/api/users/" + userId + "/training/milestones").then(r => r.json()),
+      fetch("/api/users/" + userId + "/training/notes").then(r => r.json()),
+      fetch("/api/users/" + userId + "/training/impact").then(r => r.json()),
+    ]).then(([m, n, i]) => { setMilestones(m); setNotes(n); setImpact(i); setLoading(false); }).catch(() => setLoading(false));
+  }, [userId]);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const toggleMilestone = (key, completed) => {
+    if (completed) {
+      fetch("/api/users/" + userId + "/training/milestones/" + key, { method: "DELETE" }).then(() => fetchAll());
+    } else {
+      fetch("/api/users/" + userId + "/training/milestones", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ milestone_key: key }) }).then(() => fetchAll());
+    }
+  };
+
+  const addNote = () => {
+    if (!noteText.trim()) return;
+    fetch("/api/users/" + userId + "/training/notes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ note_text: noteText.trim() }) }).then(() => { setNoteText(""); fetchAll(); });
+  };
+
+  if (loading) return null;
+
+  const completedCount = milestones.filter(m => m.completed).length;
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 14 }}>
+      <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, padding: "16px 20px" }}>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 16 }}>🎓</span> Training Milestones
+          <span style={{ fontSize: 10, color: "#94A3B8", fontWeight: 400 }}>{completedCount}/{milestones.length}</span>
+        </div>
+        <div style={{ position: "relative", paddingLeft: 20 }}>
+          <div style={{ position: "absolute", left: 9, top: 8, bottom: 8, width: 2, background: "#E2E8F0" }} />
+          {milestones.map((m) => (
+            <div key={m.milestone_key} style={{ position: "relative", display: "flex", alignItems: "flex-start", gap: 10, paddingBottom: 14 }}>
+              <button
+                onClick={() => toggleMilestone(m.milestone_key, m.completed)}
+                style={{ position: "relative", zIndex: 2, flexShrink: 0, width: 20, height: 20, borderRadius: "50%", border: m.completed ? "2px solid #F97316" : "2px solid #CBD5E1", background: m.completed ? "#F97316" : "#FFF", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", marginLeft: -11, transition: "all 0.15s" }}
+              >
+                {m.completed && <span style={{ color: "#FFF", fontSize: 11, fontWeight: 900 }}>✓</span>}
+              </button>
+              <div
+                style={{ flex: 1 }}
+                onMouseEnter={() => setHoveredKey(m.milestone_key)}
+                onMouseLeave={() => setHoveredKey(null)}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 12, fontWeight: m.completed ? 600 : 400, color: m.completed ? "#334155" : "#94A3B8" }}>{m.label}</span>
+                  <Tip text={m.tooltip}><span style={{ fontSize: 11, color: "#CBD5E1", cursor: "help" }}>ⓘ</span></Tip>
+                </div>
+                {m.completed && m.completed_at && (
+                  <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 2 }}>
+                    {new Date(m.completed_at).toLocaleDateString()} by {m.completed_by}
+                  </div>
+                )}
+                {hoveredKey === m.milestone_key && (
+                  <div style={{ marginTop: 6, padding: "8px 10px", background: "#F8FAFC", borderRadius: 6, border: "1px solid #E2E8F0", fontSize: 11, color: "#64748B", lineHeight: 1.5 }}>
+                    {m.tooltip}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, padding: "16px 20px" }}>
+          <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 16 }}>📝</span> Training Notes
+          </div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            <input
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") addNote(); }}
+              placeholder="Add a training observation..."
+              style={{ flex: 1, padding: "6px 10px", border: "1px solid #E2E8F0", borderRadius: 6, fontSize: 12, outline: "none", fontFamily: "inherit" }}
+            />
+            <button onClick={addNote} disabled={!noteText.trim()} style={{ padding: "6px 14px", borderRadius: 6, border: "none", background: noteText.trim() ? "#F97316" : "#E2E8F0", color: noteText.trim() ? "#FFF" : "#94A3B8", fontSize: 11, fontWeight: 700, cursor: noteText.trim() ? "pointer" : "default" }}>Add</button>
+          </div>
+          <div style={{ maxHeight: 200, overflowY: "auto" }}>
+            {notes.length > 0 ? notes.map((n) => (
+              <div key={n.id} style={{ padding: "8px 10px", background: "#F8FAFC", borderRadius: 6, border: "1px solid #F1F5F9", marginBottom: 6 }}>
+                <div style={{ fontSize: 12, color: "#334155" }}>{n.note_text}</div>
+                <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 3 }}>
+                  {n.created_at ? new Date(n.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : ""} — {n.created_by}
+                </div>
+              </div>
+            )) : (
+              <div style={{ fontSize: 11, color: "#94A3B8", textAlign: "center", padding: "12px 0", fontStyle: "italic" }}>No training notes yet.</div>
+            )}
+          </div>
+        </div>
+
+        {impact && impact.milestones_completed > 0 && (
+          <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, padding: "16px 20px" }}>
+            <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 16 }}>📈</span> Training Impact
+            </div>
+            <div style={{ display: "flex", gap: 16 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 6 }}>Avg Daily Calls</div>
+                {impact.impact.map((item) => (
+                  <div key={item.milestone_key} style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 10, color: "#64748B", marginBottom: 3 }}>{item.label}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ flex: 1, height: 14, background: "#F1F5F9", borderRadius: 4, overflow: "hidden", display: "flex", gap: 1 }}>
+                        <div style={{ width: Math.max(2, (item.before_avg_calls / Math.max(item.before_avg_calls, item.after_avg_calls, 1)) * 100) + "%", background: "#CBD5E1", height: "100%", borderRadius: "4px 0 0 4px" }} />
+                      </div>
+                      <span style={{ fontSize: 9, color: "#94A3B8", width: 28, textAlign: "right" }}>{item.before_avg_calls}</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                      <div style={{ flex: 1, height: 14, background: "#FFF7ED", borderRadius: 4, overflow: "hidden", display: "flex", gap: 1 }}>
+                        <div style={{ width: Math.max(2, (item.after_avg_calls / Math.max(item.before_avg_calls, item.after_avg_calls, 1)) * 100) + "%", background: "#F97316", height: "100%", borderRadius: "4px 0 0 4px" }} />
+                      </div>
+                      <span style={{ fontSize: 9, color: "#F97316", fontWeight: 600, width: 28, textAlign: "right" }}>{item.after_avg_calls}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", marginBottom: 6 }}>Avg Daily Offers</div>
+                {impact.impact.map((item) => (
+                  <div key={item.milestone_key} style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 10, color: "#64748B", marginBottom: 3 }}>{item.label}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ flex: 1, height: 14, background: "#F1F5F9", borderRadius: 4, overflow: "hidden", display: "flex", gap: 1 }}>
+                        <div style={{ width: Math.max(2, (item.before_avg_offers / Math.max(item.before_avg_offers, item.after_avg_offers, 1)) * 100) + "%", background: "#CBD5E1", height: "100%", borderRadius: "4px 0 0 4px" }} />
+                      </div>
+                      <span style={{ fontSize: 9, color: "#94A3B8", width: 28, textAlign: "right" }}>{item.before_avg_offers}</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                      <div style={{ flex: 1, height: 14, background: "#FFF7ED", borderRadius: 4, overflow: "hidden", display: "flex", gap: 1 }}>
+                        <div style={{ width: Math.max(2, (item.after_avg_offers / Math.max(item.before_avg_offers, item.after_avg_offers, 1)) * 100) + "%", background: "#F97316", height: "100%", borderRadius: "4px 0 0 4px" }} />
+                      </div>
+                      <span style={{ fontSize: 9, color: "#F97316", fontWeight: 600, width: 28, textAlign: "right" }}>{item.after_avg_offers}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 16, justifyContent: "center", marginTop: 8, fontSize: 10, color: "#94A3B8" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 10, height: 10, borderRadius: 2, background: "#CBD5E1" }} /> Before</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 10, height: 10, borderRadius: 2, background: "#F97316" }} /> After</div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function TechDot({ u, tlOverrides, setTlOverrides }) {
   const [open, setOpen] = useState(false);
   const curTl = tlOverrides[u.id] || u.tl || "traditional";
@@ -1610,6 +1774,8 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 </div>
               );
             })}
+
+            <TrainingSection userId={user.id} userName={user.n} />
 
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, marginTop: 14, overflow: "hidden" }}>
               <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", alignItems: "center", gap: 10 }}>

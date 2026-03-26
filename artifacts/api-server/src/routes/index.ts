@@ -8,6 +8,7 @@ import leaderboardRouter from "./leaderboard";
 import claudeRouter from "./claude";
 import aiRouter from "./ai";
 import dealsRouter from "./deals";
+import trainingRouter from "./training";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(leaderboardRouter);
 router.use(claudeRouter);
 router.use(aiRouter);
 router.use(dealsRouter);
+router.use(trainingRouter);
 
 export default router;
