@@ -238,10 +238,18 @@ export default function DealGrid({ users, orgs, flt }) {
 
   const gridData = useMemo(() => {
     const grid = {};
+    const now = new Date();
+    const todayMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
+    const curMonthKey = `${now.getFullYear()}-${now.getMonth() + 1}`;
     STAGE_GROUPS.forEach(sg => {
       grid[sg.key] = {};
       monthCols.forEach(mc => {
-        grid[sg.key][`${mc.year}-${mc.month}`] = { count: 0, revenue: 0 };
+        const k = `${mc.year}-${mc.month}`;
+        grid[sg.key][k] = { count: 0, revenue: 0 };
+        if (mc.isCurrent) {
+          grid[sg.key][k + "-collected"] = { count: 0, revenue: 0 };
+          grid[sg.key][k + "-forecast"] = { count: 0, revenue: 0 };
+        }
       });
     });
     fd.forEach(d => {
@@ -252,6 +260,15 @@ export default function DealGrid({ users, orgs, flt }) {
       if (grid[sg] && grid[sg][key]) {
         grid[sg][key].count++;
         grid[sg][key].revenue += (d.commission || 0);
+        if (key === curMonthKey) {
+          const isCollected = d.stage === "Acquired" && (
+            (d.actual_close_date && new Date(d.actual_close_date).getTime() <= todayMs) ||
+            d.invoice_status === "payment_received"
+          );
+          const subKey = isCollected ? key + "-collected" : key + "-forecast";
+          grid[sg][subKey].count++;
+          grid[sg][subKey].revenue += (d.commission || 0);
+        }
       }
     });
     return grid;
@@ -410,15 +427,24 @@ export default function DealGrid({ users, orgs, flt }) {
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
                 <thead>
                   <tr style={{ background: "#F8FAFC" }}>
-                    <th style={{ padding: "10px 16px", textAlign: "left", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", width: 170 }}>Stage Group</th>
+                    <th rowSpan={2} style={{ padding: "10px 16px", textAlign: "left", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", width: 170, verticalAlign: "bottom" }}>Stage Group</th>
                     {monthCols.map(mc => (
-                      <th key={`${mc.year}-${mc.month}`} style={{ padding: "10px 8px", textAlign: "center", fontSize: 10, fontWeight: 700, color: mc.isCurrent ? "#1E293B" : "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", background: mc.isCurrent ? "#EFF6FF" : undefined }}>
-                        {mc.label}
-                        {mc.isCurrent && (
+                      mc.isCurrent ? (
+                        <th key={`${mc.year}-${mc.month}`} colSpan={3} style={{ padding: "6px 4px 2px", textAlign: "center", fontSize: 10, fontWeight: 700, color: "#1E293B", textTransform: "uppercase", borderBottom: "none", background: "#EFF6FF", borderLeft: "2px solid #3B82F6", borderRight: "2px solid #3B82F6" }}>
+                          {mc.label}
                           <div style={{ fontSize: 18, fontWeight: 900, color: "#059669", marginTop: 2 }}>{acquiredThisMonth} <span style={{ fontSize: 9, fontWeight: 600, color: "#64748B" }}>closed</span></div>
-                        )}
-                      </th>
+                        </th>
+                      ) : (
+                        <th key={`${mc.year}-${mc.month}`} rowSpan={2} style={{ padding: "10px 8px", textAlign: "center", fontSize: 10, fontWeight: 700, color: "#64748B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", verticalAlign: "bottom" }}>
+                          {mc.label}
+                        </th>
+                      )
                     ))}
+                  </tr>
+                  <tr style={{ background: "#F8FAFC" }}>
+                    <th style={{ padding: "4px 6px", textAlign: "center", fontSize: 9, fontWeight: 700, color: "#059669", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", background: "#ECFDF5", borderLeft: "2px solid #3B82F6" }}>Collected</th>
+                    <th style={{ padding: "4px 6px", textAlign: "center", fontSize: 9, fontWeight: 700, color: "#D97706", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", background: "#FFFBEB" }}>Forecast</th>
+                    <th style={{ padding: "4px 6px", textAlign: "center", fontSize: 9, fontWeight: 700, color: "#1E293B", textTransform: "uppercase", borderBottom: "1px solid #E2E8F0", background: "#EFF6FF", borderRight: "2px solid #3B82F6" }}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -430,8 +456,26 @@ export default function DealGrid({ users, orgs, flt }) {
                       {monthCols.map(mc => {
                         const k = `${mc.year}-${mc.month}`;
                         const cell = gridData[sg.key]?.[k] || { count: 0, revenue: 0 };
+                        if (mc.isCurrent) {
+                          const collected = gridData[sg.key]?.[k + "-collected"] || { count: 0, revenue: 0 };
+                          const forecast = gridData[sg.key]?.[k + "-forecast"] || { count: 0, revenue: 0 };
+                          return [
+                            <td key={k + "-c"} style={{ padding: "8px 6px", textAlign: "center", borderBottom: "1px solid #F1F5F9", background: "#F0FDF4", borderLeft: "2px solid #3B82F6" }}>
+                              <div style={{ fontSize: 14, fontWeight: 800, color: collected.count > 0 ? "#059669" : "#CBD5E1" }}>{collected.count}</div>
+                              {sg.showRevenue && <div style={{ fontSize: 10, color: collected.revenue > 0 ? "#059669" : "#CBD5E1", fontWeight: 600, marginTop: 1 }}>{collected.revenue > 0 ? fmt$(collected.revenue) : "—"}</div>}
+                            </td>,
+                            <td key={k + "-f"} style={{ padding: "8px 6px", textAlign: "center", borderBottom: "1px solid #F1F5F9", background: "#FFFBEB" }}>
+                              <div style={{ fontSize: 14, fontWeight: 800, color: forecast.count > 0 ? "#D97706" : "#CBD5E1" }}>{forecast.count}</div>
+                              {sg.showRevenue && <div style={{ fontSize: 10, color: forecast.revenue > 0 ? "#D97706" : "#CBD5E1", fontWeight: 600, marginTop: 1 }}>{forecast.revenue > 0 ? fmt$(forecast.revenue) : "—"}</div>}
+                            </td>,
+                            <td key={k + "-t"} style={{ padding: "8px 6px", textAlign: "center", borderBottom: "1px solid #F1F5F9", background: "#FAFCFF", borderRight: "2px solid #3B82F6" }}>
+                              <div style={{ fontSize: 14, fontWeight: 800, color: cell.count > 0 ? sg.color : "#CBD5E1" }}>{cell.count}</div>
+                              {sg.showRevenue && <div style={{ fontSize: 10, color: cell.revenue > 0 ? "#10B981" : "#CBD5E1", fontWeight: 600, marginTop: 1 }}>{cell.revenue > 0 ? fmt$(cell.revenue) : "—"}</div>}
+                            </td>,
+                          ];
+                        }
                         return (
-                          <td key={k} style={{ padding: "10px 8px", textAlign: "center", borderBottom: "1px solid #F1F5F9", background: mc.isCurrent ? "#FAFCFF" : undefined }}>
+                          <td key={k} style={{ padding: "10px 8px", textAlign: "center", borderBottom: "1px solid #F1F5F9" }}>
                             <div style={{ fontSize: 15, fontWeight: 800, color: cell.count > 0 ? sg.color : "#CBD5E1" }}>{cell.count}</div>
                             {sg.showRevenue && <div style={{ fontSize: 10, color: cell.revenue > 0 ? "#10B981" : "#CBD5E1", fontWeight: 600, marginTop: 1 }}>{cell.revenue > 0 ? fmt$(cell.revenue) : "—"}</div>}
                           </td>
@@ -449,6 +493,29 @@ export default function DealGrid({ users, orgs, flt }) {
                         totalCount += cell.count;
                         totalRev += cell.revenue;
                       });
+                      if (mc.isCurrent) {
+                        let colCount = 0, colRev = 0, forCount = 0, forRev = 0;
+                        STAGE_GROUPS.forEach(sg => {
+                          const cc = gridData[sg.key]?.[k + "-collected"] || { count: 0, revenue: 0 };
+                          const fc = gridData[sg.key]?.[k + "-forecast"] || { count: 0, revenue: 0 };
+                          colCount += cc.count; colRev += cc.revenue;
+                          forCount += fc.count; forRev += fc.revenue;
+                        });
+                        return [
+                          <td key={k + "-c"} style={{ padding: "10px 6px", textAlign: "center", borderTop: "2px solid #E2E8F0", background: "#F0FDF4", borderLeft: "2px solid #3B82F6" }}>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: colCount > 0 ? "#059669" : "#CBD5E1" }}>{colCount}</div>
+                            <div style={{ fontSize: 10, color: colRev > 0 ? "#059669" : "#CBD5E1", fontWeight: 700, marginTop: 1 }}>{colRev > 0 ? fmt$(colRev) : "—"}</div>
+                          </td>,
+                          <td key={k + "-f"} style={{ padding: "10px 6px", textAlign: "center", borderTop: "2px solid #E2E8F0", background: "#FFFBEB" }}>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: forCount > 0 ? "#D97706" : "#CBD5E1" }}>{forCount}</div>
+                            <div style={{ fontSize: 10, color: forRev > 0 ? "#D97706" : "#CBD5E1", fontWeight: 700, marginTop: 1 }}>{forRev > 0 ? fmt$(forRev) : "—"}</div>
+                          </td>,
+                          <td key={k + "-t"} style={{ padding: "10px 6px", textAlign: "center", borderTop: "2px solid #E2E8F0", background: "#FAFCFF", borderRight: "2px solid #3B82F6" }}>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: totalCount > 0 ? "#1E293B" : "#CBD5E1" }}>{totalCount}</div>
+                            <div style={{ fontSize: 10, color: totalRev > 0 ? "#10B981" : "#CBD5E1", fontWeight: 700, marginTop: 1 }}>{totalRev > 0 ? fmt$(totalRev) : "—"}</div>
+                          </td>,
+                        ];
+                      }
                       return (
                         <td key={k} style={{ padding: "10px 8px", textAlign: "center", borderTop: "2px solid #E2E8F0" }}>
                           <div style={{ fontSize: 15, fontWeight: 800, color: totalCount > 0 ? "#1E293B" : "#CBD5E1" }}>{totalCount}</div>

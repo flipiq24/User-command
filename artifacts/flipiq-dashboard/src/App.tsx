@@ -704,7 +704,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         <div style={{ display: "flex", alignItems: "center", gap: 16, flexShrink: 0 }}>
           <Tip text="Click to go back to the Overview tab."><img src={import.meta.env.BASE_URL + "flipiq-logo.png"} alt="FlipiQ" style={{ height: 132, width: "auto", cursor: "pointer" }} onClick={() => { st("overview"); ss(null); seV(null); }} /></Tip>
           <div>
-            <Tip text="FlipiQ CSM Dashboard — your daily command center for monitoring all Acquisition Associates."><div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.4 }}>FlipiQ USER COMMAND</div></Tip>
+            <Tip text="FlipiQ CSM Dashboard — your daily command center for monitoring all Acquisition Associates."><div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.4 }}>Customer Success Dashboard</div></Tip>
           </div>
         </div>
 
