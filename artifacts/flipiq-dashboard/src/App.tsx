@@ -27,8 +27,6 @@ function Tip({ text, children }) {
 }
 
 function TrainingSection({ userId, userName }) {
-  const base = import.meta.env.BASE_URL || "/";
-  const ab = base.replace(/\/$/, "").replace(/\/[^/]*$/, "") || "";
   const [milestones, setMilestones] = useState([]);
   const [notes, setNotes] = useState([]);
   const [impact, setImpact] = useState(null);
@@ -38,9 +36,9 @@ function TrainingSection({ userId, userName }) {
 
   const fetchAll = useCallback(() => {
     Promise.all([
-      fetch(ab + "/api/users/" + userId + "/training/milestones").then(r => r.ok ? r.json() : []),
-      fetch(ab + "/api/users/" + userId + "/training/notes").then(r => r.ok ? r.json() : []),
-      fetch(ab + "/api/users/" + userId + "/training/impact").then(r => r.ok ? r.json() : null),
+      fetch("/api/users/" + userId + "/training/milestones").then(r => r.json()).catch(() => []),
+      fetch("/api/users/" + userId + "/training/notes").then(r => r.json()).catch(() => []),
+      fetch("/api/users/" + userId + "/training/impact").then(r => r.json()).catch(() => null),
     ]).then(([m, n, i]) => { setMilestones(Array.isArray(m) ? m : []); setNotes(Array.isArray(n) ? n : []); setImpact(i && typeof i === "object" && !Array.isArray(i) ? i : null); setLoading(false); }).catch(() => setLoading(false));
   }, [userId]);
 
@@ -48,15 +46,15 @@ function TrainingSection({ userId, userName }) {
 
   const toggleMilestone = (key, completed) => {
     if (completed) {
-      fetch(ab + "/api/users/" + userId + "/training/milestones/" + key, { method: "DELETE" }).then(() => fetchAll());
+      fetch("/api/users/" + userId + "/training/milestones/" + key, { method: "DELETE" }).then(() => fetchAll());
     } else {
-      fetch(ab + "/api/users/" + userId + "/training/milestones", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ milestone_key: key }) }).then(() => fetchAll());
+      fetch("/api/users/" + userId + "/training/milestones", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ milestone_key: key }) }).then(() => fetchAll());
     }
   };
 
   const addNote = () => {
     if (!noteText.trim()) return;
-    fetch(ab + "/api/users/" + userId + "/training/notes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ note_text: noteText.trim() }) }).then(() => { setNoteText(""); fetchAll(); });
+    fetch("/api/users/" + userId + "/training/notes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ note_text: noteText.trim() }) }).then(() => { setNoteText(""); fetchAll(); });
   };
 
   if (loading) return null;
