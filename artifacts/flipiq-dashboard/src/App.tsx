@@ -1681,16 +1681,13 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                         const bkKey = user.id + "_" + ci;
                         const catBlocked = blockedCats[bkKey];
                         return (
-                          <div key={ci} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5, padding: "3px 0", borderRadius: 4 }}>
-                            <Tip text={catBlocked ? "Uncheck to remove blocker" : "Check to mark this category as blocked"}>
-                              <input type="checkbox" checked={!!catBlocked} onChange={(e) => { if (e.target.checked) { setBlockEdit({ uid: user.id, ci }); setBlockNote(""); } else { setBlockedCats((p) => { const n = { ...p }; delete n[bkKey]; return n; }); } }} style={{ width: 14, height: 14, accentColor: "#DC2626", cursor: "pointer", flexShrink: 0, margin: 0 }} />
-                            </Tip>
-                            <Tip text={tipParts.join(" | ")}>
-                            <div onClick={() => { tE(user.id, ci); setTimeout(() => { const el = document.getElementById("fu-cat-" + ci); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50); }} style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, cursor: "pointer" }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 4, width: 90, flexShrink: 0 }}>
-                                <span style={{ fontSize: 10, color: isAdoptOpen ? "#F97316" : "#64748B", fontWeight: isAdoptOpen ? 700 : 400 }}>{HL[ci]}</span>
-                                {catBlocked && <Tip text={"Blocked: " + catBlocked + " — click to edit"}><span onClick={(e) => { e.stopPropagation(); setBlockEdit({ uid: user.id, ci }); setBlockNote(catBlocked); }} style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 4px", borderRadius: 2, border: "1px solid #FECACA", cursor: "pointer", whiteSpace: "nowrap" }}>BLOCKED</span></Tip>}
-                              </div>
+                          <Tip key={ci} text={tipParts.join(" | ")}>
+                            <div onClick={() => { tE(user.id, ci); setTimeout(() => { const el = document.getElementById("fu-cat-" + ci); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50); }} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5, cursor: "pointer", padding: "3px 0", borderRadius: 4, transition: "background 0.15s" }}>
+                              <Tip text={catBlocked ? "Uncheck to remove blocker" : "Check to mark this category as blocked"}>
+                                <input type="checkbox" checked={!!catBlocked} onClick={(e) => e.stopPropagation()} onChange={(e) => { if (e.target.checked) { setBlockEdit({ uid: user.id, ci }); setBlockNote(""); } else { setBlockedCats((p) => { const n = { ...p }; delete n[bkKey]; return n; }); } }} style={{ width: 13, height: 13, accentColor: "#DC2626", cursor: "pointer", flexShrink: 0, margin: 0 }} />
+                              </Tip>
+                              <span style={{ fontSize: 10, color: isAdoptOpen ? "#F97316" : "#64748B", fontWeight: isAdoptOpen ? 700 : 400, width: 55, textAlign: "right", flexShrink: 0 }}>{HL[ci]}</span>
+                              {catBlocked && <Tip text={"Blocked: " + catBlocked + " — click to edit"}><span onClick={(e) => { e.stopPropagation(); setBlockEdit({ uid: user.id, ci }); setBlockNote(catBlocked); }} style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 4px", borderRadius: 2, border: "1px solid #FECACA", cursor: "pointer", whiteSpace: "nowrap" }}>BLOCKED</span></Tip>}
                               <div style={{ flex: 1, height: 16, background: "#F1F5F9", borderRadius: 4, overflow: "hidden", display: "flex" }}>
                                 {a > 0 && <div style={{ width: (a / t * 100) + "%", background: "#10B981", height: "100%" }} />}
                                 {co > 0 && <div style={{ width: (co / t * 100) + "%", background: "#D97706", height: "100%" }} />}
@@ -1699,8 +1696,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                               </div>
                               <span style={{ fontSize: 10, color: "#94A3B8", width: 30, flexShrink: 0 }}>{a + co}/{t}</span>
                             </div>
-                            </Tip>
-                          </div>
+                          </Tip>
                         );
                       })}
                       {newEv.length > 0 && (
