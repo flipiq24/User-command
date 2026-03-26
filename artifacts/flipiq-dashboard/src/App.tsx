@@ -1652,16 +1652,19 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       <span style={{ fontSize: 16, fontWeight: 800, color: "#F97316", flexShrink: 0 }}>{pct}%</span>
                     </div>
                     <div>
-                      <div style={{ display: "flex", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
-                        {legend.map((l) => (
-                          <Tip key={l.label} text={l.label + ": " + l.count + " of " + total + " events — " + (l.label === "Active" ? "regularly used features" : l.label === "Cooling" ? "usage slowing down" : l.label === "Gap" ? "used once, not recently" : "never used")}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}>
-                              <div style={{ width: 10, height: 10, borderRadius: 2, background: l.color }} />
-                              <span style={{ color: "#64748B" }}>{l.label}</span>
-                              <span style={{ fontWeight: 700, color: l.color }}>{l.count}</span>
-                            </div>
-                          </Tip>
-                        ))}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#334155" }}>Blocker Check</span>
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                          {legend.map((l) => (
+                            <Tip key={l.label} text={l.label + ": " + l.count + " of " + total + " events — " + (l.label === "Active" ? "regularly used features" : l.label === "Cooling" ? "usage slowing down" : l.label === "Gap" ? "used once, not recently" : "never used")}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}>
+                                <div style={{ width: 10, height: 10, borderRadius: 2, background: l.color }} />
+                                <span style={{ color: "#64748B" }}>{l.label}</span>
+                                <span style={{ fontWeight: 700, color: l.color }}>{l.count}</span>
+                              </div>
+                            </Tip>
+                          ))}
+                        </div>
                       </div>
                       {C.map((cat, ci) => {
                         const evs = user.ev[ci].events;
