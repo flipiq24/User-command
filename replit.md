@@ -77,6 +77,18 @@ The dashboard is a single-page React component with embedded data arrays and inl
 ### Tooltips
 - Comprehensive tooltips on every interactive element, label, badge, button, tab, filter, column header, legend item, and pipeline card across all tabs
 
+### Blocked-by-Category Indicator
+- `blockedCats` state keyed by `"userId_catIndex"` → note string
+- `blockEdit` / `blockNote` state for modal editing
+- Heat map: right-click any cell to mark as blocked; cell shows red "BLOCKED" label instead of score
+- Heat map tooltip: shows blocked note when present + "Right-click to mark/edit blocked" hint
+- Heat map legend: includes "Blocked" entry with striped swatch
+- Overview task rows: "BLOCKED: [Category]" red badges with tooltip showing the note
+- User detail header: blocked category badges (clickable to edit)
+- Feature Adoption bars: striped red bar with "BLOCKED" label + dedicated edit button per category
+- Blocker modal: textarea for note, Mark Blocked / Update / Unblock / Cancel buttons
+- In-memory only (no API persistence yet, same pattern as tlOverrides)
+
 ### Tech Level Indicator
 - 4 levels: novice (red #DC2626), traditional (yellow #EAB308), capable (green #10B981), power_user (blue #3B82F6)
 - `TechDot` component: colored dot next to user name, click to open dropdown, select new level → optimistic update + PATCH to API

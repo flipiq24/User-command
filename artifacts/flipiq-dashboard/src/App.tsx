@@ -557,6 +557,9 @@ export default function App() {
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState("desc");
   const [tlOverrides, setTlOverrides] = useState({});
+  const [blockedCats, setBlockedCats] = useState({});
+  const [blockEdit, setBlockEdit] = useState(null);
+  const [blockNote, setBlockNote] = useState("");
   const [aiMsgs, setAiMsgs] = useState([]);
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -800,6 +803,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   </div>
                   {ca && <div style={{ marginTop: 4, marginLeft: 24, fontSize: 10, color: "#EA580C", fontWeight: 600 }}>WHY: {ca}</div>}
                   {u.gaps.length > 0 && <div style={{ marginTop: 3, marginLeft: 24, display: "flex", gap: 2, flexWrap: "wrap" }}>{u.gaps.map((g, i) => <span key={i} style={{ fontSize: 8, color: HC[u.health], background: HBG[u.health], padding: "1px 5px", borderRadius: 2 }}>{g}</span>)}</div>}
+                  {(() => { const ub = HL.map((h, ci) => blockedCats[u.id + "_" + ci] ? { cat: h, note: blockedCats[u.id + "_" + ci] } : null).filter(Boolean); return ub.length > 0 ? <div style={{ marginTop: 3, marginLeft: 24, display: "flex", gap: 3, flexWrap: "wrap" }}>{ub.map((b) => <Tip key={b.cat} text={b.note}><span style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 5px", borderRadius: 2, border: "1px solid #FECACA", cursor: "default" }}>BLOCKED: {b.cat}</span></Tip>)}</div> : null; })()}
                 </div>
               );
             })}
@@ -1012,8 +1016,8 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between" }}>
               <div><div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Visual grid showing every AA's feature usage across 7 categories. Colors indicate activity level — red is missing, green is active. Click any cell to see full event breakdown.">Heat map</Tip></div><div style={{ fontSize: 11, color: "#94A3B8" }}>62 events. Hover for 3-Track. Click to expand.</div></div>
               <div style={{ display: "flex", gap: 10 }}>
-                {[["#DC2626", "Miss", "Feature never used. AA hasn't tried this at all."], ["#EA580C", "Gap", "Feature used once or twice but not recently. Training gap."], ["#D97706", "Cool", "Feature was used but activity is cooling off."], ["#10B981", "Active", "Feature is being used regularly. On track."]].map(([c, l, tip]) => (
-                  <Tip key={l} text={tip}><div style={{ display: "flex", alignItems: "center", gap: 3 }}><div style={{ width: 9, height: 9, borderRadius: 2, background: c }} /><span style={{ fontSize: 10, color: "#64748B" }}>{l}</span></div></Tip>
+                {[["#DC2626", "Miss", "Feature never used. AA hasn't tried this at all."], ["#EA580C", "Gap", "Feature used once or twice but not recently. Training gap."], ["#D97706", "Cool", "Feature was used but activity is cooling off."], ["#10B981", "Active", "Feature is being used regularly. On track."], ["#991B1B", "Blocked", "Technical blocker — right-click any cell to mark/edit."]].map(([c, l, tip]) => (
+                  <Tip key={l} text={tip}><div style={{ display: "flex", alignItems: "center", gap: 3 }}><div style={{ width: 9, height: 9, borderRadius: 2, background: l === "Blocked" ? "repeating-linear-gradient(45deg, #FEE2E2, #FEE2E2 2px, #FECACA 2px, #FECACA 4px)" : c, border: l === "Blocked" ? "1px solid #DC2626" : "none" }} /><span style={{ fontSize: 10, color: "#64748B" }}>{l}</span></div></Tip>
                 ))}
               </div>
             </div>
@@ -1034,16 +1038,20 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     <span style={{ fontSize: 11, fontWeight: 600 }}>{u.n}</span>
                   </div>
                   <div style={{ fontSize: 9, fontWeight: 600, color: PC[u.ph] }}>{PN[u.ph].slice(0, 3)}</div>
-                  {u.cs.map((cs, ci) => (
-                    <div key={ci} style={{ display: "flex", justifyContent: "center" }}
+                  {u.cs.map((cs, ci) => {
+                    const bk = blockedCats[u.id + "_" + ci];
+                    return (
+                    <div key={ci} style={{ display: "flex", justifyContent: "center", position: "relative" }}
                       onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); sHC({ uid: u.id, ci, x: r.left, y: r.bottom + 4 }); }}
                       onMouseLeave={() => sHC(null)}
-                      onClick={() => { ss(u.id); sE({ u: u.id, c: ci }); sHC(null); }}>
-                      <div style={{ width: 50, height: 22, borderRadius: 4, background: HMBG[cs.sc], border: "1.5px solid " + HMC[cs.sc] + "60", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                        <span style={{ fontSize: 9, fontWeight: 700, color: HMC[cs.sc] }}>{cs.ac}/{cs.t}</span>
+                      onClick={() => { ss(u.id); sE({ u: u.id, c: ci }); sHC(null); }}
+                      onContextMenu={(e) => { e.preventDefault(); setBlockEdit({ uid: u.id, ci }); setBlockNote(bk || ""); }}>
+                      <div style={{ width: 50, height: 22, borderRadius: 4, background: bk ? "#FEF2F2" : HMBG[cs.sc], border: "1.5px solid " + (bk ? "#DC2626" : HMC[cs.sc] + "60"), display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                        {bk ? <span style={{ fontSize: 7, fontWeight: 800, color: "#DC2626" }}>BLOCKED</span> : <span style={{ fontSize: 9, fontWeight: 700, color: HMC[cs.sc] }}>{cs.ac}/{cs.t}</span>}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
@@ -1262,6 +1270,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   <div style={{ fontSize: 18, fontWeight: 800, display: "flex", alignItems: "center", gap: 6 }}>{user.n} <TechDot u={user} tlOverrides={tlOverrides} setTlOverrides={setTlOverrides} /></div>
                   <div style={{ fontSize: 12, color: "#64748B" }}>{O.find((o) => o.id === user.org)?.n} &mdash; Day {user.day} &mdash; <span style={{ color: PC[user.ph], fontWeight: 700 }}>{PN[user.ph]}</span></div>
                   {user.agenda && <div style={{ fontSize: 11, color: "#EA580C", fontWeight: 600, marginTop: 6 }}>{user.agenda}</div>}
+                  {(() => { const ub = HL.map((h, ci) => blockedCats[user.id + "_" + ci] ? { cat: h, note: blockedCats[user.id + "_" + ci], ci } : null).filter(Boolean); return ub.length > 0 ? <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6 }}>{ub.map((b) => <Tip key={b.cat} text={b.note + " — click to edit"}><span onClick={() => { setBlockEdit({ uid: user.id, ci: b.ci }); setBlockNote(b.note); }} style={{ fontSize: 8, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "2px 6px", borderRadius: 3, border: "1px solid #FECACA", cursor: "pointer" }}>BLOCKED: {b.cat}</span></Tip>)}</div> : null; })()}
                 </div>
                 <Tip text="Generate and preview a coaching email for this AA."><button onClick={() => { seV(bE(user)); ss(null); }} style={{ padding: "8px 16px", fontSize: 11, fontWeight: 700, background: "#F97316", color: "#fff", border: "none", borderRadius: 7, cursor: "pointer" }}>Send email</button></Tip>
                 {user.ec > 0 && <Tip text="View all coaching emails previously sent to this AA."><button onClick={() => setCommLog(user)} style={{ padding: "8px 16px", fontSize: 11, fontWeight: 700, background: "#FFF7ED", color: "#F97316", border: "1px solid #FED7AA", borderRadius: 7, cursor: "pointer" }}>Sent emails ({user.ec})</button></Tip>}
@@ -1499,19 +1508,27 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                         if (catCs.fa) tipParts.push("First: " + catCs.fa + catLagStr);
                         if (catCs.la) tipParts.push("Last: " + catCs.la);
                         tipParts.push("Click to open in table below.");
+                        const bkKey = user.id + "_" + ci;
+                        const catBlocked = blockedCats[bkKey];
                         return (
-                          <Tip key={ci} text={tipParts.join(" | ")}>
-                            <div onClick={() => { tE(user.id, ci); setTimeout(() => { const el = document.getElementById("fu-cat-" + ci); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50); }} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5, cursor: "pointer", padding: "3px 0", borderRadius: 4, transition: "background 0.15s" }}>
+                          <div key={ci} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5, padding: "3px 0", borderRadius: 4 }}>
+                            <Tip text={tipParts.join(" | ")}>
+                            <div onClick={() => { tE(user.id, ci); setTimeout(() => { const el = document.getElementById("fu-cat-" + ci); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50); }} style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, cursor: "pointer" }}>
                               <span style={{ fontSize: 10, color: isAdoptOpen ? "#F97316" : "#64748B", fontWeight: isAdoptOpen ? 700 : 400, width: 55, textAlign: "right", flexShrink: 0 }}>{HL[ci]}</span>
-                              <div style={{ flex: 1, height: 16, background: "#F1F5F9", borderRadius: 4, overflow: "hidden", display: "flex" }}>
-                                {a > 0 && <div style={{ width: (a / t * 100) + "%", background: "#10B981", height: "100%" }} />}
-                                {co > 0 && <div style={{ width: (co / t * 100) + "%", background: "#D97706", height: "100%" }} />}
-                                {g2 > 0 && <div style={{ width: (g2 / t * 100) + "%", background: "#EA580C", height: "100%" }} />}
-                                {un > 0 && <div style={{ width: (un / t * 100) + "%", background: "#FEE2E2", height: "100%" }} />}
+                              <div style={{ flex: 1, height: 16, background: catBlocked ? "repeating-linear-gradient(45deg, #FEE2E2, #FEE2E2 4px, #FEF2F2 4px, #FEF2F2 8px)" : "#F1F5F9", borderRadius: 4, overflow: "hidden", display: "flex", border: catBlocked ? "1px solid #FECACA" : "none" }}>
+                                {!catBlocked && a > 0 && <div style={{ width: (a / t * 100) + "%", background: "#10B981", height: "100%" }} />}
+                                {!catBlocked && co > 0 && <div style={{ width: (co / t * 100) + "%", background: "#D97706", height: "100%" }} />}
+                                {!catBlocked && g2 > 0 && <div style={{ width: (g2 / t * 100) + "%", background: "#EA580C", height: "100%" }} />}
+                                {!catBlocked && un > 0 && <div style={{ width: (un / t * 100) + "%", background: "#FEE2E2", height: "100%" }} />}
+                                {catBlocked && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", fontSize: 8, fontWeight: 800, color: "#DC2626" }}>BLOCKED</div>}
                               </div>
-                              <span style={{ fontSize: 10, color: "#94A3B8", width: 30, flexShrink: 0 }}>{a + co}/{t}</span>
+                              <span style={{ fontSize: 10, color: catBlocked ? "#DC2626" : "#94A3B8", fontWeight: catBlocked ? 700 : 400, width: 30, flexShrink: 0 }}>{catBlocked ? "\u26D4" : (a + co) + "/" + t}</span>
                             </div>
-                          </Tip>
+                            </Tip>
+                            <Tip text={catBlocked ? "Blocked: " + catBlocked + " — click to edit" : "Mark this category as blocked for this AA"}>
+                              <button onClick={(e) => { e.stopPropagation(); setBlockEdit({ uid: user.id, ci }); setBlockNote(catBlocked || ""); }} style={{ width: 18, height: 18, borderRadius: 4, border: "1px solid " + (catBlocked ? "#DC2626" : "#E2E8F0"), background: catBlocked ? "#FEF2F2" : "#FAFBFC", color: catBlocked ? "#DC2626" : "#94A3B8", fontSize: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: 700 }}>{catBlocked ? "\u26D4" : "\u2716"}</button>
+                            </Tip>
+                          </div>
                         );
                       })}
                       {newEv.length > 0 && (
@@ -1656,6 +1673,29 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         )}
       </div>
 
+      {blockEdit && (() => {
+        const bKey = blockEdit.uid + "_" + blockEdit.ci;
+        const isBlocked = !!blockedCats[bKey];
+        const uName = U.find((x) => x.id === blockEdit.uid)?.n || "";
+        return (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 300 }} onClick={() => setBlockEdit(null)}>
+            <div style={{ background: "#FFF", borderRadius: 12, padding: "20px 24px", width: 380, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>{isBlocked ? "Edit" : "Mark"} Blocker — {HL[blockEdit.ci]}</div>
+              <div style={{ fontSize: 11, color: "#64748B", marginBottom: 12 }}>{uName} · {C[blockEdit.ci].n}</div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontSize: 11, fontWeight: 600, color: "#334155", display: "block", marginBottom: 4 }}>Note (what's blocking?)</label>
+                <textarea value={blockNote} onChange={(e) => setBlockNote(e.target.value)} placeholder="e.g. CRM access denied, training incomplete, waiting on manager approval..." style={{ width: "100%", height: 60, padding: "8px 10px", fontSize: 12, border: "1px solid #E2E8F0", borderRadius: 6, resize: "vertical", fontFamily: "inherit" }} />
+              </div>
+              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                {isBlocked && <button onClick={() => { setBlockedCats((p) => { const n = { ...p }; delete n[bKey]; return n; }); setBlockEdit(null); }} style={{ fontSize: 11, fontWeight: 600, color: "#10B981", background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: 6, padding: "6px 14px", cursor: "pointer" }}>Unblock</button>}
+                <button onClick={() => setBlockEdit(null)} style={{ fontSize: 11, fontWeight: 600, color: "#64748B", background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 6, padding: "6px 14px", cursor: "pointer" }}>Cancel</button>
+                <button onClick={() => { if (blockNote.trim()) { setBlockedCats((p) => ({ ...p, [bKey]: blockNote.trim() })); } else { setBlockedCats((p) => ({ ...p, [bKey]: "Blocked" })); } setBlockEdit(null); }} style={{ fontSize: 11, fontWeight: 700, color: "#FFF", background: "#DC2626", border: "none", borderRadius: 6, padding: "6px 14px", cursor: "pointer" }}>{isBlocked ? "Update" : "Mark Blocked"}</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {hC && !sel && !eV && tab === "heatmap" && (() => {
         const u = U.find((x) => x.id === hC.uid);
         const cs = u?.cs[hC.ci];
@@ -1678,7 +1718,8 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: 9, color: "#94A3B8", marginTop: 6 }}>Click to expand</div>
+            {blockedCats[hC.uid + "_" + hC.ci] && <div style={{ marginTop: 6, padding: "4px 8px", background: "#FEF2F2", borderRadius: 4, border: "1px solid #FECACA" }}><span style={{ fontSize: 9, fontWeight: 700, color: "#DC2626" }}>BLOCKED:</span> <span style={{ fontSize: 9, color: "#991B1B" }}>{blockedCats[hC.uid + "_" + hC.ci]}</span></div>}
+            <div style={{ fontSize: 9, color: "#94A3B8", marginTop: 6 }}>Click to expand · Right-click to {blockedCats[hC.uid + "_" + hC.ci] ? "edit blocker" : "mark blocked"}</div>
           </div>
         );
       })()}
