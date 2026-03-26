@@ -560,6 +560,7 @@ export default function App() {
   const [blockedCats, setBlockedCats] = useState({});
   const [blockEdit, setBlockEdit] = useState(null);
   const [blockNote, setBlockNote] = useState("");
+  const [taskSearch, setTaskSearch] = useState("");
   const [aiMsgs, setAiMsgs] = useState([]);
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -776,15 +777,20 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         {tab === "overview" && !sel && !eV && (
           <>
 
-            <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "10px 16px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "10px 16px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 12, fontWeight: 700 }}><Tip text="Daily action items for you (CSM). Each non-healthy AA generates a task. Complete by reviewing, forwarding an email, or logging an action.">Tasks</Tip></span><span style={{ fontSize: 11, color: "#64748B" }}>{fin.length}/{tasks.length}</span></div>
+              <div style={{ flex: 1, maxWidth: 240, position: "relative" }}>
+                <input value={taskSearch} onChange={(e) => setTaskSearch(e.target.value)} placeholder="Search by name..." style={{ width: "100%", padding: "5px 10px 5px 28px", fontSize: 11, border: "1px solid #E2E8F0", borderRadius: 6, background: "#F8FAFB", outline: "none", fontFamily: "inherit" }} />
+                <span style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: "#94A3B8", pointerEvents: "none" }}>&#128269;</span>
+                {taskSearch && <button onClick={() => setTaskSearch("")} style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", fontSize: 12, color: "#94A3B8", cursor: "pointer", padding: 0 }}>&times;</button>}
+              </div>
               <Tip text="Your daily progress. Complete all tasks by reviewing each AA and taking action (email, call, text, or escalate)."><div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{ width: 160, height: 6, background: "#F1F5F9", borderRadius: 3 }}><div style={{ height: 6, background: cp === 100 ? "#10B981" : "#F97316", borderRadius: 3, width: cp + "%" }} /></div>
                 <span style={{ fontSize: 12, fontWeight: 800, color: cp === 100 ? "#10B981" : "#F97316" }}>{cp}%</span>
               </div></Tip>
             </div>
 
-            {pend.map((u) => {
+            {pend.filter((u) => !taskSearch || u.n.toLowerCase().includes(taskSearch.toLowerCase())).map((u) => {
               const ca = gc(u);
               return (
                 <div key={u.id} style={{ background: "#FFF", border: "1px solid " + (u.ec >= 3 ? "#FECACA" : "#E2E8F0"), borderRadius: 8, padding: "10px 12px", marginBottom: 4, borderLeft: "4px solid " + PLC[u.ps] }}>
@@ -811,7 +817,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             {fin.length > 0 && (
               <>
                 <Tip text="Tasks you've already completed today. These AAs have been addressed."><div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1, margin: "12px 0 4px" }}>Done ({fin.length})</div></Tip>
-                {fin.map((u) => {
+                {fin.filter((u) => !taskSearch || u.n.toLowerCase().includes(taskSearch.toLowerCase())).map((u) => {
                   const a = done[u.id];
                   return (
                     <div key={u.id} style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 7, padding: "7px 12px", marginBottom: 3, opacity: 0.55, borderLeft: "4px solid #CBD5E1" }}>
