@@ -1600,8 +1600,14 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     <span style={{ fontWeight: l === "Acquired" ? 800 : 700, color: g ? vc(typeof v === "number" ? v : 0, g) : "#1E293B" }}>{v}{g ? <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 400 }}> /{g}</span> : null}</span>
                   </div>
                 ))}
-                <div style={{ borderTop: "1px solid #F1F5F9", marginTop: 6, paddingTop: 6, fontSize: 10, color: "#94A3B8" }}>
-                  <Tip text="Lead sources breakdown: MLS = MLS listings, DM = direct mail, CC = cold calls, Ref = referrals.">Source: MLS:{user.s.mls} DM:{user.s.dm} CC:{user.s.cold} Ref:{user.s.ref}</Tip>
+                <div style={{ borderTop: "1px solid #F1F5F9", marginTop: 6, paddingTop: 6 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#94A3B8", marginBottom: 4 }}>Lead Sources</div>
+                  {[["MLS", user.s.mls, "MLS — leads sourced from MLS listings."], ["DM", user.s.dm, "Direct Mail — leads generated from direct mail campaigns."], ["CC", user.s.cold, "Cold Calls — leads from cold calling outreach."], ["Ref", user.s.ref, "Referrals — leads from agent or network referrals."]].map(([l, v, tip]) => (
+                    <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
+                      <Tip text={tip}><span style={{ color: "#64748B" }}>{l}</span></Tip>
+                      <span style={{ fontWeight: 600, color: "#1E293B" }}>{v}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
