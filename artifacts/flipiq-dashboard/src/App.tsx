@@ -700,7 +700,7 @@ const EL = [
 const DR = ["Today", "Yesterday", "Last 7 days", "Last 30 days", "This month", "All time"];
 
 export default function App() {
-  const [flt, sf] = useState({ org: null, phase: null, health: null });
+  const [flt, sf] = useState({ org: null, phase: null, health: null, notDone: false });
   const [done, sd] = useState({});
   const [modal, sm] = useState(null);
   const [aT, saT] = useState(null);
@@ -784,6 +784,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
     if (flt.org) u = u.filter((x) => x.org === flt.org);
     if (flt.phase) u = u.filter((x) => x.ph === flt.phase);
     if (flt.health) u = u.filter((x) => x.health === flt.health);
+    if (flt.notDone) u = u.filter((x) => !x.s.ck && x.day <= 5 * 7);
     return u;
   }, [flt]);
 
@@ -925,6 +926,11 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <div style={{ fontSize: 12, fontWeight: 500, color: x.c }}>{x.n}</div>
               </div></Tip>
             ))}
+            <Tip text="Not Done: AAs who haven't completed their iQ Check-In within a 5 working-day window. These AAs need immediate follow-up."><div onClick={() => sf((f) => ({ ...f, notDone: !f.notDone }))} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: flt.notDone ? "1.5px solid #FED7AA" : "1px solid #E2E8F0", background: flt.notDone ? "#FFF7ED" : "#FAFBFC", cursor: "pointer", minWidth: 110 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#EA580C" }} />
+              <div style={{ fontSize: 22, fontWeight: 500, color: "#9A3412" }}>{U.filter((x) => !x.s.ck && x.day <= 5 * 7).length}</div>
+              <div style={{ fontSize: 12, fontWeight: 500, color: "#9A3412" }}>Not Done</div>
+            </div></Tip>
           </div>
         </div>
       </div>
@@ -1380,7 +1386,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           const tw = ulCols.reduce((s, c) => s + c.w, 0);
           const fIds = new Set(fU.map(x => x.id));
           const fUL = UL.filter(u => fIds.has(u.uid));
-          const isFiltered = flt.org || flt.phase || flt.health;
+          const isFiltered = flt.org || flt.phase || flt.health || flt.notDone;
           return (
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
               <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
