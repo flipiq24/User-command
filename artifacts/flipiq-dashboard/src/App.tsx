@@ -329,8 +329,17 @@ const C = [
 ];
 
 const HL = ["Plan", "Find", "Comms", "Prop", "Analysis", "Offers", "Tools"];
-const PN = { 1: "Onboarding", 2: "Activation", 3: "Performance" };
-const PC = { 1: "#3B82F6", 2: "#D97706", 3: "#10B981" };
+const PN = { 1: "Onboarding", 2: "Activation", 3: "Performance", 4: "Outlier" };
+
+function isOutlier(u) {
+  if (u.ph === 3 && u.day >= 30 && u.s.aq === 0) return true;
+  if (u.ph === 3 && u.day >= 45 && u.s.of < 5) return true;
+  if (u.day >= 14 && u.s.ca === 0) return true;
+  if (u.ph === 3 && u.health === "red") return true;
+  if (u.day >= 60 && u.health !== "green") return true;
+  return false;
+}
+const PC = { 1: "#3B82F6", 2: "#D97706", 3: "#10B981", 4: "#8B5CF6" };
 const HC = { green: "#10B981", yellow: "#D97706", orange: "#EA580C", red: "#DC2626" };
 const HBG = { green: "#ECFDF5", yellow: "#FEF9C3", orange: "#FFF7ED", red: "#FEF2F2" };
 const HMC = ["#DC2626", "#EA580C", "#D97706", "#10B981"];
@@ -797,7 +806,8 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
   const fU = useMemo(() => {
     let u = [...U];
     if (flt.org) u = u.filter((x) => x.org === flt.org);
-    if (flt.phase) u = u.filter((x) => x.ph === flt.phase);
+    if (flt.phase === 4) u = u.filter((x) => isOutlier(x));
+    else if (flt.phase) u = u.filter((x) => x.ph === flt.phase);
     if (flt.health) u = u.filter((x) => x.health === flt.health);
     if (flt.notDone) u = u.filter((x) => { const ci = getCheckIns(x); return ci.total > 0 && ci.done < ci.total; });
     if (flt.doneAA) u = u.filter((x) => x.id === flt.doneAA);
@@ -810,6 +820,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
     p1: base.filter((x) => x.ph === 1).length,
     p2: base.filter((x) => x.ph === 2).length,
     p3: base.filter((x) => x.ph === 3).length,
+    p4: base.filter((x) => isOutlier(x)).length,
     r: base.filter((x) => x.health === "red").length,
     o: base.filter((x) => x.health === "orange").length,
     y: base.filter((x) => x.health === "yellow").length,
@@ -925,7 +936,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           <div style={{ width: 1, height: 28, background: "#E2E8F0", margin: "0 4px" }} />
           <span style={{ fontSize: 11, fontWeight: 500, color: "#94A3B8" }}><Tip text="AA lifecycle phase. P1 Onboarding (Days 1-7): learn the tool. P2 Activation (Days 8-21): build habits. P3 Performance (Day 22+): hit targets.">PHASE</Tip></span>
           <div style={{ display: "flex", gap: 8 }}>
-            {[{ p: 1, n: "Onboarding", d: "Days 1-7", c: "#0C447C", bc: "#85B7EB", bg: "#E6F1FB", tip: "Phase 1: First 7 days. AAs are learning the tool, setting up, and making first calls." }, { p: 2, n: "Activation", d: "Days 8-21", c: "#854F0B", bc: "#EF9F27", bg: "#FAEEDA", tip: "Phase 2: Days 8-21. AAs should be building habits — consistent calls, offers, and pipeline activity." }, { p: 3, n: "Performance", d: "Day 22+", c: "#085041", bc: "#5DCAA5", bg: "#E1F5EE", tip: "Phase 3: Day 22+. AAs should be hitting targets — 2 deals/month, strong call volume, steady offers." }].map((x) => (
+            {[{ p: 1, n: "Onboarding", d: "Days 1-7", c: "#0C447C", bc: "#85B7EB", bg: "#E6F1FB", tip: "Phase 1: First 7 days. AAs are learning the tool, setting up, and making first calls." }, { p: 2, n: "Activation", d: "Days 8-21", c: "#854F0B", bc: "#EF9F27", bg: "#FAEEDA", tip: "Phase 2: Days 8-21. AAs should be building habits — consistent calls, offers, and pipeline activity." }, { p: 3, n: "Performance", d: "Day 22+", c: "#085041", bc: "#5DCAA5", bg: "#E1F5EE", tip: "Phase 3: Day 22+. AAs should be hitting targets — 2 deals/month, strong call volume, steady offers." }, { p: 4, n: "Outlier", d: "Anomaly", c: "#5B21B6", bc: "#A78BFA", bg: "#EDE9FE", tip: "Outlier: AAs with anomalous patterns — 30+ days with 0 deals, 60+ days not green, Performance phase but red health, or 14+ days with zero calls." }].map((x) => (
               <Tip key={x.p} text={x.tip}><div onClick={() => tog("phase", x.p)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", borderRadius: 8, border: flt.phase === x.p ? "1.5px solid " + x.bc : "1px solid #E2E8F0", background: flt.phase === x.p ? x.bg : "#FAFBFC", cursor: "pointer", minWidth: 150 }}>
                 <div style={{ fontSize: 22, fontWeight: 500, color: x.c }}>{sts["p" + x.p]}</div>
                 <div><div style={{ fontSize: 12, fontWeight: 500, color: x.c }}>{x.n}</div><div style={{ fontSize: 11, color: "#94A3B8" }}>{x.d}</div></div>
@@ -1006,7 +1017,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     <Tip text={"Priority " + PL[u.ps] + ". " + (u.ps === 1 ? "Needs immediate attention today." : u.ps === 2 ? "Address before end of day." : u.ps === 3 ? "Monitor and coach when time allows." : "Low urgency — check in periodically.")}><span style={{ fontSize: 8, fontWeight: 800, color: "#fff", background: PLC[u.ps], padding: "1px 6px", borderRadius: 3 }}>{PL[u.ps]}</span></Tip>
                     <TechDot u={u} tlOverrides={tlOverrides} setTlOverrides={setTlOverrides} />
                     <Tip text="Click to view this AA's full profile — stats, feature usage, and root cause."><span onClick={() => ss(u.id)} style={{ fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "underline", textDecorationColor: "#E2E8F0" }}>{u.n}</span></Tip>
-                    <Tip text={"Organization: " + (O.find((o) => o.id === u.org)?.n || "") + ". Day " + u.day + " in " + PN[u.ph] + " phase."}><span style={{ fontSize: 10, color: "#94A3B8" }}>{O.find((o) => o.id === u.org)?.n} D{u.day} {PN[u.ph]}</span></Tip>
+                    <Tip text={"Organization: " + (O.find((o) => o.id === u.org)?.n || "") + ". Day " + u.day + " in " + PN[u.ph] + " phase."}><span style={{ fontSize: 10, color: "#94A3B8", whiteSpace: "nowrap" }}>{O.find((o) => o.id === u.org)?.n} D{u.day} {PN[u.ph]}</span></Tip>
                     {u.ec >= 3 && <Tip text="This AA has been emailed 3 times with no response. STOP emailing — escalate to their Account Manager instead."><span style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 5px", borderRadius: 2, border: "1px solid #FECACA" }}>3-STRIKE</span></Tip>}
                     {!u.s.ck && <Tip text="This AA hasn't completed their daily iQ Check-In. No check-in = no coaching triggers fire. This is the first thing to fix."><span style={{ fontSize: 7, fontWeight: 800, color: "#EA580C", background: "#FFF7ED", padding: "1px 5px", borderRadius: 2, border: "1px solid #FED7AA" }}>NO CHECK-IN</span></Tip>}
                     <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
