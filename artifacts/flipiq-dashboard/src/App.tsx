@@ -1026,15 +1026,22 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <Tip text="Tasks you've already completed today. These AAs have been addressed."><div style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1, margin: "12px 0 4px" }}>Done ({fin.length})</div></Tip>
                 {fin.filter((u) => !taskSearch || u.n.toLowerCase().includes(taskSearch.toLowerCase())).map((u) => {
                   const a = done[u.id];
+                  const actionLabels = { call: "Phone Call", text: "Text Message", email: "Coaching Email", notify_am: "Notified AM", walkthrough: "Scheduled Walkthrough", other: "Other Action" };
+                  const todayStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
                   return (
-                    <div key={u.id} style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 7, padding: "7px 12px", marginBottom: 3, opacity: 0.55, borderLeft: "4px solid #CBD5E1" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <div style={{ width: 18, height: 18, borderRadius: 4, background: "#10B981", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 10, fontWeight: 800 }}>&#10003;</div>
-                        <span onClick={() => ss(u.id)} style={{ fontSize: 11, fontWeight: 600, color: "#64748B", textDecoration: "line-through", cursor: "pointer" }}>{u.n}</span>
-                        <span style={{ fontSize: 8, fontWeight: 600, color: "#10B981", background: "#ECFDF5", padding: "1px 5px", borderRadius: 2 }}>{a.type}</span>
-                        {a.note && <span style={{ fontSize: 8, color: "#64748B", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.note}</span>}
-                        <span style={{ fontSize: 8, color: "#94A3B8", marginLeft: "auto" }}>{a.time}</span>
+                    <div key={u.id} style={{ background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 7, padding: "10px 14px", marginBottom: 4, borderLeft: "4px solid #10B981" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: a.note ? 4 : 0 }}>
+                        <div style={{ width: 18, height: 18, borderRadius: 4, background: "#10B981", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 10, fontWeight: 800, flexShrink: 0 }}>&#10003;</div>
+                        <span onClick={() => ss(u.id)} style={{ fontSize: 12, fontWeight: 600, color: "#334155", cursor: "pointer" }}>{u.n}</span>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: "#10B981", background: "#ECFDF5", padding: "2px 8px", borderRadius: 3 }}>{actionLabels[a.type] || a.type}</span>
+                        <span style={{ fontSize: 10, color: "#64748B", marginLeft: "auto", flexShrink: 0 }}>{todayStr}</span>
+                        <span style={{ fontSize: 10, color: "#94A3B8", flexShrink: 0 }}>{a.time}</span>
                       </div>
+                      {a.note && (
+                        <div style={{ marginLeft: 24, fontSize: 11, color: "#64748B", background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 5, padding: "5px 10px", lineHeight: 1.5 }}>
+                          <span style={{ fontSize: 9, fontWeight: 700, color: "#94A3B8", marginRight: 6 }}>NOTE:</span>{a.note}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -1330,8 +1337,36 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               );
             })}
 
+            {Object.keys(done).length > 0 && (
+              <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, padding: "14px 18px", marginTop: 10 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}><Tip text="Actions you've taken today from the Overview task list. Shows what was done, when, and any notes.">Actions Taken Today</Tip></div>
+                <div style={{ fontSize: 12, color: "#64748B", marginBottom: 10 }}>
+                  <b style={{ color: "#10B981" }}>{Object.keys(done).length}</b> tasks completed today
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "70px 60px 1fr 120px 1fr", padding: "5px 10px", background: "#F8FAFB", borderRadius: "6px 6px 0 0", border: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>
+                  <div>Date</div><div>Time</div><div>AA</div><div>Action</div><div>Notes</div>
+                </div>
+                <div style={{ border: "1px solid #E2E8F0", borderTop: "none", borderRadius: "0 0 6px 6px" }}>
+                  {Object.entries(done).map(([uid, a], i) => {
+                    const u = U.find((x) => x.id === +uid);
+                    const actionLabels = { call: "Phone Call", text: "Text Message", email: "Coaching Email", notify_am: "Notified AM", walkthrough: "Walkthrough", other: "Other" };
+                    const todayStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                    return (
+                      <div key={uid} style={{ display: "grid", gridTemplateColumns: "70px 60px 1fr 120px 1fr", padding: "6px 10px", borderTop: i > 0 ? "1px solid #F1F5F9" : "none", fontSize: 11, alignItems: "center" }}>
+                        <div style={{ color: "#64748B" }}>{todayStr}</div>
+                        <div style={{ color: "#94A3B8", fontSize: 10 }}>{a.time}</div>
+                        <div style={{ fontWeight: 600, color: "#334155" }}>{u?.n || "Unknown"}</div>
+                        <div><span style={{ fontSize: 9, fontWeight: 700, color: "#10B981", background: "#ECFDF5", padding: "2px 7px", borderRadius: 3 }}>{actionLabels[a.type] || a.type}</span></div>
+                        <div style={{ fontSize: 10, color: "#64748B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.note || "—"}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 10, padding: "14px 18px", marginTop: 10 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}><Tip text="Complete log of all coaching emails sent across all AAs. Shows what was sent, when, and to whom.">Communication Log</Tip></div>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}><Tip text="Complete log of all coaching emails sent across all AAs. Shows what was sent, when, and to whom.">All Emails</Tip></div>
               <div style={{ fontSize: 12, color: "#64748B", marginBottom: 10 }}>
                 <b style={{ color: "#F97316" }}>{fU.reduce((s, u) => s + u.ec, 0)}</b> total emails sent &middot; <b style={{ color: "#DC2626" }}>{fU.filter((u) => u.ec >= 3).length}</b> AAs at 3-strike
               </div>
