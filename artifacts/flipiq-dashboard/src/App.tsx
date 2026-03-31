@@ -751,6 +751,74 @@ export default function App() {
   const [trPriFilter, setTrPriFilter] = useState("");
   const [trTrigFilter, setTrTrigFilter] = useState("");
   const [trSearch, setTrSearch] = useState("");
+  const [triggerData, setTriggerData] = useState([
+    {n:1,cat:"Today's Plan",act:"iQ Check-In (respond to daily morning prompt)",cn:"Daily Engagement",ph:"Phase 1",where:"iQ Assistant / Sidebar",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"",noAfter:"No"},
+    {n:2,cat:"Today's Plan",act:"Report blockers or time constraints to iQ",cn:"Property Follow Through",ph:"Phase 1",where:"iQ Assistant",freq:"Daily",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",noAfter:"No"},
+    {n:3,cat:"Today's Plan",act:"Open Deal Review",cn:"Agent Relationships",ph:"Phase 1",where:"Today's Plan → Deal Review",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"deal-review-opened",noAfter:"No"},
+    {n:4,cat:"Today's Plan",act:"Review Critical Calls",cn:"Daily Engagement",ph:"Phase 1",where:"Deal Review",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"critical-reviewed",noAfter:"No"},
+    {n:5,cat:"Today's Plan",act:"No Properties in the priorities (high, med, low =0)",cn:"Daily Engagement",ph:"Phase 1",where:"",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"no-priority-deals",noAfter:"No"},
+    {n:5,cat:"Today's Plan",act:"Review High Priority Deals",cn:"Daily Engagement",ph:"Phase 1",where:"Deal Review",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"high-priority-deals-reviewed",noAfter:"No"},
+    {n:6,cat:"Today's Plan",act:"Review Medium Priority Deals",cn:"Daily Engagement",ph:"Phase 1",where:"Deal Review",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"medium-priority-deals-reviewed",noAfter:"No"},
+    {n:7,cat:"Today's Plan",act:"Review Low Priority Deals",cn:"Daily Engagement",ph:"Phase 1",where:"Deal Review",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Weekly",evt:"low-priority-deals-reviewed",noAfter:"No"},
+    {n:8,cat:"Today's Plan",act:"Process New Deals (review & categorize)",cn:"Daily Engagement",ph:"Phase 1",where:"Deal Review → New Deals",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"new-deals-reviewed",noAfter:"No"},
+    {n:9,cat:"Today's Plan",act:"Open Daily Outreach",cn:"Daily Engagement",ph:"Phase 1",where:"Today's Plan → Daily Outreach",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"daily-outreach-opened",noAfter:"No"},
+    {n:10,cat:"Today's Plan",act:"Call agents from Daily Outreach list",cn:"Daily Engagement",ph:"Phase 1",where:"Daily Outreach",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"priority-agents-called",noAfter:"No"},
+    {n:11,cat:"Today's Plan",act:"Open My Active Deals",cn:"Daily Engagement",ph:"Phase 1",where:"Today's Plan → My Active Deals",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"active-deals-opened",noAfter:"No"},
+    {n:12,cat:"Find Deals",act:"Open MLS Hot Deals",cn:"Daily Engagement",ph:"Phase 2",where:"Find Deals → MLS Hot Deals",freq:"Daily",pri:"Critical",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"mls-hot-deals-opened",noAfter:"No"},
+    {n:13,cat:"Find Deals",act:"Filter MLS Hot Deals (Price, DOM, PTFV%, Propensity, Keywords)",cn:"Daily Engagement",ph:"Phase 2",where:"MLS Hot Deals Filters",freq:"Daily",pri:"Critical",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"mls-hot-deals-filtered",noAfter:"No"},
+    {n:14,cat:"Find Deals",act:"Open MLS Search",cn:"Daily Engagement",ph:"Phase 2",where:"Find Deals → MLS Search",freq:"Daily",pri:"Critical",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"mls-search-opened",noAfter:"No"},
+    {n:15,cat:"Find Deals",act:"Apply MLS Search filters",cn:"Daily Engagement",ph:"Phase 2",where:"MLS Search",freq:"Daily",pri:"Standard",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"mls-search-filters-applied",noAfter:"No"},
+    {n:16,cat:"Find Deals",act:"Save a filter (create 'Daily Money Filter')",cn:"Daily Engagement",ph:"Phase 2",where:"MLS Search / Hot Deals",freq:"Daily",pri:"Standard",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"mls-search-filter-saved",noAfter:"No"},
+    {n:17,cat:"Find Deals",act:"Open Agent Search",cn:"Agent Relationships",ph:"Phase 3",where:"Find Deals → Agent Search",freq:"Daily",pri:"Critical",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"agent-search-opened",noAfter:"No"},
+    {n:18,cat:"Find Deals",act:"Search/filter agents",cn:"Agent Relationships",ph:"Phase 3",where:"Agent Search",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"agent-search-filtered",noAfter:"No"},
+    {n:19,cat:"Find Deals",act:"Open Agent Profile (deep dive)",cn:"Agent Relationships",ph:"Phase 3",where:"Agent Search → Agent Profile",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"1 Month Only Per User",trigFreq:"At Least 5 times in 2 days",evt:"agent-profile-opened",noAfter:"No"},
+    {n:20,cat:"Communication",act:"Send a text message to agent",cn:"Agent Relationships",ph:"Phase 2",where:"Agent Profile → Send Text",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"text-sent-to-agent",noAfter:"No"},
+    {n:21,cat:"Communication",act:"Send an email to agent",cn:"Agent Relationships",ph:"Phase 2",where:"Agent Profile → Send Email",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"email-sent-to-agent",noAfter:"No"},
+    {n:22,cat:"Communication",act:"Make a call to an agent via Dialpad",cn:"Agent Relationships",ph:"Phase 2",where:"Agent Profile → Call",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"call-made-to-agent",noAfter:"No"},
+    {n:23,cat:"Communication",act:"Send a bulk email campaign",cn:"Agent Relationships",ph:"Phase 3",where:"Tools → Bulk Email",freq:"Weekly",pri:"Standard",trig:"Yes",actFor:"1 Month Only Per User",trigFreq:"At Least 2 times in 5 days",evt:"bulk-email-sent",noAfter:"No"},
+    {n:24,cat:"Communication",act:"Text from property (send text about a specific deal)",cn:"Agent Relationships",ph:"Phase 2",where:"Property Card → Text Agent",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"text-from-property",noAfter:"No"},
+    {n:25,cat:"Communication",act:"Email from property",cn:"Agent Relationships",ph:"Phase 2",where:"Property Card → Email Agent",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"email-from-property",noAfter:"No"},
+    {n:26,cat:"Communication",act:"Call from property",cn:"Agent Relationships",ph:"Phase 2",where:"Property Card → Call Agent",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"call-from-property",noAfter:"No"},
+    {n:27,cat:"Communication",act:"View Communication Log",cn:"Agent Relationships",ph:"Phase 2",where:"Agent Profile → Comm Log",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",noAfter:"No"},
+    {n:28,cat:"Communication",act:"View Agent Communication History",cn:"Agent Relationships",ph:"Phase 2",where:"Agent Card → History Tab",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",noAfter:"No"},
+    {n:29,cat:"Communication",act:"Open Daily Outreach",cn:"Daily Engagement",ph:"Phase 1",where:"Today's Plan → Daily Outreach",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"daily-outreach-opened",noAfter:"No"},
+    {n:30,cat:"Communication",act:"Call agents from Daily Outreach list",cn:"Daily Engagement",ph:"Phase 1",where:"Daily Outreach",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"priority-agents-called",noAfter:"No"},
+    {n:31,cat:"Property Actions",act:"Open a Property Detail Page",cn:"Property Follow Through",ph:"Phase 1",where:"My Active Deals → Property",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"property-detail-opened",noAfter:"No"},
+    {n:32,cat:"Property Actions",act:"Add notes to a property",cn:"Property Follow Through",ph:"Phase 1",where:"Property → Notes Section",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"property-note-added",noAfter:"No"},
+    {n:33,cat:"Property Actions",act:"Update deal stage (Prospect → LOI → Contract → Closed)",cn:"Property Follow Through",ph:"Phase 1",where:"Property → Deal Stage Dropdown",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"deal-stage-updated",noAfter:"No"},
+    {n:34,cat:"Property Actions",act:"Upload documents to a property",cn:"Property Follow Through",ph:"Phase 1",where:"Property → Documents Tab",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",noAfter:"No"},
+    {n:35,cat:"Property Actions",act:"Assign agent to a property",cn:"Agent Relationships",ph:"Phase 1",where:"Property → Agent Assignment",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"At Least 2 times in 5 days",evt:"agent-assigned-to-property",noAfter:"No"},
+    {n:36,cat:"Property Actions",act:"View property on map",cn:"Property Follow Through",ph:"Phase 1",where:"Property → Map View",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",noAfter:"No"},
+    {n:37,cat:"Property Actions",act:"View Street View of property",cn:"Property Follow Through",ph:"Phase 1",where:"Property → Street View",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",noAfter:"No"},
+    {n:38,cat:"Property Actions",act:"Open property Quick Links",cn:"Property Follow Through",ph:"Phase 1",where:"Property Card → Quick Links",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",noAfter:"No"},
+    {n:39,cat:"Property Actions",act:"Filter properties by status",cn:"Property Follow Through",ph:"Phase 1",where:"My Active Deals → Filters",freq:"Daily",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",noAfter:"No"},
+    {n:40,cat:"Property Actions",act:"Change Priority on a deal (High / Med / Low)",cn:"Property Follow Through",ph:"Phase 1",where:"Property / Deal Review → Priority",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"deal-priority-changed",noAfter:"No"},
+    {n:41,cat:"Property Actions",act:"Add a Property (manually via MLS # or form)",cn:"Property Follow Through",ph:"Phase 1",where:"My Active Deals → Add Property",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"Only once",trigFreq:"At Least 2 times in 5 days",evt:"property-added-manually",noAfter:"No"},
+    {n:42,cat:"Property Actions",act:"Set 'To Do' on a property",cn:"Property Follow Through",ph:"Phase 1",where:"Property Card → To Do",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"todo-set-on-property",noAfter:"No"},
+    {n:43,cat:"Property Actions",act:"Add to Favorites",cn:"",ph:"Phase 1",where:"Agent / Property → Add to Favorites",freq:"Weekly",pri:"Standard",trig:"No",actFor:"",trigFreq:"N/A",evt:"",noAfter:"No"},
+    {n:44,cat:"Property Actions",act:"Filter by Agent Deals",cn:"Agent Relationships",ph:"Phase 1",where:"Agent Card → Filter by Agent Deals",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least 2 times in 5 days",evt:"filter-by-agent-deals",noAfter:"No"},
+    {n:45,cat:"Property Actions",act:"Set Follow-Up reminder Follow Up Status",cn:"Agent Relationships",ph:"Phase 1",where:"Property → Follow Up",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least 2 times in 5 days",evt:"follow-up-reminder-set",noAfter:"No"},
+    {n:46,cat:"Analysis",act:"Open PIQ Detail View",cn:"Property Follow Through",ph:"Phase 1",where:"Detailed Analysis → PIQ",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least Twice in 2 days",evt:"",noAfter:"No"},
+    {n:47,cat:"Analysis",act:"View Comps Map",cn:"Property Follow Through",ph:"Phase 1",where:"Detailed Analysis → Comps → Map",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least Twice in 2 days",evt:"comps-map-viewed",noAfter:"No"},
+    {n:48,cat:"Analysis",act:"View Comps Matrix",cn:"Property Follow Through",ph:"Phase 1",where:"Detailed Analysis → Comps → Matrix",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least Twice in 2 days",evt:"comps-matrix-viewed",noAfter:"No"},
+    {n:49,cat:"Analysis",act:"View Comps List",cn:"Property Follow Through",ph:"Phase 1",where:"Detailed Analysis → Comps → List",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least Twice in 2 days",evt:"comps-list-viewed",noAfter:"No"},
+    {n:50,cat:"Analysis",act:"Run Investment Analysis (calculate button click)",cn:"Property Follow Through",ph:"Phase 1",where:"Detailed Analysis → Investment Analysis",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least Twice in 2 days",evt:"investment-analysis-run",noAfter:"No"},
+    {n:51,cat:"Offers",act:"Open Offer Terms",cn:"Property Follow Through",ph:"Phase 1",where:"Offer Section → Offer Terms",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"offer-terms-opened",noAfter:"No"},
+    {n:52,cat:"Offers",act:"Submit a Contract (Email Only)",cn:"Property Follow Through",ph:"Phase 1",where:"Offer Section → Contract Submission",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"contract-submitted",noAfter:"No"},
+    {n:53,cat:"Offers",act:"Update Negotiation Status",cn:"Property Follow Through",ph:"Phase 1",where:"Offer Section → Negotiation Updates",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"negotiation-status-updated",noAfter:"No"},
+    {n:54,cat:"Offers",act:"Review daily offer count vs. goal",cn:"Property Follow Through",ph:"Phase 1",where:"Deal Review → Daily Offer Goal tracker",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"Every Working Day - Not a Trigger",evt:"",noAfter:"No"},
+    {n:55,cat:"Tools & Reporting",act:"Open My Stats (calls, texts, emails, offers)",cn:"Daily Engagement",ph:"Phase 1",where:"Tools → My Stats",freq:"Daily",pri:"Standard",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"my-stats-opened",noAfter:"No"},
+    {n:56,cat:"Tools & Reporting",act:"Open DispoPro (market an accepted deal)",cn:"Daily Engagement",ph:"Phase 1",where:"Tools → DispoPro",freq:"Weekly",pri:"Standard",trig:"Yes",actFor:"",trigFreq:"At Least 2 times in 5 days",evt:"dispopro-opened",noAfter:"No"},
+    {n:57,cat:"Tools & Reporting",act:"Open Quick Links on a property",cn:"Property Follow Through",ph:"Phase 1",where:"Property Card → Quick Links",freq:"Weekly",pri:"Standard",trig:"No",actFor:"",trigFreq:"At Least 2 times in 5 days",evt:"quick-link-opened",noAfter:"No"},
+    {n:58,cat:"Tools & Reporting",act:"Log into system (daily login)",cn:"Daily Engagement",ph:"Phase 1",where:"Login",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"",noAfter:"Yes"},
+    {n:59,cat:"Tools & Reporting",act:"Practice a call (Script Practice Mode)",cn:"",ph:"",where:"Script Practice",freq:"As Needed",pri:"Standard",trig:"No",actFor:"",trigFreq:"N/A",evt:"",noAfter:"No"},
+    {n:60,cat:"Tools & Reporting",act:"Review post-call feedback",cn:"",ph:"",where:"Post-Call Feedback System",freq:"As Needed",pri:"Standard",trig:"No",actFor:"",trigFreq:"N/A",evt:"",noAfter:"No"},
+    {n:61,cat:"Tools & Reporting",act:"Review End-of-Day Stats Report",cn:"",ph:"",where:"End-of-Day Report",freq:"Daily",pri:"Standard",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"",noAfter:"No"},
+  ]);
+  const [trEditIdx, setTrEditIdx] = useState<number | null>(null);
+  const [trEditRow, setTrEditRow] = useState<any>(null);
+  const [trAddMode, setTrAddMode] = useState(false);
+  const [trNewRow, setTrNewRow] = useState<any>(null);
   const [blockedCats, setBlockedCats] = useState({});
   const [blockEdit, setBlockEdit] = useState(null);
   const [blockNote, setBlockNote] = useState("");
@@ -1542,89 +1610,52 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         })()}
 
         {tab === "triggers" && !sel && !eV && (() => {
-          const TRD = [
-            {n:1,cat:"Today's Plan",act:"iQ Check-In (respond to daily morning prompt)",cn:"Daily Engagement",ph:"Phase 1",where:"iQ Assistant / Sidebar",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"",url:"",noAfter:"No"},
-            {n:2,cat:"Today's Plan",act:"Report blockers or time constraints to iQ",cn:"Property Follow Through",ph:"Phase 1",where:"iQ Assistant",freq:"Daily",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",url:"",noAfter:"No"},
-            {n:3,cat:"Today's Plan",act:"Open Deal Review",cn:"Agent Relationships",ph:"Phase 1",where:"Today's Plan → Deal Review",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"deal-review-opened",url:"",noAfter:"No"},
-            {n:4,cat:"Today's Plan",act:"Review Critical Calls",cn:"Daily Engagement",ph:"Phase 1",where:"Deal Review",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"critical-reviewed",url:"",noAfter:"No"},
-            {n:5,cat:"Today's Plan",act:"No Properties in the priorities (high, med, low =0)",cn:"Daily Engagement",ph:"Phase 1",where:"",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"no-priority-deals",url:"",noAfter:"No"},
-            {n:5,cat:"Today's Plan",act:"Review High Priority Deals",cn:"Daily Engagement",ph:"Phase 1",where:"Deal Review",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"high-priority-deals-reviewed",url:"",noAfter:"No"},
-            {n:6,cat:"Today's Plan",act:"Review Medium Priority Deals",cn:"Daily Engagement",ph:"Phase 1",where:"Deal Review",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"medium-priority-deals-reviewed",url:"",noAfter:"No"},
-            {n:7,cat:"Today's Plan",act:"Review Low Priority Deals",cn:"Daily Engagement",ph:"Phase 1",where:"Deal Review",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Weekly",evt:"low-priority-deals-reviewed",url:"",noAfter:"No"},
-            {n:8,cat:"Today's Plan",act:"Process New Deals (review & categorize)",cn:"Daily Engagement",ph:"Phase 1",where:"Deal Review → New Deals",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"new-deals-reviewed",url:"",noAfter:"No"},
-            {n:9,cat:"Today's Plan",act:"Open Daily Outreach",cn:"Daily Engagement",ph:"Phase 1",where:"Today's Plan → Daily Outreach",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"daily-outreach-opened",url:"",noAfter:"No"},
-            {n:10,cat:"Today's Plan",act:"Call agents from Daily Outreach list",cn:"Daily Engagement",ph:"Phase 1",where:"Daily Outreach",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"priority-agents-called",url:"",noAfter:"No"},
-            {n:11,cat:"Today's Plan",act:"Open My Active Deals",cn:"Daily Engagement",ph:"Phase 1",where:"Today's Plan → My Active Deals",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"active-deals-opened",url:"https://devcommand.flipiq.com/dashboard-modified?deals",noAfter:"No"},
-            {n:12,cat:"Find Deals",act:"Open MLS Hot Deals",cn:"Daily Engagement",ph:"Phase 2",where:"Find Deals → MLS Hot Deals",freq:"Daily",pri:"Critical",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"mls-hot-deals-opened",url:"",noAfter:"No"},
-            {n:13,cat:"Find Deals",act:"Filter MLS Hot Deals (Price, DOM, PTFV%, Propensity, Keywords)",cn:"Daily Engagement",ph:"Phase 2",where:"MLS Hot Deals Filters",freq:"Daily",pri:"Critical",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"mls-hot-deals-filtered",url:"",noAfter:"No"},
-            {n:14,cat:"Find Deals",act:"Open MLS Search",cn:"Daily Engagement",ph:"Phase 2",where:"Find Deals → MLS Search",freq:"Daily",pri:"Critical",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"mls-search-opened",url:"",noAfter:"No"},
-            {n:15,cat:"Find Deals",act:"Apply MLS Search filters",cn:"Daily Engagement",ph:"Phase 2",where:"MLS Search",freq:"Daily",pri:"Standard",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"mls-search-filters-applied",url:"",noAfter:"No"},
-            {n:16,cat:"Find Deals",act:"Save a filter (create 'Daily Money Filter')",cn:"Daily Engagement",ph:"Phase 2",where:"MLS Search / Hot Deals",freq:"Daily",pri:"Standard",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"mls-search-filter-saved",url:"",noAfter:"No"},
-            {n:17,cat:"Find Deals",act:"Open Agent Search",cn:"Agent Relationships",ph:"Phase 3",where:"Find Deals → Agent Search",freq:"Daily",pri:"Critical",trig:"No",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"agent-search-opened",url:"",noAfter:"No"},
-            {n:18,cat:"Find Deals",act:"Search/filter agents",cn:"Agent Relationships",ph:"Phase 3",where:"Agent Search",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"agent-search-filtered",url:"",noAfter:"No"},
-            {n:19,cat:"Find Deals",act:"Open Agent Profile (deep dive)",cn:"Agent Relationships",ph:"Phase 3",where:"Agent Search → Agent Profile",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"1 Month Only Per User",trigFreq:"At Least 5 times in 2 days",evt:"agent-profile-opened",url:"",noAfter:"No"},
-            {n:20,cat:"Communication",act:"Send a text message to agent",cn:"Agent Relationships",ph:"Phase 2",where:"Agent Profile → Send Text",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"text-sent-to-agent",url:"",noAfter:"No"},
-            {n:21,cat:"Communication",act:"Send an email to agent",cn:"Agent Relationships",ph:"Phase 2",where:"Agent Profile → Send Email",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"email-sent-to-agent",url:"",noAfter:"No"},
-            {n:22,cat:"Communication",act:"Make a call to an agent via Dialpad",cn:"Agent Relationships",ph:"Phase 2",where:"Agent Profile → Call",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"call-made-to-agent",url:"",noAfter:"No"},
-            {n:23,cat:"Communication",act:"Send a bulk email campaign",cn:"Agent Relationships",ph:"Phase 3",where:"Tools → Bulk Email",freq:"Weekly",pri:"Standard",trig:"Yes",actFor:"1 Month Only Per User",trigFreq:"At Least 2 times in 5 days",evt:"bulk-email-sent",url:"",noAfter:"No"},
-            {n:24,cat:"Communication",act:"Text from property (send text about a specific deal)",cn:"Agent Relationships",ph:"Phase 2",where:"Property Card → Text Agent",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"text-from-property",url:"",noAfter:"No"},
-            {n:25,cat:"Communication",act:"Email from property",cn:"Agent Relationships",ph:"Phase 2",where:"Property Card → Email Agent",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"email-from-property",url:"",noAfter:"No"},
-            {n:26,cat:"Communication",act:"Call from property",cn:"Agent Relationships",ph:"Phase 2",where:"Property Card → Call Agent",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"call-from-property",url:"",noAfter:"No"},
-            {n:27,cat:"Communication",act:"View Communication Log",cn:"Agent Relationships",ph:"Phase 2",where:"Agent Profile → Comm Log",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",url:"",noAfter:"No"},
-            {n:28,cat:"Communication",act:"View Agent Communication History",cn:"Agent Relationships",ph:"Phase 2",where:"Agent Card → History Tab",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",url:"",noAfter:"No"},
-            {n:29,cat:"Communication",act:"Open Daily Outreach",cn:"Daily Engagement",ph:"Phase 1",where:"Today's Plan → Daily Outreach",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"daily-outreach-opened",url:"",noAfter:"No"},
-            {n:30,cat:"Communication",act:"Call agents from Daily Outreach list",cn:"Daily Engagement",ph:"Phase 1",where:"Daily Outreach",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"priority-agents-called",url:"",noAfter:"No"},
-            {n:31,cat:"Property Actions",act:"Open a Property Detail Page",cn:"Property Follow Through",ph:"Phase 1",where:"My Active Deals → Property",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"property-detail-opened",url:"",noAfter:"No"},
-            {n:32,cat:"Property Actions",act:"Add notes to a property",cn:"Property Follow Through",ph:"Phase 1",where:"Property → Notes Section",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"property-note-added",url:"",noAfter:"No"},
-            {n:33,cat:"Property Actions",act:"Update deal stage (Prospect → LOI → Contract → Closed)",cn:"Property Follow Through",ph:"Phase 1",where:"Property → Deal Stage Dropdown",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"deal-stage-updated",url:"",noAfter:"No"},
-            {n:34,cat:"Property Actions",act:"Upload documents to a property",cn:"Property Follow Through",ph:"Phase 1",where:"Property → Documents Tab",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",url:"",noAfter:"No"},
-            {n:35,cat:"Property Actions",act:"Assign agent to a property",cn:"Agent Relationships",ph:"Phase 1",where:"Property → Agent Assignment",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"At Least 2 times in 5 days",evt:"agent-assigned-to-property",url:"",noAfter:"No"},
-            {n:36,cat:"Property Actions",act:"View property on map",cn:"Property Follow Through",ph:"Phase 1",where:"Property → Map View",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",url:"",noAfter:"No"},
-            {n:37,cat:"Property Actions",act:"View Street View of property",cn:"Property Follow Through",ph:"Phase 1",where:"Property → Street View",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",url:"",noAfter:"No"},
-            {n:38,cat:"Property Actions",act:"Open property Quick Links",cn:"Property Follow Through",ph:"Phase 1",where:"Property Card → Quick Links",freq:"Weekly",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",url:"",noAfter:"No"},
-            {n:39,cat:"Property Actions",act:"Filter properties by status",cn:"Property Follow Through",ph:"Phase 1",where:"My Active Deals → Filters",freq:"Daily",pri:"Standard",trig:"No",actFor:"N/A",trigFreq:"N/A",evt:"",url:"",noAfter:"No"},
-            {n:40,cat:"Property Actions",act:"Change Priority on a deal (High / Med / Low)",cn:"Property Follow Through",ph:"Phase 1",where:"Property / Deal Review → Priority",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"Ongoing",trigFreq:"Every Working Day",evt:"deal-priority-changed",url:"",noAfter:"No"},
-            {n:41,cat:"Property Actions",act:"Add a Property (manually via MLS # or form)",cn:"Property Follow Through",ph:"Phase 1",where:"My Active Deals → Add Property",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"Only once",trigFreq:"At Least 2 times in 5 days",evt:"property-added-manually",url:"",noAfter:"No"},
-            {n:42,cat:"Property Actions",act:"Set 'To Do' on a property",cn:"Property Follow Through",ph:"Phase 1",where:"Property Card → To Do",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"1 Month Only Per User",trigFreq:"At Least Twice in 2 days",evt:"todo-set-on-property",url:"",noAfter:"No"},
-            {n:43,cat:"Property Actions",act:"Add to Favorites",cn:"",ph:"Phase 1",where:"Agent / Property → Add to Favorites",freq:"Weekly",pri:"Standard",trig:"No",actFor:"",trigFreq:"N/A",evt:"",url:"",noAfter:"No"},
-            {n:44,cat:"Property Actions",act:"Filter by Agent Deals",cn:"Agent Relationships",ph:"Phase 1",where:"Agent Card → Filter by Agent Deals",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least 2 times in 5 days",evt:"filter-by-agent-deals",url:"",noAfter:"No"},
-            {n:45,cat:"Property Actions",act:"Set Follow-Up reminder Follow Up Status",cn:"Agent Relationships",ph:"Phase 1",where:"Property → Follow Up",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least 2 times in 5 days",evt:"follow-up-reminder-set",url:"",noAfter:"No"},
-            {n:46,cat:"Analysis",act:"Open PIQ Detail View",cn:"Property Follow Through",ph:"Phase 1",where:"Detailed Analysis → PIQ",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least Twice in 2 days",evt:"",url:"",noAfter:"No"},
-            {n:47,cat:"Analysis",act:"View Comps Map",cn:"Property Follow Through",ph:"Phase 1",where:"Detailed Analysis → Comps → Map",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least Twice in 2 days",evt:"comps-map-viewed",url:"",noAfter:"No"},
-            {n:48,cat:"Analysis",act:"View Comps Matrix",cn:"Property Follow Through",ph:"Phase 1",where:"Detailed Analysis → Comps → Matrix",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least Twice in 2 days",evt:"comps-matrix-viewed",url:"",noAfter:"No"},
-            {n:49,cat:"Analysis",act:"View Comps List",cn:"Property Follow Through",ph:"Phase 1",where:"Detailed Analysis → Comps → List",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least Twice in 2 days",evt:"comps-list-viewed",url:"",noAfter:"No"},
-            {n:50,cat:"Analysis",act:"Run Investment Analysis (calculate button click)",cn:"Property Follow Through",ph:"Phase 1",where:"Detailed Analysis → Investment Analysis",freq:"Weekly",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"At Least Twice in 2 days",evt:"investment-analysis-run",url:"",noAfter:"No"},
-            {n:51,cat:"Offers",act:"Open Offer Terms",cn:"Property Follow Through",ph:"Phase 1",where:"Offer Section → Offer Terms",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"offer-terms-opened",url:"",noAfter:"No"},
-            {n:52,cat:"Offers",act:"Submit a Contract (Email Only)",cn:"Property Follow Through",ph:"Phase 1",where:"Offer Section → Contract Submission",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"contract-submitted",url:"",noAfter:"No"},
-            {n:53,cat:"Offers",act:"Update Negotiation Status",cn:"Property Follow Through",ph:"Phase 1",where:"Offer Section → Negotiation Updates",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"negotiation-status-updated",url:"",noAfter:"No"},
-            {n:54,cat:"Offers",act:"Review daily offer count vs. goal",cn:"Property Follow Through",ph:"Phase 1",where:"Deal Review → Daily Offer Goal tracker",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"Every Working Day - Not a Trigger",evt:"",url:"",noAfter:"No"},
-            {n:55,cat:"Tools & Reporting",act:"Open My Stats (calls, texts, emails, offers)",cn:"Daily Engagement",ph:"Phase 1",where:"Tools → My Stats",freq:"Daily",pri:"Standard",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"my-stats-opened",url:"",noAfter:"No"},
-            {n:56,cat:"Tools & Reporting",act:"Open DispoPro (market an accepted deal)",cn:"Daily Engagement",ph:"Phase 1",where:"Tools → DispoPro",freq:"Weekly",pri:"Standard",trig:"Yes",actFor:"",trigFreq:"At Least 2 times in 5 days",evt:"dispopro-opened",url:"",noAfter:"No"},
-            {n:57,cat:"Tools & Reporting",act:"Open Quick Links on a property",cn:"Property Follow Through",ph:"Phase 1",where:"Property Card → Quick Links",freq:"Weekly",pri:"Standard",trig:"No",actFor:"",trigFreq:"At Least 2 times in 5 days",evt:"quick-link-opened",url:"",noAfter:"No"},
-            {n:58,cat:"Tools & Reporting",act:"Log into system (daily login)",cn:"Daily Engagement",ph:"Phase 1",where:"Login",freq:"Daily",pri:"Critical",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"",url:"",noAfter:"Yes"},
-            {n:59,cat:"Tools & Reporting",act:"Practice a call (Script Practice Mode)",cn:"",ph:"",where:"Script Practice",freq:"As Needed",pri:"Standard",trig:"No",actFor:"",trigFreq:"N/A",evt:"",url:"",noAfter:"No"},
-            {n:60,cat:"Tools & Reporting",act:"Review post-call feedback",cn:"",ph:"",where:"Post-Call Feedback System",freq:"As Needed",pri:"Standard",trig:"No",actFor:"",trigFreq:"N/A",evt:"",url:"",noAfter:"No"},
-            {n:61,cat:"Tools & Reporting",act:"Review End-of-Day Stats Report",cn:"",ph:"",where:"End-of-Day Report",freq:"Daily",pri:"Standard",trig:"Yes",actFor:"",trigFreq:"Every Working Day",evt:"",url:"",noAfter:"No"},
-          ];
+          const TRD = triggerData;
           const catColors: Record<string, string> = { "Today's Plan": "#F97316", "Find Deals": "#3B82F6", "Communication": "#8B5CF6", "Property Actions": "#10B981", "Analysis": "#0EA5E9", "Offers": "#EC4899", "Tools & Reporting": "#64748B" };
           const trCols = [
             { k: "n", l: "#", w: 30 },
             { k: "cat", l: "Category", w: 110 },
-            { k: "act", l: "Action", w: 260 },
-            { k: "cn", l: "Category Name", w: 130 },
+            { k: "act", l: "Action", w: 240 },
+            { k: "cn", l: "Category Name", w: 120 },
             { k: "ph", l: "Phase", w: 60 },
-            { k: "where", l: "Where It Happens", w: 180 },
+            { k: "where", l: "Where It Happens", w: 170 },
             { k: "freq", l: "Freq", w: 60 },
             { k: "pri", l: "Priority", w: 65 },
             { k: "trig", l: "Trigger", w: 50 },
-            { k: "actFor", l: "Activates For", w: 130 },
-            { k: "trigFreq", l: "Trigger Frequency", w: 170 },
-            { k: "evt", l: "Event Name", w: 170 },
-            { k: "noAfter", l: "No Triggers After", w: 55 },
+            { k: "actFor", l: "Activates For", w: 120 },
+            { k: "trigFreq", l: "Trigger Frequency", w: 160 },
+            { k: "evt", l: "Event Name", w: 160 },
+            { k: "noAfter", l: "No Trig After", w: 50 },
+            { k: "actions", l: "", w: 45 },
           ];
           const trW = trCols.reduce((s, c) => s + c.w, 0);
-          const fTRD = TRD.filter((r) => (!trCatFilter || r.cat === trCatFilter) && (!trPriFilter || r.pri === trPriFilter) && (!trTrigFilter || r.trig === trTrigFilter) && (!trSearch || r.act.toLowerCase().includes(trSearch.toLowerCase()) || r.evt.toLowerCase().includes(trSearch.toLowerCase())));
+          const fTRD = TRD.map((r, idx) => ({ ...r, _idx: idx })).filter((r) => (!trCatFilter || r.cat === trCatFilter) && (!trPriFilter || r.pri === trPriFilter) && (!trTrigFilter || r.trig === trTrigFilter) && (!trSearch || r.act.toLowerCase().includes(trSearch.toLowerCase()) || r.evt.toLowerCase().includes(trSearch.toLowerCase())));
           const cats = [...new Set(TRD.map((r) => r.cat))];
+          const allCats = ["Today's Plan", "Find Deals", "Communication", "Property Actions", "Analysis", "Offers", "Tools & Reporting"];
+          const emptyRow = { n: TRD.length + 1, cat: "Today's Plan", act: "", cn: "", ph: "Phase 1", where: "", freq: "Daily", pri: "Standard", trig: "No", actFor: "", trigFreq: "", evt: "", noAfter: "No" };
+          const editInputStyle = { fontSize: 8, padding: "2px 4px", border: "1px solid #F97316", borderRadius: 3, width: "100%", boxSizing: "border-box" as const };
+          const editSelectStyle = { fontSize: 8, padding: "1px 2px", border: "1px solid #F97316", borderRadius: 3, cursor: "pointer", appearance: "auto" as const };
+          const renderEditRow = (row: any, setRow: (r: any) => void, onSave: () => void, onCancel: () => void) => (
+            <div style={{ display: "grid", gridTemplateColumns: trCols.map((c) => c.w + "px").join(" "), padding: "6px 10px", borderBottom: "1px solid #FED7AA", background: "#FFFBF5", fontSize: 9, alignItems: "center", gap: 0 }}>
+              <div style={{ color: "#94A3B8", fontWeight: 600 }}>{row.n}</div>
+              <div><select value={row.cat} onChange={(e) => setRow({ ...row, cat: e.target.value })} style={editSelectStyle}>{allCats.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
+              <div><input value={row.act} onChange={(e) => setRow({ ...row, act: e.target.value })} placeholder="Action description..." style={editInputStyle} /></div>
+              <div><input value={row.cn} onChange={(e) => setRow({ ...row, cn: e.target.value })} placeholder="Category name..." style={editInputStyle} /></div>
+              <div><select value={row.ph} onChange={(e) => setRow({ ...row, ph: e.target.value })} style={editSelectStyle}><option value="">—</option><option value="Phase 1">Phase 1</option><option value="Phase 2">Phase 2</option><option value="Phase 3">Phase 3</option></select></div>
+              <div><input value={row.where} onChange={(e) => setRow({ ...row, where: e.target.value })} placeholder="Where..." style={editInputStyle} /></div>
+              <div><select value={row.freq} onChange={(e) => setRow({ ...row, freq: e.target.value })} style={editSelectStyle}><option value="Daily">Daily</option><option value="Weekly">Weekly</option><option value="As Needed">As Needed</option></select></div>
+              <div><select value={row.pri} onChange={(e) => setRow({ ...row, pri: e.target.value })} style={editSelectStyle}><option value="Critical">Critical</option><option value="Standard">Standard</option></select></div>
+              <div><select value={row.trig} onChange={(e) => setRow({ ...row, trig: e.target.value })} style={editSelectStyle}><option value="Yes">Yes</option><option value="No">No</option></select></div>
+              <div><input value={row.actFor} onChange={(e) => setRow({ ...row, actFor: e.target.value })} placeholder="Activates for..." style={editInputStyle} /></div>
+              <div><input value={row.trigFreq} onChange={(e) => setRow({ ...row, trigFreq: e.target.value })} placeholder="Trigger frequency..." style={editInputStyle} /></div>
+              <div><input value={row.evt} onChange={(e) => setRow({ ...row, evt: e.target.value })} placeholder="event-name" style={{ ...editInputStyle, fontFamily: "monospace" }} /></div>
+              <div><select value={row.noAfter} onChange={(e) => setRow({ ...row, noAfter: e.target.value })} style={editSelectStyle}><option value="No">No</option><option value="Yes">Yes</option></select></div>
+              <div style={{ display: "flex", gap: 3 }}>
+                <button onClick={onSave} style={{ fontSize: 8, fontWeight: 700, color: "#fff", background: "#10B981", border: "none", borderRadius: 3, padding: "2px 6px", cursor: "pointer" }}>Save</button>
+                <button onClick={onCancel} style={{ fontSize: 8, fontWeight: 600, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 3, padding: "2px 5px", cursor: "pointer" }}>✕</button>
+              </div>
+            </div>
+          );
           return (
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
               <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0" }}>
@@ -1633,7 +1664,10 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     <div style={{ fontSize: 14, fontWeight: 700 }}>Trigger Table</div>
                     <div style={{ fontSize: 10, color: "#94A3B8" }}>All {TRD.length} events and triggers — actions, phases, frequencies, and activation rules across {cats.length} categories.</div>
                   </div>
-                  <div style={{ fontSize: 11, color: fTRD.length < TRD.length ? "#F97316" : "#64748B", background: fTRD.length < TRD.length ? "#FFF7ED" : "#F1F5F9", padding: "4px 10px", borderRadius: 5, fontWeight: 600 }}>{fTRD.length} of {TRD.length}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ fontSize: 11, color: fTRD.length < TRD.length ? "#F97316" : "#64748B", background: fTRD.length < TRD.length ? "#FFF7ED" : "#F1F5F9", padding: "4px 10px", borderRadius: 5, fontWeight: 600 }}>{fTRD.length} of {TRD.length}</div>
+                    <button onClick={() => { setTrAddMode(true); setTrNewRow({ ...emptyRow }); setTrEditIdx(null); setTrEditRow(null); }} style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: "#F97316", border: "none", borderRadius: 5, padding: "5px 12px", cursor: "pointer" }}>+ Add new trigger</button>
+                  </div>
                 </div>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                   <input value={trSearch} onChange={(e) => setTrSearch(e.target.value)} placeholder="Search actions or events..." style={{ fontSize: 10, padding: "4px 10px", border: "1px solid #E2E8F0", borderRadius: 5, width: 200 }} />
@@ -1660,6 +1694,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     {trCols.map((c) => <div key={c.k}>{c.l}</div>)}
                   </div>
                   {fTRD.map((r, i) => (
+                    trEditIdx === r._idx ? renderEditRow(trEditRow, setTrEditRow, () => { setTriggerData((p) => p.map((row, idx) => idx === r._idx ? { ...trEditRow } : row)); setTrEditIdx(null); setTrEditRow(null); }, () => { setTrEditIdx(null); setTrEditRow(null); }) :
                     <div key={i} style={{ display: "grid", gridTemplateColumns: trCols.map((c) => c.w + "px").join(" "), padding: "6px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 9, alignItems: "center", gap: 0 }}>
                       <div style={{ color: "#94A3B8", fontWeight: 600 }}>{r.n}</div>
                       <div><span style={{ fontSize: 8, fontWeight: 700, color: catColors[r.cat] || "#64748B", background: (catColors[r.cat] || "#64748B") + "12", padding: "2px 6px", borderRadius: 3 }}>{r.cat}</span></div>
@@ -1674,8 +1709,10 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       <div style={{ color: "#64748B", fontSize: 8 }}>{r.trigFreq}</div>
                       <div style={{ fontFamily: "monospace", fontSize: 8, color: r.evt ? "#0369A1" : "#CBD5E1" }}>{r.evt || "—"}</div>
                       <div>{r.noAfter === "Yes" ? <span style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 5px", borderRadius: 2 }}>Yes</span> : <span style={{ fontSize: 8, color: "#CBD5E1" }}>No</span>}</div>
+                      <div><button onClick={() => { setTrEditIdx(r._idx); setTrEditRow({ ...r }); setTrAddMode(false); }} style={{ fontSize: 8, fontWeight: 600, color: "#F97316", background: "none", border: "1px solid #FED7AA", borderRadius: 3, padding: "2px 7px", cursor: "pointer" }}>Edit</button></div>
                     </div>
                   ))}
+                  {trAddMode && trNewRow && renderEditRow(trNewRow, setTrNewRow, () => { if (!trNewRow.act.trim()) return; setTriggerData((p) => [...p, { ...trNewRow, n: p.length + 1 }]); setTrAddMode(false); setTrNewRow(null); }, () => { setTrAddMode(false); setTrNewRow(null); })}
                 </div>
               </div>
             </div>
