@@ -1626,41 +1626,80 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             { k: "trigFreq", l: "Trigger Frequency", w: 160 },
             { k: "evt", l: "Event Name", w: 160 },
             { k: "noAfter", l: "No Trig After", w: 50 },
-            { k: "actions", l: "", w: 45 },
+            { k: "actions", l: "", w: 75 },
           ];
           const trW = trCols.reduce((s, c) => s + c.w, 0);
           const fTRD = TRD.map((r, idx) => ({ ...r, _idx: idx })).filter((r) => (!trCatFilter || r.cat === trCatFilter) && (!trPriFilter || r.pri === trPriFilter) && (!trTrigFilter || r.trig === trTrigFilter) && (!trSearch || r.act.toLowerCase().includes(trSearch.toLowerCase()) || r.evt.toLowerCase().includes(trSearch.toLowerCase())));
           const cats = [...new Set(TRD.map((r) => r.cat))];
           const allCats = ["Today's Plan", "Find Deals", "Communication", "Property Actions", "Analysis", "Offers", "Tools & Reporting"];
           const emptyRow = { n: TRD.length + 1, cat: "Today's Plan", act: "", cn: "", ph: "Phase 1", where: "", freq: "Daily", pri: "Standard", trig: "No", actFor: "", trigFreq: "", evt: "", noAfter: "No" };
-          const editInputStyle = { fontSize: 8, padding: "2px 4px", border: "1px solid #F97316", borderRadius: 3, width: "100%", boxSizing: "border-box" as const };
-          const editSelectStyle = { fontSize: 8, padding: "1px 2px", border: "1px solid #F97316", borderRadius: 3, cursor: "pointer", appearance: "auto" as const };
           const cnOpts = ["Daily Engagement", "Property Follow Through", "Agent Relationships"];
           const actForOpts = ["Ongoing", "1 Month Only Per User", "Only once", "N/A"];
           const trigFreqOpts = ["Every Working Day", "Weekly", "At Least Twice in 2 days", "At Least 2 times in 5 days", "At Least 5 times in 2 days", "Every Working Day - Not a Trigger", "N/A"];
-          const renderEditRow = (row: any, setRow: (r: any) => void, onSave: () => void, onCancel: () => void) => (
-            <div style={{ display: "grid", gridTemplateColumns: trCols.map((c) => c.w + "px").join(" "), padding: "6px 10px", borderBottom: "1px solid #FED7AA", background: "#FFFBF5", fontSize: 9, alignItems: "center", gap: 0 }}>
-              <div style={{ color: "#94A3B8", fontWeight: 600 }}>{row.n}</div>
-              <div><select value={row.cat} onChange={(e) => setRow({ ...row, cat: e.target.value })} style={editSelectStyle}>{allCats.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
-              <div><input value={row.act} onChange={(e) => setRow({ ...row, act: e.target.value })} placeholder="Action description..." style={editInputStyle} /></div>
-              <div><select value={row.cn} onChange={(e) => setRow({ ...row, cn: e.target.value })} style={editSelectStyle}><option value="">—</option>{cnOpts.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
-              <div><select value={row.ph} onChange={(e) => setRow({ ...row, ph: e.target.value })} style={editSelectStyle}><option value="">—</option><option value="Phase 1">Phase 1</option><option value="Phase 2">Phase 2</option><option value="Phase 3">Phase 3</option></select></div>
-              <div><input value={row.where} onChange={(e) => setRow({ ...row, where: e.target.value })} placeholder="Where..." style={editInputStyle} /></div>
-              <div><select value={row.freq} onChange={(e) => setRow({ ...row, freq: e.target.value })} style={editSelectStyle}><option value="Daily">Daily</option><option value="Weekly">Weekly</option><option value="As Needed">As Needed</option></select></div>
-              <div><select value={row.pri} onChange={(e) => setRow({ ...row, pri: e.target.value })} style={editSelectStyle}><option value="Critical">Critical</option><option value="Standard">Standard</option></select></div>
-              <div><select value={row.trig} onChange={(e) => setRow({ ...row, trig: e.target.value })} style={editSelectStyle}><option value="Yes">Yes</option><option value="No">No</option></select></div>
-              <div><select value={row.actFor} onChange={(e) => setRow({ ...row, actFor: e.target.value })} style={editSelectStyle}><option value="">—</option>{actForOpts.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
-              <div><select value={row.trigFreq} onChange={(e) => setRow({ ...row, trigFreq: e.target.value })} style={editSelectStyle}><option value="">—</option>{trigFreqOpts.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
-              <div><input value={row.evt} onChange={(e) => setRow({ ...row, evt: e.target.value })} placeholder="event-name" style={{ ...editInputStyle, fontFamily: "monospace" }} /></div>
-              <div><select value={row.noAfter} onChange={(e) => setRow({ ...row, noAfter: e.target.value })} style={editSelectStyle}><option value="No">No</option><option value="Yes">Yes</option></select></div>
-              <div style={{ display: "flex", gap: 3 }}>
-                <button onClick={onSave} style={{ fontSize: 8, fontWeight: 700, color: "#fff", background: "#10B981", border: "none", borderRadius: 3, padding: "2px 6px", cursor: "pointer" }}>Save</button>
-                <button onClick={onCancel} style={{ fontSize: 8, fontWeight: 600, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 3, padding: "2px 5px", cursor: "pointer" }}>✕</button>
-              </div>
-            </div>
-          );
+          const pIS = { fontSize: 11, padding: "6px 10px", border: "1px solid #E2E8F0", borderRadius: 5, width: "100%" } as const;
+          const pSS = { fontSize: 11, padding: "6px 10px", border: "1px solid #E2E8F0", borderRadius: 5, width: "100%", cursor: "pointer", appearance: "auto" as const };
+          const pLbl = { fontSize: 10, fontWeight: 600 as const, color: "#64748B", marginBottom: 3 };
+          const popupRow = trAddMode ? trNewRow : trEditRow;
+          const setPopupRow = trAddMode ? setTrNewRow : setTrEditRow;
+          const isPopupOpen = (trAddMode && trNewRow) || (trEditIdx !== null && trEditRow);
+          const moveRow = (idx: number, dir: -1 | 1) => {
+            const target = idx + dir;
+            if (target < 0 || target >= TRD.length) return;
+            setTriggerData((p) => {
+              const arr = [...p];
+              [arr[idx], arr[target]] = [arr[target], arr[idx]];
+              return arr.map((r, i) => ({ ...r, n: i + 1 }));
+            });
+          };
           return (
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
+              {isPopupOpen && <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.35)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => { setTrAddMode(false); setTrNewRow(null); setTrEditIdx(null); setTrEditRow(null); }}>
+                <div onClick={(e) => e.stopPropagation()} style={{ background: "#FFF", borderRadius: 12, padding: "24px 28px", width: 520, maxHeight: "85vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 16, color: "#1E293B" }}>{trAddMode ? "Add New Trigger" : "Edit Trigger"}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 14px" }}>
+                    <div><div style={pLbl}>Category</div><select value={popupRow?.cat || ""} onChange={(e) => setPopupRow({ ...popupRow, cat: e.target.value })} style={pSS}>{allCats.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
+                    <div><div style={pLbl}>Category Name</div><select value={popupRow?.cn || ""} onChange={(e) => setPopupRow({ ...popupRow, cn: e.target.value })} style={pSS}><option value="">—</option>{cnOpts.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
+                    <div style={{ gridColumn: "1 / -1" }}><div style={pLbl}>Action</div><input value={popupRow?.act || ""} onChange={(e) => setPopupRow({ ...popupRow, act: e.target.value })} placeholder="Describe the action..." style={pIS} /></div>
+                    <div><div style={pLbl}>Phase</div><select value={popupRow?.ph || ""} onChange={(e) => setPopupRow({ ...popupRow, ph: e.target.value })} style={pSS}><option value="">—</option><option value="Phase 1">Phase 1</option><option value="Phase 2">Phase 2</option><option value="Phase 3">Phase 3</option></select></div>
+                    <div><div style={pLbl}>Frequency</div><select value={popupRow?.freq || ""} onChange={(e) => setPopupRow({ ...popupRow, freq: e.target.value })} style={pSS}><option value="Daily">Daily</option><option value="Weekly">Weekly</option><option value="As Needed">As Needed</option></select></div>
+                    <div style={{ gridColumn: "1 / -1" }}><div style={pLbl}>Where It Happens</div><input value={popupRow?.where || ""} onChange={(e) => setPopupRow({ ...popupRow, where: e.target.value })} placeholder="e.g. Today's Plan → Deal Review" style={pIS} /></div>
+                    <div><div style={pLbl}>Priority</div><select value={popupRow?.pri || ""} onChange={(e) => setPopupRow({ ...popupRow, pri: e.target.value })} style={pSS}><option value="Critical">Critical</option><option value="Standard">Standard</option></select></div>
+                    <div><div style={pLbl}>Trigger Needed</div><select value={popupRow?.trig || ""} onChange={(e) => setPopupRow({ ...popupRow, trig: e.target.value })} style={pSS}><option value="Yes">Yes</option><option value="No">No</option></select></div>
+                    <div><div style={pLbl}>Activates For</div><select value={popupRow?.actFor || ""} onChange={(e) => setPopupRow({ ...popupRow, actFor: e.target.value })} style={pSS}><option value="">—</option>{actForOpts.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
+                    <div><div style={pLbl}>Trigger Frequency</div><select value={popupRow?.trigFreq || ""} onChange={(e) => setPopupRow({ ...popupRow, trigFreq: e.target.value })} style={pSS}><option value="">—</option>{trigFreqOpts.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
+                    <div><div style={pLbl}>Event Name</div><input value={popupRow?.evt || ""} onChange={(e) => setPopupRow({ ...popupRow, evt: e.target.value })} placeholder="event-slug-name" style={{ ...pIS, fontFamily: "monospace" }} /></div>
+                    <div><div style={pLbl}>No Triggers After</div><select value={popupRow?.noAfter || "No"} onChange={(e) => setPopupRow({ ...popupRow, noAfter: e.target.value })} style={pSS}><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                  </div>
+                  <div style={{ display: "flex", gap: 10, marginTop: 18, justifyContent: "flex-end" }}>
+                    <button onClick={() => { setTrAddMode(false); setTrNewRow(null); setTrEditIdx(null); setTrEditRow(null); }} style={{ fontSize: 11, fontWeight: 600, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 6, padding: "8px 18px", cursor: "pointer" }}>Cancel</button>
+                    <button onClick={() => {
+                      if (trAddMode) {
+                        setTrNewRow((cur: any) => {
+                          if (cur && cur.act && cur.act.trim()) {
+                            setTriggerData((p) => {
+                              const catIdx = allCats.indexOf(cur.cat);
+                              let insertAt = p.length;
+                              for (let i = 0; i < p.length; i++) {
+                                if (allCats.indexOf(p[i].cat) > catIdx) { insertAt = i; break; }
+                              }
+                              const next = [...p.slice(0, insertAt), { ...cur }, ...p.slice(insertAt)];
+                              return next.map((r, i) => ({ ...r, n: i + 1 }));
+                            });
+                          }
+                          return null;
+                        });
+                        setTrAddMode(false);
+                      } else {
+                        setTrEditRow((cur: any) => {
+                          if (cur) setTriggerData((p) => p.map((row, idx) => idx === trEditIdx ? { ...cur } : row));
+                          return null;
+                        });
+                        setTrEditIdx(null);
+                      }
+                    }} style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: "#F97316", border: "none", borderRadius: 6, padding: "8px 22px", cursor: "pointer" }}>{trAddMode ? "Add Trigger" : "Save Changes"}</button>
+                  </div>
+                </div>
+              </div>}
               <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                   <div>
@@ -1697,8 +1736,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     {trCols.map((c) => <div key={c.k}>{c.l}</div>)}
                   </div>
                   {fTRD.map((r, i) => (
-                    trEditIdx === r._idx ? renderEditRow(trEditRow, (nr) => setTrEditRow(nr), () => { setTrEditRow((cur: any) => { if (cur) setTriggerData((p) => p.map((row, idx) => idx === r._idx ? { ...cur } : row)); return null; }); setTrEditIdx(null); }, () => { setTrEditIdx(null); setTrEditRow(null); }) :
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: trCols.map((c) => c.w + "px").join(" "), padding: "6px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 9, alignItems: "center", gap: 0 }}>
+                    <div key={r._idx} style={{ display: "grid", gridTemplateColumns: trCols.map((c) => c.w + "px").join(" "), padding: "6px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 9, alignItems: "center", gap: 0 }}>
                       <div style={{ color: "#94A3B8", fontWeight: 600 }}>{r.n}</div>
                       <div><span style={{ fontSize: 8, fontWeight: 700, color: catColors[r.cat] || "#64748B", background: (catColors[r.cat] || "#64748B") + "12", padding: "2px 6px", borderRadius: 3 }}>{r.cat}</span></div>
                       <div style={{ fontWeight: 600, color: "#1E293B", lineHeight: 1.3 }}>{r.act}</div>
@@ -1712,10 +1750,13 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       <div style={{ color: "#64748B", fontSize: 8 }}>{r.trigFreq}</div>
                       <div style={{ fontFamily: "monospace", fontSize: 8, color: r.evt ? "#0369A1" : "#CBD5E1" }}>{r.evt || "—"}</div>
                       <div>{r.noAfter === "Yes" ? <span style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 5px", borderRadius: 2 }}>Yes</span> : <span style={{ fontSize: 8, color: "#CBD5E1" }}>No</span>}</div>
-                      <div><button onClick={() => { setTrEditIdx(r._idx); setTrEditRow({ ...r }); setTrAddMode(false); }} style={{ fontSize: 8, fontWeight: 600, color: "#F97316", background: "none", border: "1px solid #FED7AA", borderRadius: 3, padding: "2px 7px", cursor: "pointer" }}>Edit</button></div>
+                      <div style={{ display: "flex", gap: 2, alignItems: "center" }}>
+                        <button onClick={() => moveRow(r._idx, -1)} disabled={r._idx === 0} style={{ fontSize: 9, color: r._idx === 0 ? "#CBD5E1" : "#64748B", background: "none", border: "1px solid #E2E8F0", borderRadius: 3, padding: "1px 4px", cursor: r._idx === 0 ? "default" : "pointer", lineHeight: 1 }}>▲</button>
+                        <button onClick={() => moveRow(r._idx, 1)} disabled={r._idx === TRD.length - 1} style={{ fontSize: 9, color: r._idx === TRD.length - 1 ? "#CBD5E1" : "#64748B", background: "none", border: "1px solid #E2E8F0", borderRadius: 3, padding: "1px 4px", cursor: r._idx === TRD.length - 1 ? "default" : "pointer", lineHeight: 1 }}>▼</button>
+                        <button onClick={() => { setTrEditIdx(r._idx); setTrEditRow({ ...r }); setTrAddMode(false); }} style={{ fontSize: 7, fontWeight: 600, color: "#F97316", background: "none", border: "1px solid #FED7AA", borderRadius: 3, padding: "2px 5px", cursor: "pointer" }}>Edit</button>
+                      </div>
                     </div>
                   ))}
-                  {trAddMode && trNewRow && renderEditRow(trNewRow, (r) => setTrNewRow(r), () => { setTrNewRow((cur: any) => { if (cur && cur.act && cur.act.trim()) { setTriggerData((p) => [...p, { ...cur, n: p.length + 1 }]); } return null; }); setTrAddMode(false); }, () => { setTrAddMode(false); setTrNewRow(null); })}
                 </div>
               </div>
             </div>
