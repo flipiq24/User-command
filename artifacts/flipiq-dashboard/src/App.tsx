@@ -746,6 +746,7 @@ export default function App() {
   const [sortDir, setSortDir] = useState("desc");
   const [tlOverrides, setTlOverrides] = useState({});
   const [phOverrides, setPhOverrides] = useState({});
+  const [tracked, setTracked] = useState<Record<string, { status: string; date?: string; from?: string; to?: string }>>({});
   const [blockedCats, setBlockedCats] = useState({});
   const [blockEdit, setBlockEdit] = useState(null);
   const [blockNote, setBlockNote] = useState("");
@@ -1448,6 +1449,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         {tab === "users" && !sel && !eV && (() => {
           const ulCols = [
             { k: "uid", l: "ID", w: 45, tip: "Unique user ID in the system." },
+            { k: "tracked", l: "Tracked", w: 180, tip: "Tracking status: Yes, No, Pause (with date range), or Suspended (with auto-dated)." },
             { k: "fn", l: "First", w: 80, tip: "First name." },
             { k: "ln", l: "Last", w: 95, tip: "Last name." },
             { k: "phase", l: "Phase", w: 95, tip: "Current lifecycle phase: Onboarding, Activation, Performance, or Outlier." },
@@ -1491,6 +1493,21 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   {fUL.map((u, i) => (
                     <div key={u.uid} style={{ display: "grid", gridTemplateColumns: ulCols.map(c => c.w + "px").join(" "), padding: "7px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 10, alignItems: "center", gap: 0 }}>
                       <div style={{ color: "#64748B", fontWeight: 600 }}>{u.uid}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 3, flexWrap: "wrap" }}>{(() => {
+                        const t = tracked[u.uid] || { status: "yes" };
+                        const tColors: Record<string, string> = { yes: "#10B981", no: "#94A3B8", pause: "#D97706", suspended: "#DC2626" };
+                        return <>
+                          <select value={t.status} onChange={(e) => { const v = e.target.value; setTracked((p) => ({ ...p, [u.uid]: v === "suspended" ? { status: v, date: new Date().toISOString().slice(0, 10) } : v === "pause" ? { status: v, from: new Date().toISOString().slice(0, 10), to: "" } : { status: v } })); }} style={{ fontSize: 8, fontWeight: 700, color: tColors[t.status], background: "none", border: "1px solid #E2E8F0", borderRadius: 3, padding: "1px 2px", cursor: "pointer", appearance: "auto", width: t.status === "yes" || t.status === "no" ? 55 : t.status === "suspended" ? 72 : 52 }}>
+                            <option value="yes">Yes</option><option value="no">No</option><option value="pause">Pause</option><option value="suspended">Suspended</option>
+                          </select>
+                          {t.status === "suspended" && <span style={{ fontSize: 8, color: "#DC2626", fontWeight: 600 }}>{t.date}</span>}
+                          {t.status === "pause" && <>
+                            <input type="date" value={t.from || ""} onChange={(e) => setTracked((p) => ({ ...p, [u.uid]: { ...p[u.uid], from: e.target.value } }))} style={{ fontSize: 7, border: "1px solid #E2E8F0", borderRadius: 3, padding: "0 2px", width: 55, color: "#D97706" }} />
+                            <span style={{ fontSize: 7, color: "#94A3B8" }}>to</span>
+                            <input type="date" value={t.to || ""} onChange={(e) => setTracked((p) => ({ ...p, [u.uid]: { ...p[u.uid], to: e.target.value } }))} style={{ fontSize: 7, border: "1px solid #E2E8F0", borderRadius: 3, padding: "0 2px", width: 55, color: "#D97706" }} />
+                          </>}
+                        </>;
+                      })()}</div>
                       <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.fn}</div>
                       <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.ln}</div>
                       <div>{(() => { const aa = UPh.find((x) => x.id === u.uid); const ph = aa?.ph || 1; return <select value={ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.uid]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[ph], background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "1px 2px", cursor: "pointer", appearance: "auto", width: 85 }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option></select>; })()}</div>
