@@ -1602,7 +1602,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 ))}
                 <div style={{ borderTop: "1px solid #F1F5F9", marginTop: 6, paddingTop: 6 }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: "#94A3B8", marginBottom: 4 }}>Lead Sources</div>
-                  {[["MLS", user.s.mls, "MLS — leads sourced from MLS listings."], ["DM", user.s.dm, "Direct Mail — leads generated from direct mail campaigns."], ["CC", user.s.cold, "Cold Calls — leads from cold calling outreach."], ["Ref", user.s.ref, "Referrals — leads from agent or network referrals."]].map(([l, v, tip]) => (
+                  {[["MLS", user.s.mls, "MLS — leads sourced from MLS listings."], ["Seller Direct", user.s.dm, "Seller Direct — leads from direct seller outreach."], ["Usale", user.s.cold, "Usale — leads sourced through Usale platform."], ["Off Market", user.s.ref, "Off Market — off-market deal leads."]].map(([l, v, tip]) => (
                     <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
                       <Tip text={tip}><span style={{ color: "#64748B" }}>{l}</span></Tip>
                       <span style={{ fontWeight: 600, color: "#1E293B" }}>{v}</span>
