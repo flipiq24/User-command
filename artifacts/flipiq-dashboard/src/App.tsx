@@ -745,6 +745,7 @@ export default function App() {
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState("desc");
   const [tlOverrides, setTlOverrides] = useState({});
+  const [phOverrides, setPhOverrides] = useState({});
   const [blockedCats, setBlockedCats] = useState({});
   const [blockEdit, setBlockEdit] = useState(null);
   const [blockNote, setBlockNote] = useState("");
@@ -804,7 +805,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
 
 
   const fU = useMemo(() => {
-    let u = [...U];
+    let u = U.map((x) => phOverrides[x.id] ? { ...x, ph: phOverrides[x.id] } : x);
     if (flt.org) u = u.filter((x) => x.org === flt.org);
     if (flt.phase === 4) u = u.filter((x) => isOutlier(x));
     else if (flt.phase) u = u.filter((x) => x.ph === flt.phase);
@@ -812,9 +813,10 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
     if (flt.notDone) u = u.filter((x) => { const ci = getCheckIns(x); return ci.total > 0 && ci.done < ci.total; });
     if (flt.doneAA) u = u.filter((x) => x.id === flt.doneAA);
     return u;
-  }, [flt]);
+  }, [flt, phOverrides]);
 
-  const base = flt.org ? U.filter((u) => u.org === flt.org) : U;
+  const UPh = U.map((x) => phOverrides[x.id] ? { ...x, ph: phOverrides[x.id] } : x);
+  const base = flt.org ? UPh.filter((u) => u.org === flt.org) : UPh;
   const sts = {
     t: base.length,
     p1: base.filter((x) => x.ph === 1).length,
@@ -853,7 +855,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
     saN("");
   };
 
-  const user = sel ? U.find((u) => u.id === sel) : null;
+  const user = sel ? (() => { const u = U.find((x) => x.id === sel); return u && phOverrides[u.id] ? { ...u, ph: phOverrides[u.id] } : u; })() : null;
 
   useEffect(() => {
     if (!sel || !user) { setAiSummary(null); setPrevAiUser(null); setAiMsgs([]); return; }
@@ -1527,7 +1529,12 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                 <div>
                   <div style={{ fontSize: 18, fontWeight: 800, display: "flex", alignItems: "center", gap: 6 }}>{user.n} <TechDot u={user} tlOverrides={tlOverrides} setTlOverrides={setTlOverrides} /></div>
-                  <div style={{ fontSize: 12, color: "#64748B" }}>{O.find((o) => o.id === user.org)?.n} &mdash; Day {user.day} &mdash; <span style={{ color: PC[user.ph], fontWeight: 700 }}>{PN[user.ph]}</span></div>
+                  <div style={{ fontSize: 12, color: "#64748B", display: "flex", alignItems: "center", gap: 4 }}>{O.find((o) => o.id === user.org)?.n} &mdash; Day {user.day} &mdash; <select value={user.ph} onChange={(e) => setPhOverrides((p) => ({ ...p, [user.id]: +e.target.value }))} style={{ fontSize: 12, fontWeight: 700, color: PC[user.ph], background: "none", border: "1px solid #E2E8F0", borderRadius: 5, padding: "2px 6px", cursor: "pointer", appearance: "auto" }}>
+                    <option value={1} style={{ color: PC[1] }}>Onboarding</option>
+                    <option value={2} style={{ color: PC[2] }}>Activation</option>
+                    <option value={3} style={{ color: PC[3] }}>Performance</option>
+                    <option value={4} style={{ color: PC[4] }}>Outlier</option>
+                  </select></div>
                   {user.agenda && <div style={{ fontSize: 11, color: "#EA580C", fontWeight: 600, marginTop: 6 }}>{user.agenda}</div>}
                   {(() => { const ub = HL.map((h, ci) => blockedCats[user.id + "_" + ci] ? { cat: h, note: blockedCats[user.id + "_" + ci], ci } : null).filter(Boolean); return ub.length > 0 ? <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 6 }}>{ub.map((b) => <Tip key={b.cat} text={b.note + " — click to edit"}><span onClick={() => { setBlockEdit({ uid: user.id, ci: b.ci }); setBlockNote(b.note); }} style={{ fontSize: 8, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "2px 6px", borderRadius: 3, border: "1px solid #FECACA", cursor: "pointer" }}>BLOCKED: {b.cat}</span></Tip>)}</div> : null; })()}
                 </div>
