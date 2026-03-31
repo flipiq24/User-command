@@ -1635,19 +1635,22 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           const emptyRow = { n: TRD.length + 1, cat: "Today's Plan", act: "", cn: "", ph: "Phase 1", where: "", freq: "Daily", pri: "Standard", trig: "No", actFor: "", trigFreq: "", evt: "", noAfter: "No" };
           const editInputStyle = { fontSize: 8, padding: "2px 4px", border: "1px solid #F97316", borderRadius: 3, width: "100%", boxSizing: "border-box" as const };
           const editSelectStyle = { fontSize: 8, padding: "1px 2px", border: "1px solid #F97316", borderRadius: 3, cursor: "pointer", appearance: "auto" as const };
+          const cnOpts = ["Daily Engagement", "Property Follow Through", "Agent Relationships"];
+          const actForOpts = ["Ongoing", "1 Month Only Per User", "Only once", "N/A"];
+          const trigFreqOpts = ["Every Working Day", "Weekly", "At Least Twice in 2 days", "At Least 2 times in 5 days", "At Least 5 times in 2 days", "Every Working Day - Not a Trigger", "N/A"];
           const renderEditRow = (row: any, setRow: (r: any) => void, onSave: () => void, onCancel: () => void) => (
             <div style={{ display: "grid", gridTemplateColumns: trCols.map((c) => c.w + "px").join(" "), padding: "6px 10px", borderBottom: "1px solid #FED7AA", background: "#FFFBF5", fontSize: 9, alignItems: "center", gap: 0 }}>
               <div style={{ color: "#94A3B8", fontWeight: 600 }}>{row.n}</div>
               <div><select value={row.cat} onChange={(e) => setRow({ ...row, cat: e.target.value })} style={editSelectStyle}>{allCats.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
               <div><input value={row.act} onChange={(e) => setRow({ ...row, act: e.target.value })} placeholder="Action description..." style={editInputStyle} /></div>
-              <div><input value={row.cn} onChange={(e) => setRow({ ...row, cn: e.target.value })} placeholder="Category name..." style={editInputStyle} /></div>
+              <div><select value={row.cn} onChange={(e) => setRow({ ...row, cn: e.target.value })} style={editSelectStyle}><option value="">—</option>{cnOpts.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
               <div><select value={row.ph} onChange={(e) => setRow({ ...row, ph: e.target.value })} style={editSelectStyle}><option value="">—</option><option value="Phase 1">Phase 1</option><option value="Phase 2">Phase 2</option><option value="Phase 3">Phase 3</option></select></div>
               <div><input value={row.where} onChange={(e) => setRow({ ...row, where: e.target.value })} placeholder="Where..." style={editInputStyle} /></div>
               <div><select value={row.freq} onChange={(e) => setRow({ ...row, freq: e.target.value })} style={editSelectStyle}><option value="Daily">Daily</option><option value="Weekly">Weekly</option><option value="As Needed">As Needed</option></select></div>
               <div><select value={row.pri} onChange={(e) => setRow({ ...row, pri: e.target.value })} style={editSelectStyle}><option value="Critical">Critical</option><option value="Standard">Standard</option></select></div>
               <div><select value={row.trig} onChange={(e) => setRow({ ...row, trig: e.target.value })} style={editSelectStyle}><option value="Yes">Yes</option><option value="No">No</option></select></div>
-              <div><input value={row.actFor} onChange={(e) => setRow({ ...row, actFor: e.target.value })} placeholder="Activates for..." style={editInputStyle} /></div>
-              <div><input value={row.trigFreq} onChange={(e) => setRow({ ...row, trigFreq: e.target.value })} placeholder="Trigger frequency..." style={editInputStyle} /></div>
+              <div><select value={row.actFor} onChange={(e) => setRow({ ...row, actFor: e.target.value })} style={editSelectStyle}><option value="">—</option>{actForOpts.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
+              <div><select value={row.trigFreq} onChange={(e) => setRow({ ...row, trigFreq: e.target.value })} style={editSelectStyle}><option value="">—</option>{trigFreqOpts.map((c) => <option key={c} value={c}>{c}</option>)}</select></div>
               <div><input value={row.evt} onChange={(e) => setRow({ ...row, evt: e.target.value })} placeholder="event-name" style={{ ...editInputStyle, fontFamily: "monospace" }} /></div>
               <div><select value={row.noAfter} onChange={(e) => setRow({ ...row, noAfter: e.target.value })} style={editSelectStyle}><option value="No">No</option><option value="Yes">Yes</option></select></div>
               <div style={{ display: "flex", gap: 3 }}>
@@ -1694,7 +1697,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     {trCols.map((c) => <div key={c.k}>{c.l}</div>)}
                   </div>
                   {fTRD.map((r, i) => (
-                    trEditIdx === r._idx ? renderEditRow(trEditRow, setTrEditRow, () => { setTriggerData((p) => p.map((row, idx) => idx === r._idx ? { ...trEditRow } : row)); setTrEditIdx(null); setTrEditRow(null); }, () => { setTrEditIdx(null); setTrEditRow(null); }) :
+                    trEditIdx === r._idx ? renderEditRow(trEditRow, (nr) => setTrEditRow(nr), () => { setTrEditRow((cur: any) => { if (cur) setTriggerData((p) => p.map((row, idx) => idx === r._idx ? { ...cur } : row)); return null; }); setTrEditIdx(null); }, () => { setTrEditIdx(null); setTrEditRow(null); }) :
                     <div key={i} style={{ display: "grid", gridTemplateColumns: trCols.map((c) => c.w + "px").join(" "), padding: "6px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 9, alignItems: "center", gap: 0 }}>
                       <div style={{ color: "#94A3B8", fontWeight: 600 }}>{r.n}</div>
                       <div><span style={{ fontSize: 8, fontWeight: 700, color: catColors[r.cat] || "#64748B", background: (catColors[r.cat] || "#64748B") + "12", padding: "2px 6px", borderRadius: 3 }}>{r.cat}</span></div>
@@ -1712,7 +1715,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       <div><button onClick={() => { setTrEditIdx(r._idx); setTrEditRow({ ...r }); setTrAddMode(false); }} style={{ fontSize: 8, fontWeight: 600, color: "#F97316", background: "none", border: "1px solid #FED7AA", borderRadius: 3, padding: "2px 7px", cursor: "pointer" }}>Edit</button></div>
                     </div>
                   ))}
-                  {trAddMode && trNewRow && renderEditRow(trNewRow, setTrNewRow, () => { if (!trNewRow.act.trim()) return; setTriggerData((p) => [...p, { ...trNewRow, n: p.length + 1 }]); setTrAddMode(false); setTrNewRow(null); }, () => { setTrAddMode(false); setTrNewRow(null); })}
+                  {trAddMode && trNewRow && renderEditRow(trNewRow, (r) => setTrNewRow(r), () => { setTrNewRow((cur: any) => { if (cur && cur.act && cur.act.trim()) { setTriggerData((p) => [...p, { ...cur, n: p.length + 1 }]); } return null; }); setTrAddMode(false); }, () => { setTrAddMode(false); setTrNewRow(null); })}
                 </div>
               </div>
             </div>
