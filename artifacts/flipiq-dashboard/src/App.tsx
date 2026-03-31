@@ -1019,7 +1019,8 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     <Tip text={"Priority " + PL[u.ps] + ". " + (u.ps === 1 ? "Needs immediate attention today." : u.ps === 2 ? "Address before end of day." : u.ps === 3 ? "Monitor and coach when time allows." : "Low urgency — check in periodically.")}><span style={{ fontSize: 8, fontWeight: 800, color: "#fff", background: PLC[u.ps], padding: "1px 6px", borderRadius: 3 }}>{PL[u.ps]}</span></Tip>
                     <TechDot u={u} tlOverrides={tlOverrides} setTlOverrides={setTlOverrides} />
                     <Tip text="Click to view this AA's full profile — stats, feature usage, and root cause."><span onClick={() => ss(u.id)} style={{ fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "underline", textDecorationColor: "#E2E8F0" }}>{u.n}</span></Tip>
-                    <Tip text={"Organization: " + (O.find((o) => o.id === u.org)?.n || "") + ". Day " + u.day + " in " + PN[u.ph] + " phase."}><span style={{ fontSize: 10, color: "#94A3B8", whiteSpace: "nowrap" }}>{O.find((o) => o.id === u.org)?.n} D{u.day} {PN[u.ph]}</span></Tip>
+                    <span style={{ fontSize: 10, color: "#94A3B8", whiteSpace: "nowrap" }}>{O.find((o) => o.id === u.org)?.n} D{u.day}</span>
+                    <select value={u.ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.id]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[u.ph], background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "1px 4px", cursor: "pointer", appearance: "auto" }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option></select>
                     {u.ec >= 3 && <Tip text="This AA has been emailed 3 times with no response. STOP emailing — escalate to their Account Manager instead."><span style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 5px", borderRadius: 2, border: "1px solid #FECACA" }}>3-STRIKE</span></Tip>}
                     {!u.s.ck && <Tip text="This AA hasn't completed their daily iQ Check-In. No check-in = no coaching triggers fire. This is the first thing to fix."><span style={{ fontSize: 7, fontWeight: 800, color: "#EA580C", background: "#FFF7ED", padding: "1px 5px", borderRadius: 2, border: "1px solid #FED7AA" }}>NO CHECK-IN</span></Tip>}
                     <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
@@ -1449,6 +1450,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             { k: "uid", l: "ID", w: 45, tip: "Unique user ID in the system." },
             { k: "fn", l: "First", w: 80, tip: "First name." },
             { k: "ln", l: "Last", w: 95, tip: "Last name." },
+            { k: "phase", l: "Phase", w: 95, tip: "Current lifecycle phase: Onboarding, Activation, Performance, or Outlier." },
             { k: "co", l: "Company", w: 110, tip: "Organization / company name." },
             { k: "lid", l: "Login ID", w: 100, tip: "Login username for FlipiQ." },
             { k: "st", l: "Status", w: 60, tip: "Account status: Active or Inactive." },
@@ -1491,6 +1493,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       <div style={{ color: "#64748B", fontWeight: 600 }}>{u.uid}</div>
                       <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.fn}</div>
                       <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.ln}</div>
+                      <div>{(() => { const aa = UPh.find((x) => x.id === u.uid); const ph = aa?.ph || 1; return <select value={ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.uid]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[ph], background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "1px 2px", cursor: "pointer", appearance: "auto", width: 85 }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option></select>; })()}</div>
                       <div style={{ color: "#F97316", fontWeight: 600 }}>{u.co}</div>
                       <div style={{ color: "#64748B", fontFamily: "monospace", fontSize: 9 }}>{u.lid}</div>
                       <div><span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 3, background: u.st === "Active" ? "#ECFDF5" : "#FEF2F2", color: u.st === "Active" ? "#10B981" : "#DC2626", fontWeight: 600 }}>{u.st}</span></div>
