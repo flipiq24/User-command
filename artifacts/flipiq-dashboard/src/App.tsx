@@ -1581,8 +1581,14 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     <span style={{ fontWeight: 700, color: g ? vc(typeof v === "number" ? v : 0, g) : "#1E293B" }}>{v}{g ? <span style={{ fontSize: 9, color: "#94A3B8", fontWeight: 400 }}> /{g}</span> : null}</span>
                   </div>
                 ))}
-                <div style={{ borderTop: "1px solid #F1F5F9", marginTop: 6, paddingTop: 6, fontSize: 10, color: "#94A3B8" }}>
-                  <Tip text="Time breakdown by feature: PIQ = Priority IQ, Comps = Comparables, IA = Investment Analysis, Offer = Offer Builder, Agents = Agent outreach.">PIQ:{user.s.piq}m Comps:{user.s.comp}m IA:{user.s.ia}m Offer:{user.s.off}m Agents:{user.s.ag}m</Tip>
+                <div style={{ borderTop: "1px solid #F1F5F9", marginTop: 6, paddingTop: 6 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#94A3B8", marginBottom: 4 }}>Time by Feature</div>
+                  {[["PIQ", user.s.piq, "Priority IQ — time spent in deal prioritization tool."], ["Comps", user.s.comp, "Comparables — time spent analyzing property comps."], ["IA", user.s.ia, "Investment Analysis — time spent on investment analysis."], ["Offer", user.s.off, "Offer Builder — time spent building and sending offers."], ["Agents", user.s.ag, "Agent outreach — time spent on agent communication."]].map(([l, v, tip]) => (
+                    <div key={l} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}>
+                      <Tip text={tip}><span style={{ color: "#64748B" }}>{l}</span></Tip>
+                      <span style={{ fontWeight: 600, color: "#1E293B" }}>{v}m</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
