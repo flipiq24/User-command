@@ -699,8 +699,23 @@ const EL = [
 
 const DR = ["Today", "Yesterday", "Last 7 days", "Last 30 days", "This month", "All time"];
 
+function getWorkingDays(calDays) {
+  const weeks = Math.floor(calDays / 7);
+  const rem = calDays % 7;
+  return weeks * 5 + Math.min(rem, 5);
+}
+
+function getCheckIns(u) {
+  const calDays = Math.min(u.day, 30);
+  const wd = getWorkingDays(calDays);
+  if (wd === 0) return { done: 0, total: 0 };
+  const rate = u.health === "green" ? 0.95 : u.health === "yellow" ? 0.75 : u.health === "orange" ? (u.s.ck ? 0.5 : 0.3) : (u.s.ck ? 0.15 : 0);
+  const done = Math.round(wd * rate);
+  return { done, total: wd };
+}
+
 export default function App() {
-  const [flt, sf] = useState({ org: null, phase: null, health: null, notDone: false });
+  const [flt, sf] = useState({ org: null, phase: null, health: null, notDone: false, doneAA: null });
   const [done, sd] = useState({});
   const [modal, sm] = useState(null);
   const [aT, saT] = useState(null);
@@ -784,7 +799,8 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
     if (flt.org) u = u.filter((x) => x.org === flt.org);
     if (flt.phase) u = u.filter((x) => x.ph === flt.phase);
     if (flt.health) u = u.filter((x) => x.health === flt.health);
-    if (flt.notDone) u = u.filter((x) => !x.s.ck && x.day <= 5 * 7);
+    if (flt.notDone) u = u.filter((x) => { const ci = getCheckIns(x); return ci.total > 0 && ci.done < ci.total; });
+    if (flt.doneAA) u = u.filter((x) => x.id === flt.doneAA);
     return u;
   }, [flt]);
 
@@ -926,11 +942,32 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <div style={{ fontSize: 12, fontWeight: 500, color: x.c }}>{x.n}</div>
               </div></Tip>
             ))}
-            <Tip text="Not Done: AAs who haven't completed their iQ Check-In within a 5 working-day window. These AAs need immediate follow-up."><div onClick={() => sf((f) => ({ ...f, notDone: !f.notDone }))} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: flt.notDone ? "1.5px solid #FED7AA" : "1px solid #E2E8F0", background: flt.notDone ? "#FFF7ED" : "#FAFBFC", cursor: "pointer", minWidth: 110 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#EA580C" }} />
-              <div style={{ fontSize: 22, fontWeight: 500, color: "#9A3412" }}>{U.filter((x) => !x.s.ck && x.day <= 5 * 7).length}</div>
-              <div style={{ fontSize: 12, fontWeight: 500, color: "#9A3412" }}>Not Done</div>
-            </div></Tip>
+            {(() => {
+              const target = flt.doneAA ? U.find((x) => x.id === flt.doneAA) : null;
+              const allCI = U.map((x) => getCheckIns(x));
+              const totalDone = target ? getCheckIns(target).done : allCI.reduce((s, c) => s + c.done, 0);
+              const totalWD = target ? getCheckIns(target).total : allCI.reduce((s, c) => s + c.total, 0);
+              const notDoneCount = U.filter((x) => { const ci = getCheckIns(x); return ci.total > 0 && ci.done < ci.total; }).length;
+              const pctDone = totalWD > 0 ? Math.round(totalDone / totalWD * 100) : 0;
+              const isGood = pctDone >= 80;
+              return (
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Tip text={"Check-in completion over 30 days (working days only). " + totalDone + "/" + totalWD + " check-ins done (" + pctDone + "%). Click to filter AAs with incomplete check-ins."}>
+                    <div onClick={() => sf((f) => ({ ...f, notDone: !f.notDone, doneAA: f.notDone ? null : f.doneAA }))} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: flt.notDone ? "1.5px solid #FED7AA" : "1px solid #E2E8F0", background: flt.notDone ? "#FFF7ED" : "#FAFBFC", cursor: "pointer", minWidth: 130 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: isGood ? "#10B981" : "#EA580C" }} />
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <div style={{ fontSize: 18, fontWeight: 700, color: isGood ? "#065F46" : "#9A3412", lineHeight: 1 }}>{totalDone}<span style={{ fontSize: 12, fontWeight: 400, color: "#94A3B8" }}>/{totalWD}</span></div>
+                        <div style={{ fontSize: 10, color: isGood ? "#065F46" : "#9A3412" }}>Done · {notDoneCount} behind</div>
+                      </div>
+                    </div>
+                  </Tip>
+                  <select value={flt.doneAA || "all"} onChange={(e) => sf((f) => ({ ...f, doneAA: e.target.value === "all" ? null : +e.target.value }))} style={{ padding: "6px 24px 6px 8px", fontSize: 11, border: "1px solid #E2E8F0", borderRadius: 6, background: "#FFF", appearance: "none", WebkitAppearance: "none", cursor: "pointer", minWidth: 100, backgroundImage: sel0, backgroundRepeat: "no-repeat", backgroundPosition: "right 6px center", color: "#334155" }}>
+                    <option value="all">All AAs</option>
+                    {U.map((u) => { const ci = getCheckIns(u); return <option key={u.id} value={u.id}>{u.n} ({ci.done}/{ci.total})</option>; })}
+                  </select>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -1386,7 +1423,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           const tw = ulCols.reduce((s, c) => s + c.w, 0);
           const fIds = new Set(fU.map(x => x.id));
           const fUL = UL.filter(u => fIds.has(u.uid));
-          const isFiltered = flt.org || flt.phase || flt.health || flt.notDone;
+          const isFiltered = flt.org || flt.phase || flt.health || flt.notDone || flt.doneAA;
           return (
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
               <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
