@@ -1634,11 +1634,14 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
         })()}
 
         {showCsdModal && (() => {
+          const fIds = new Set(fU.map(x => x.id));
           const csdUL = UL.filter(u => {
+            if (!fIds.has(u.uid)) return false;
             const aa = UPh.find((x) => x.id === u.uid);
             const ph = aa?.ph || 1;
             return ph !== 5;
           });
+          const isFiltered = flt.org || flt.phase || flt.health || flt.notDone || flt.doneAA;
           const cCols = [
             { k: "uid", l: "#", w: 35 },
             { k: "fn", l: "First Name", w: 90 },
@@ -1652,12 +1655,12 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           ];
           const cW = cCols.reduce((s, c) => s + c.w, 0);
           return (
-            <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowCsdModal(false)}>
-              <div style={{ background: "#FFF", borderRadius: 12, width: "90%", maxWidth: 1100, maxHeight: "85vh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ position: "fixed", top: 60, right: 24, bottom: 24, width: "min(1100px, calc(100vw - 48px))", zIndex: 9998, display: "flex", flexDirection: "column", pointerEvents: "none" }}>
+              <div style={{ background: "#FFF", borderRadius: 12, flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.06)", pointerEvents: "auto" }}>
                 <div style={{ padding: "16px 20px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 700 }}>CSD Contact Fields</div>
-                    <div style={{ fontSize: 10, color: "#94A3B8" }}>{csdUL.length} active contacts — suspended users excluded.</div>
+                    <div style={{ fontSize: 10, color: "#94A3B8" }}>{isFiltered ? `Showing ${csdUL.length} filtered` : `${csdUL.length} active`} contacts — suspended users excluded.{isFiltered ? " Filters active." : ""}</div>
                   </div>
                   <button onClick={() => setShowCsdModal(false)} style={{ fontSize: 18, color: "#94A3B8", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: "4px 8px" }}>✕</button>
                 </div>
