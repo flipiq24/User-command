@@ -758,6 +758,8 @@ export default function App() {
   const [csdChannel, setCsdChannel] = useState<Record<number, string>>({});
   const [csdPopup, setCsdPopup] = useState<number | null>(null);
   const [showCsdModal, setShowCsdModal] = useState(false);
+  const [ulSort, setUlSort] = useState<{ k: string; d: 1 | -1 }>({ k: "", d: 1 });
+  const [csdSort, setCsdSort] = useState<{ k: string; d: 1 | -1 }>({ k: "", d: 1 });
   const [trCatFilter, setTrCatFilter] = useState("");
   const [trPriFilter, setTrPriFilter] = useState("");
   const [trTrigFilter, setTrTrigFilter] = useState("");
@@ -1578,9 +1580,9 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
               <div style={{ overflowX: "auto" }}>
                 <div style={{ minWidth: tw + 20 }}>
                   <div style={{ display: "grid", gridTemplateColumns: ulCols.map(c => c.w + "px").join(" "), padding: "6px 10px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 8, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", gap: 0 }}>
-                    {ulCols.map(c => <div key={c.k}><Tip text={c.tip}>{c.l}</Tip></div>)}
+                    {ulCols.map(c => <div key={c.k} onClick={() => setUlSort((p) => ({ k: c.k, d: p.k === c.k ? (p.d === 1 ? -1 : 1) as 1 | -1 : 1 }))} style={{ cursor: "pointer", userSelect: "none" }}><Tip text={c.tip}>{c.l}{ulSort.k === c.k ? (ulSort.d === 1 ? " ▲" : " ▼") : ""}</Tip></div>)}
                   </div>
-                  {fUL.map((u, i) => (
+                  {[...fUL].sort((a, b) => { if (!ulSort.k) return 0; const ak = a[ulSort.k], bk = b[ulSort.k]; if (ak == null && bk == null) return 0; if (ak == null) return 1; if (bk == null) return -1; if (typeof ak === "number" && typeof bk === "number") return (ak - bk) * ulSort.d; return String(ak).localeCompare(String(bk)) * ulSort.d; }).map((u, i) => (
                     <div key={u.uid} style={{ display: "grid", gridTemplateColumns: ulCols.map(c => c.w + "px").join(" "), padding: "7px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 10, alignItems: "center", gap: 0 }}>
                       <div style={{ color: "#64748B", fontWeight: 600 }}>{u.uid}</div>
                       <div style={{ display: "flex", alignItems: "center", gap: 3, flexWrap: "wrap" }}>{(() => {
@@ -1662,9 +1664,9 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <div style={{ overflowY: "auto", overflowX: "auto", flex: 1 }}>
                   <div style={{ minWidth: cW + 20 }}>
                     <div style={{ display: "grid", gridTemplateColumns: cCols.map(c => c.w + "px").join(" "), padding: "6px 10px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", gap: 0, position: "sticky", top: 0 }}>
-                      {cCols.map(c => <div key={c.k}>{c.l}</div>)}
+                      {cCols.map(c => <div key={c.k} onClick={() => setCsdSort((p) => ({ k: c.k, d: p.k === c.k ? (p.d === 1 ? -1 : 1) as 1 | -1 : 1 }))} style={{ cursor: "pointer", userSelect: "none" }}>{c.l}{csdSort.k === c.k ? (csdSort.d === 1 ? " ▲" : " ▼") : ""}</div>)}
                     </div>
-                    {csdUL.map((u, i) => {
+                    {[...csdUL].sort((a, b) => { if (!csdSort.k) return 0; const gv = (u) => { if (csdSort.k === "phase") { const aa = UPh.find((x) => x.id === u.uid); return aa?.ph || 1; } if (csdSort.k === "engStart") return csdEngStart[u.uid] || ""; if (csdSort.k === "priGroup") return csdPriGroup[u.uid] || ""; if (csdSort.k === "notes") { const n = csdNotes[u.uid]; return n && n.length > 0 ? n.slice(-1)[0].text : ""; } return u[csdSort.k]; }; const ak = gv(a), bk = gv(b); if (ak == null && bk == null) return 0; if (ak == null) return 1; if (bk == null) return -1; if (typeof ak === "number" && typeof bk === "number") return (ak - bk) * csdSort.d; return String(ak).localeCompare(String(bk)) * csdSort.d; }).map((u, i) => {
                       const aa = UPh.find((x) => x.id === u.uid);
                       const ph = aa?.ph || 1;
                       return (
