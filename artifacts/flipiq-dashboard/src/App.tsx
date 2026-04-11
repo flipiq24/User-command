@@ -333,7 +333,7 @@ const C = [
 ];
 
 const HL = ["Plan", "Find", "Comms", "Prop", "Analysis", "Offers", "Tools"];
-const PN = { 1: "Onboarding", 2: "Activation", 3: "Performance", 4: "Outlier" };
+const PN = { 1: "Onboarding", 2: "Activation", 3: "Performance", 4: "Outlier", 5: "Suspended" };
 
 function isOutlier(u) {
   if (u.ph === 3 && u.day >= 30 && u.s.aq === 0) return true;
@@ -343,7 +343,7 @@ function isOutlier(u) {
   if (u.day >= 60 && u.health !== "green") return true;
   return false;
 }
-const PC = { 1: "#3B82F6", 2: "#D97706", 3: "#10B981", 4: "#8B5CF6" };
+const PC = { 1: "#3B82F6", 2: "#D97706", 3: "#10B981", 4: "#8B5CF6", 5: "#DC2626" };
 const HC = { green: "#10B981", yellow: "#D97706", orange: "#EA580C", red: "#DC2626" };
 const HBG = { green: "#ECFDF5", yellow: "#FEF9C3", orange: "#FFF7ED", red: "#FEF2F2" };
 const HMC = ["#DC2626", "#EA580C", "#D97706", "#10B981"];
@@ -1103,7 +1103,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                     <TechDot u={u} tlOverrides={tlOverrides} setTlOverrides={setTlOverrides} />
                     <Tip text="Click to view this AA's full profile — stats, feature usage, and root cause."><span onClick={() => ss(u.id)} style={{ fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "underline", textDecorationColor: "#E2E8F0" }}>{u.n}</span></Tip>
                     <span style={{ fontSize: 10, color: "#94A3B8", whiteSpace: "nowrap" }}>{O.find((o) => o.id === u.org)?.n} D{u.day}</span>
-                    <select value={u.ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.id]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[u.ph], background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "1px 4px", cursor: "pointer", appearance: "auto" }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option></select>
+                    <select value={u.ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.id]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[u.ph], background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "1px 4px", cursor: "pointer", appearance: "auto" }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option><option value={5}>Suspended</option></select>
                     {u.ec >= 3 && <Tip text="This AA has been emailed 3 times with no response. STOP emailing — escalate to their Account Manager instead."><span style={{ fontSize: 7, fontWeight: 800, color: "#DC2626", background: "#FEF2F2", padding: "1px 5px", borderRadius: 2, border: "1px solid #FECACA" }}>3-STRIKE</span></Tip>}
                     {!u.s.ck && <Tip text="This AA hasn't completed their daily iQ Check-In. No check-in = no coaching triggers fire. This is the first thing to fix."><span style={{ fontSize: 7, fontWeight: 800, color: "#EA580C", background: "#FFF7ED", padding: "1px 5px", borderRadius: 2, border: "1px solid #FED7AA" }}>NO CHECK-IN</span></Tip>}
                     <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
@@ -1596,7 +1596,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       })()}</div>
                       <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.fn}</div>
                       <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.ln}</div>
-                      <div>{(() => { const aa = UPh.find((x) => x.id === u.uid); const ph = aa?.ph || 1; return <select value={ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.uid]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[ph], background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "1px 2px", cursor: "pointer", appearance: "auto", width: 85 }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option></select>; })()}</div>
+                      <div>{(() => { const aa = UPh.find((x) => x.id === u.uid); const ph = aa?.ph || 1; return <select value={ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.uid]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[ph], background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "1px 2px", cursor: "pointer", appearance: "auto", width: 85 }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option><option value={5}>Suspended</option></select>; })()}</div>
                       <div><input type="date" value={csdEngStart[u.uid] || ""} onChange={(e) => setCsdEngStart((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 8, border: "1px solid #E2E8F0", borderRadius: 3, padding: "1px 3px", width: 85, color: csdEngStart[u.uid] ? "#1E293B" : "#CBD5E1" }} /></div>
                       <div><select value={csdPriGroup[u.uid] || ""} onChange={(e) => setCsdPriGroup((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 8, fontWeight: 700, color: csdPriGroup[u.uid] === "Top User" ? "#10B981" : csdPriGroup[u.uid] === "Mid User" ? "#3B82F6" : csdPriGroup[u.uid] === "Not Engaged" ? "#DC2626" : "#CBD5E1", background: "none", border: "1px solid #E2E8F0", borderRadius: 3, padding: "1px 2px", cursor: "pointer", appearance: "auto", width: 78 }}><option value="">—</option><option value="Top User">Top User</option><option value="Mid User">Mid User</option><option value="Not Engaged">Not Engaged</option></select></div>
                       <div style={{ fontWeight: 700, color: u.tl === 0 ? "#DC2626" : u.tl < 10 ? "#D97706" : "#10B981", textAlign: "center" }}>{u.tl}</div>
@@ -1666,7 +1666,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                         <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.fn}</div>
                         <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.ln}</div>
                         <div style={{ color: "#F97316", fontWeight: 600 }}>{u.co}</div>
-                        <div><select value={ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.uid]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[ph], background: ph === 1 ? "#FFF7ED" : ph === 2 ? "#EFF6FF" : ph === 3 ? "#ECFDF5" : "#FEF2F2", border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 4px", cursor: "pointer", appearance: "auto", width: 100 }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option></select></div>
+                        <div><select value={ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.uid]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[ph], background: ph === 1 ? "#FFF7ED" : ph === 2 ? "#EFF6FF" : ph === 3 ? "#ECFDF5" : "#FEF2F2", border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 4px", cursor: "pointer", appearance: "auto", width: 100 }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option><option value={5}>Suspended</option></select></div>
                         <div><input type="date" value={csdEngStart[u.uid] || ""} onChange={(e) => setCsdEngStart((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 9, border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 6px", width: 108, color: csdEngStart[u.uid] ? "#1E293B" : "#CBD5E1" }} /></div>
                         <div><select value={csdPriGroup[u.uid] || ""} onChange={(e) => setCsdPriGroup((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 9, fontWeight: 700, color: csdPriGroup[u.uid] === "Top User" ? "#10B981" : csdPriGroup[u.uid] === "Mid User" ? "#3B82F6" : csdPriGroup[u.uid] === "Not Engaged" ? "#DC2626" : "#CBD5E1", background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 4px", cursor: "pointer", appearance: "auto", width: 88 }}><option value="">— Select —</option><option value="Top User">Top User</option><option value="Mid User">Mid User</option><option value="Not Engaged">Not Engaged</option></select></div>
                         <div style={{ fontWeight: 700, color: u.tl === 0 ? "#DC2626" : u.tl < 10 ? "#D97706" : "#10B981", fontSize: 12, textAlign: "center" }}>{u.tl}</div>
