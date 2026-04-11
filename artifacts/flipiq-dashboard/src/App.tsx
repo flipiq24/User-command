@@ -747,6 +747,11 @@ export default function App() {
   const [tlOverrides, setTlOverrides] = useState({});
   const [phOverrides, setPhOverrides] = useState({});
   const [tracked, setTracked] = useState<Record<string, { status: string; date?: string; from?: string; to?: string }>>({});
+  const [csdEngStart, setCsdEngStart] = useState<Record<number, string>>({});
+  const [csdPriGroup, setCsdPriGroup] = useState<Record<number, string>>({});
+  const [csdNotes, setCsdNotes] = useState<Record<number, string>>({});
+  const [csdChannel, setCsdChannel] = useState<Record<number, string>>({});
+  const [csdPopup, setCsdPopup] = useState<number | null>(null);
   const [trCatFilter, setTrCatFilter] = useState("");
   const [trPriFilter, setTrPriFilter] = useState("");
   const [trTrigFilter, setTrTrigFilter] = useState("");
@@ -1059,7 +1064,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
       </div>
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "0 24px", display: "flex" }}>
-        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."],["users","User list","Complete user directory with login history, contact info, company, email sources, and Dialpad phone numbers."],["deals","Deal dashboard","Financial overview of all deals — pipeline stages, dollar forecasting, source/property type/intent breakdowns, and AA-grouped deal table."],["triggers","Trigger table","Complete reference of all 61 events and triggers across categories — actions, phases, frequencies, and activation rules."]].map(([t, label, tip]) => (
+        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."],["users","User list","Complete user directory with login history, contact info, company, email sources, and Dialpad phone numbers."],["deals","Deal dashboard","Financial overview of all deals — pipeline stages, dollar forecasting, source/property type/intent breakdowns, and AA-grouped deal table."],["engagement","Engagement","Visual engagement report — quick-glance status of Ramy's engagement with each AA and AM. Who is engaged, cooling, or at risk."],["triggers","Trigger table","Complete reference of all 61 events and triggers across categories — actions, phases, frequencies, and activation rules."]].map(([t, label, tip]) => (
           <Tip key={t} text={tip}><button onClick={() => { st(t); ss(null); seV(null); sE(null); }} style={{ padding: "10px 14px", fontSize: 12, fontWeight: tab === t ? 700 : 500, color: tab === t ? "#F97316" : "#64748B", background: "none", border: "none", borderBottom: tab === t ? "2px solid #F97316" : "2px solid transparent", cursor: "pointer" }}>
             {label}
           </button></Tip>
@@ -1525,6 +1530,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             { k: "fn", l: "First", w: 80, tip: "First name." },
             { k: "ln", l: "Last", w: 95, tip: "Last name." },
             { k: "phase", l: "Phase", w: 95, tip: "Current lifecycle phase: Onboarding, Activation, Performance, or Outlier." },
+            { k: "csd", l: "CSD", w: 40, tip: "Open CSD contact fields — engagement start, priority, channel, notes." },
             { k: "co", l: "Company", w: 110, tip: "Organization / company name." },
             { k: "lid", l: "Login ID", w: 100, tip: "Login username for FlipiQ." },
             { k: "st", l: "Status", w: 60, tip: "Account status: Active or Inactive." },
@@ -1548,7 +1554,23 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           const fIds = new Set(fU.map(x => x.id));
           const fUL = UL.filter(u => fIds.has(u.uid));
           const isFiltered = flt.org || flt.phase || flt.health || flt.notDone || flt.doneAA;
+          const csdUser = fUL.find((u) => u.uid === csdPopup);
           return (
+            <>
+            {csdPopup !== null && csdUser && <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.35)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setCsdPopup(null)}>
+              <div onClick={(e) => e.stopPropagation()} style={{ background: "#FFF", borderRadius: 12, padding: "24px 28px", width: 440, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#1E293B", marginBottom: 4 }}>CSD Contact — {csdUser.fn} {csdUser.ln}</div>
+                <div style={{ fontSize: 10, color: "#94A3B8", marginBottom: 16 }}>{csdUser.co} — Total logins: {csdUser.tl}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
+                  <div><div style={{ fontSize: 10, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>AA Engagement Start Date</div><input type="date" value={csdEngStart[csdPopup] || ""} onChange={(e) => setCsdEngStart((p) => ({ ...p, [csdPopup]: e.target.value }))} style={{ fontSize: 11, padding: "6px 10px", border: "1px solid #E2E8F0", borderRadius: 5, width: "100%" }} /></div>
+                  <div><div style={{ fontSize: 10, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>Priority Group</div><select value={csdPriGroup[csdPopup] || ""} onChange={(e) => setCsdPriGroup((p) => ({ ...p, [csdPopup]: e.target.value }))} style={{ fontSize: 11, padding: "6px 10px", border: "1px solid #E2E8F0", borderRadius: 5, width: "100%", cursor: "pointer", appearance: "auto" }}><option value="">— Select —</option><option value="Top 20%">Top 20%</option><option value="Bottom 80%">Bottom 80%</option></select></div>
+                  <div><div style={{ fontSize: 10, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>Total Times Logged In</div><div style={{ fontSize: 14, fontWeight: 800, color: csdUser.tl === 0 ? "#DC2626" : csdUser.tl < 10 ? "#D97706" : "#10B981", padding: "6px 10px", border: "1px solid #E2E8F0", borderRadius: 5, background: "#F8FAFB" }}>{csdUser.tl}</div></div>
+                  <div><div style={{ fontSize: 10, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>Communication Channel</div><select value={csdChannel[csdPopup] || ""} onChange={(e) => setCsdChannel((p) => ({ ...p, [csdPopup]: e.target.value }))} style={{ fontSize: 11, padding: "6px 10px", border: "1px solid #E2E8F0", borderRadius: 5, width: "100%", cursor: "pointer", appearance: "auto" }}><option value="">— Select —</option><option value="Intercom">Intercom</option><option value="CSD">CSD</option></select></div>
+                </div>
+                <div style={{ marginTop: 12 }}><div style={{ fontSize: 10, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>Notes</div><textarea value={csdNotes[csdPopup] || ""} onChange={(e) => setCsdNotes((p) => ({ ...p, [csdPopup]: e.target.value }))} placeholder="Free-text notes on AA engagement..." rows={3} style={{ fontSize: 11, padding: "8px 10px", border: "1px solid #E2E8F0", borderRadius: 5, width: "100%", resize: "vertical", fontFamily: "inherit" }} /></div>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}><button onClick={() => setCsdPopup(null)} style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: "#F97316", border: "none", borderRadius: 6, padding: "8px 22px", cursor: "pointer" }}>Done</button></div>
+              </div>
+            </div>}
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
               <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
@@ -1583,6 +1605,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.fn}</div>
                       <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.ln}</div>
                       <div>{(() => { const aa = UPh.find((x) => x.id === u.uid); const ph = aa?.ph || 1; return <select value={ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.uid]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[ph], background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "1px 2px", cursor: "pointer", appearance: "auto", width: 85 }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option></select>; })()}</div>
+                      <div><button onClick={() => setCsdPopup(u.uid)} style={{ fontSize: 8, fontWeight: 700, color: (csdEngStart[u.uid] || csdPriGroup[u.uid] || csdChannel[u.uid] || csdNotes[u.uid]) ? "#F97316" : "#94A3B8", background: (csdEngStart[u.uid] || csdPriGroup[u.uid] || csdChannel[u.uid] || csdNotes[u.uid]) ? "#FFF7ED" : "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 4, padding: "2px 6px", cursor: "pointer" }}>{(csdEngStart[u.uid] || csdPriGroup[u.uid] || csdChannel[u.uid] || csdNotes[u.uid]) ? "●" : "+"}</button></div>
                       <div style={{ color: "#F97316", fontWeight: 600 }}>{u.co}</div>
                       <div style={{ color: "#64748B", fontFamily: "monospace", fontSize: 9 }}>{u.lid}</div>
                       <div><span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 3, background: u.st === "Active" ? "#ECFDF5" : "#FEF2F2", color: u.st === "Active" ? "#10B981" : "#DC2626", fontWeight: 600 }}>{u.st}</span></div>
@@ -1605,6 +1628,123 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   ))}
                 </div>
               </div>
+            </div>
+            </>
+          );
+        })()}
+
+        {tab === "engagement" && !sel && !eV && (() => {
+          const engRows = UPh.map((u) => {
+            const ul = UL.find((x) => x.uid === u.id);
+            const trk = tracked[u.id] || { status: "yes" };
+            const llParsed = ul?.ll ? new Date(ul.ll).getTime() : NaN;
+            const daysSinceLogin = !isNaN(llParsed) ? Math.max(0, Math.floor((new Date(2026, 2, 21).getTime() - llParsed) / 86400000)) : 999;
+            const loginRate = ul && u.day > 0 ? (ul.tl / u.day) : 0;
+            const catScores = u.cs || [];
+            const avgCat = catScores.length > 0 ? catScores.reduce((s, c) => s + c.sc, 0) / catScores.length : 0;
+            const hasCheckin = u.s?.ck;
+            const calls = u.s?.ca || 0;
+            const offers = u.s?.of || 0;
+            const isSuspended = trk.status === "suspended";
+            const isPaused = trk.status === "pause";
+            let engStatus = "Engaged";
+            let engColor = "#10B981";
+            let engBg = "#ECFDF5";
+            if (isSuspended) { engStatus = "Suspended"; engColor = "#DC2626"; engBg = "#FEF2F2"; }
+            else if (!hasCheckin || daysSinceLogin >= 7 || ul?.tl === 0) { engStatus = "At Risk"; engColor = "#DC2626"; engBg = "#FEF2F2"; }
+            else if (isPaused || daysSinceLogin >= 3 || avgCat < 1.0 || loginRate < 0.3) { engStatus = "Cooling"; engColor = "#D97706"; engBg = "#FFFBEB"; }
+            else if (daysSinceLogin >= 1 || avgCat < 2.0) { engStatus = "Engaged"; engColor = "#10B981"; engBg = "#ECFDF5"; }
+            const lastCheckin = u.s?.ck ? "Done" : "Not done";
+            return { id: u.id, name: u.n, org: O.find((o) => o.id === u.org)?.n || "", ph: u.ph, day: u.day, tl: ul?.tl || 0, daysSinceLogin, loginRate, avgCat, calls, offers, hasCheckin, lastCheckin, engStatus, engColor, engBg, channel: csdChannel[u.id] || "", priGroup: csdPriGroup[u.id] || "", engStart: csdEngStart[u.id] || "", notes: csdNotes[u.id] || "", trk };
+          });
+          const atRisk = engRows.filter((r) => r.engStatus === "At Risk");
+          const cooling = engRows.filter((r) => r.engStatus === "Cooling");
+          const engaged = engRows.filter((r) => r.engStatus === "Engaged");
+          const suspended = engRows.filter((r) => r.engStatus === "Suspended");
+          const renderEngCard = (r: any) => (
+            <div key={r.id} style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "12px 16px", borderLeft: `4px solid ${r.engColor}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1E293B", cursor: "pointer" }} onClick={() => { ss(r.id); st("overview"); }}>{r.name}</div>
+                  <div style={{ fontSize: 10, color: "#64748B" }}>{r.org} — Day {r.day} — <span style={{ color: PC[r.ph], fontWeight: 700 }}>{PN[r.ph]}</span></div>
+                </div>
+                <span style={{ fontSize: 9, fontWeight: 800, color: r.engColor, background: r.engBg, padding: "3px 10px", borderRadius: 5 }}>{r.engStatus}</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, fontSize: 9, marginBottom: 6 }}>
+                <div><span style={{ color: "#94A3B8" }}>Logins:</span> <span style={{ fontWeight: 700, color: r.tl === 0 ? "#DC2626" : r.tl < 10 ? "#D97706" : "#10B981" }}>{r.tl}</span></div>
+                <div><span style={{ color: "#94A3B8" }}>Last seen:</span> <span style={{ fontWeight: 600, color: r.daysSinceLogin >= 3 ? "#DC2626" : r.daysSinceLogin >= 1 ? "#D97706" : "#10B981" }}>{r.daysSinceLogin === 999 ? "Never" : r.daysSinceLogin === 0 ? "Today" : r.daysSinceLogin + "d ago"}</span></div>
+                <div><span style={{ color: "#94A3B8" }}>Calls:</span> <span style={{ fontWeight: 700, color: r.calls === 0 ? "#DC2626" : r.calls < 10 ? "#D97706" : "#10B981" }}>{r.calls}</span></div>
+                <div><span style={{ color: "#94A3B8" }}>Offers:</span> <span style={{ fontWeight: 700, color: r.offers === 0 ? "#DC2626" : "#10B981" }}>{r.offers}</span></div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, fontSize: 9, marginBottom: 6 }}>
+                <div><span style={{ color: "#94A3B8" }}>Check-in:</span> <span style={{ fontWeight: 700, color: r.hasCheckin ? "#10B981" : "#DC2626" }}>{r.lastCheckin}</span></div>
+                <div><span style={{ color: "#94A3B8" }}>Feature:</span> <span style={{ fontWeight: 600, color: r.avgCat >= 2 ? "#10B981" : r.avgCat >= 1 ? "#D97706" : "#DC2626" }}>{r.avgCat.toFixed(1)}/3</span></div>
+                <div><span style={{ color: "#94A3B8" }}>Channel:</span> <span style={{ fontWeight: 600, color: r.channel === "Intercom" ? "#3B82F6" : r.channel === "CSD" ? "#F97316" : "#CBD5E1" }}>{r.channel || "—"}</span></div>
+                <div><span style={{ color: "#94A3B8" }}>Priority:</span> <span style={{ fontWeight: 700, color: r.priGroup === "Top 20%" ? "#10B981" : r.priGroup === "Bottom 80%" ? "#D97706" : "#CBD5E1" }}>{r.priGroup || "—"}</span></div>
+              </div>
+              {r.notes && <div style={{ fontSize: 9, color: "#64748B", fontStyle: "italic", borderTop: "1px solid #F1F5F9", paddingTop: 4 }}>{r.notes}</div>}
+            </div>
+          );
+          return (
+            <div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
+                <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 8, padding: "14px 18px", textAlign: "center" }}>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: "#DC2626" }}>{atRisk.length}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#DC2626" }}>At Risk</div>
+                  <div style={{ fontSize: 9, color: "#94A3B8" }}>No check-in, never logged in, or 7+ days inactive</div>
+                </div>
+                <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 8, padding: "14px 18px", textAlign: "center" }}>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: "#D97706" }}>{cooling.length}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#D97706" }}>Cooling</div>
+                  <div style={{ fontSize: 9, color: "#94A3B8" }}>3+ days idle, low feature use, or paused tracking</div>
+                </div>
+                <div style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: 8, padding: "14px 18px", textAlign: "center" }}>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: "#10B981" }}>{engaged.length}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981" }}>Engaged</div>
+                  <div style={{ fontSize: 9, color: "#94A3B8" }}>Active, checking in, using features</div>
+                </div>
+                <div style={{ background: "#F1F5F9", border: "1px solid #CBD5E1", borderRadius: 8, padding: "14px 18px", textAlign: "center" }}>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: "#64748B" }}>{suspended.length}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B" }}>Suspended</div>
+                  <div style={{ fontSize: 9, color: "#94A3B8" }}>Tracking paused — not currently monitored</div>
+                </div>
+              </div>
+
+              {atRisk.length > 0 && <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#DC2626", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#DC2626", display: "inline-block" }}></span> At Risk ({atRisk.length})
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {atRisk.map(renderEngCard)}
+                </div>
+              </div>}
+
+              {cooling.length > 0 && <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#D97706", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#D97706", display: "inline-block" }}></span> Cooling ({cooling.length})
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {cooling.map(renderEngCard)}
+                </div>
+              </div>}
+
+              {engaged.length > 0 && <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#10B981", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#10B981", display: "inline-block" }}></span> Engaged ({engaged.length})
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {engaged.map(renderEngCard)}
+                </div>
+              </div>}
+
+              {suspended.length > 0 && <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#64748B", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#64748B", display: "inline-block" }}></span> Suspended ({suspended.length})
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {suspended.map(renderEngCard)}
+                </div>
+              </div>}
             </div>
           );
         })()}
