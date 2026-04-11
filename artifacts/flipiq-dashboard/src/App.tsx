@@ -757,6 +757,7 @@ export default function App() {
   const [csdNoteDraft, setCsdNoteDraft] = useState("");
   const [csdChannel, setCsdChannel] = useState<Record<number, string>>({});
   const [csdPopup, setCsdPopup] = useState<number | null>(null);
+  const [showCsdModal, setShowCsdModal] = useState(false);
   const [trCatFilter, setTrCatFilter] = useState("");
   const [trPriFilter, setTrPriFilter] = useState("");
   const [trTrigFilter, setTrTrigFilter] = useState("");
@@ -1069,7 +1070,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
       </div>
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "0 24px", display: "flex" }}>
-        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."],["users","User list","Complete user directory with login history, contact info, company, email sources, and Dialpad phone numbers."],["deals","Deal dashboard","Financial overview of all deals — pipeline stages, dollar forecasting, source/property type/intent breakdowns, and AA-grouped deal table."],["csd","CSD contacts","Dedicated table for CSD contact fields — engagement start, priority group, logins, and notes for every AA."],["engagement","Engagement","Visual engagement report — quick-glance status of Ramy's engagement with each AA and AM. Who is engaged, cooling, or at risk."],["triggers","Trigger table","Complete reference of all 61 events and triggers across categories — actions, phases, frequencies, and activation rules."]].map(([t, label, tip]) => (
+        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."],["users","User list","Complete user directory with login history, contact info, company, email sources, and Dialpad phone numbers."],["deals","Deal dashboard","Financial overview of all deals — pipeline stages, dollar forecasting, source/property type/intent breakdowns, and AA-grouped deal table."],["engagement","Engagement","Visual engagement report — quick-glance status of Ramy's engagement with each AA and AM. Who is engaged, cooling, or at risk."],["triggers","Trigger table","Complete reference of all 61 events and triggers across categories — actions, phases, frequencies, and activation rules."]].map(([t, label, tip]) => (
           <Tip key={t} text={tip}><button onClick={() => { st(t); ss(null); seV(null); sE(null); }} style={{ padding: "10px 14px", fontSize: 12, fontWeight: tab === t ? 700 : 500, color: tab === t ? "#F97316" : "#64748B", background: "none", border: "none", borderBottom: tab === t ? "2px solid #F97316" : "2px solid transparent", cursor: "pointer" }}>
             {label}
           </button></Tip>
@@ -1569,7 +1570,10 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                   <div style={{ fontSize: 14, fontWeight: 700 }}>User list</div>
                   <div style={{ fontSize: 10, color: "#94A3B8" }}>{isFiltered ? `Showing ${fUL.length} of ${UL.length}` : `All ${UL.length}`} acquisition associates — login history, credentials, contact info, and Dialpad integration.</div>
                 </div>
-                <div style={{ fontSize: 11, color: isFiltered ? "#F97316" : "#64748B", background: isFiltered ? "#FFF7ED" : "#F1F5F9", padding: "4px 10px", borderRadius: 5, fontWeight: 600 }}>{fUL.length} users</div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <button onClick={() => setShowCsdModal(true)} style={{ fontSize: 11, color: "#fff", background: "#F97316", border: "none", borderRadius: 5, padding: "5px 12px", fontWeight: 700, cursor: "pointer" }}>CSD Contacts</button>
+                  <div style={{ fontSize: 11, color: isFiltered ? "#F97316" : "#64748B", background: isFiltered ? "#FFF7ED" : "#F1F5F9", padding: "4px 10px", borderRadius: 5, fontWeight: 600 }}>{fUL.length} users</div>
+                </div>
               </div>
               <div style={{ overflowX: "auto" }}>
                 <div style={{ minWidth: tw + 20 }}>
@@ -1627,10 +1631,12 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           );
         })()}
 
-        {tab === "csd" && !sel && !eV && (() => {
-          const fIds = new Set(fU.map(x => x.id));
-          const csdUL = UL.filter(u => fIds.has(u.uid));
-          const isFiltered = flt.org || flt.phase || flt.health || flt.notDone || flt.doneAA;
+        {showCsdModal && (() => {
+          const csdUL = UL.filter(u => {
+            const aa = UPh.find((x) => x.id === u.uid);
+            const ph = aa?.ph || 1;
+            return ph !== 5;
+          });
           const cCols = [
             { k: "uid", l: "#", w: 35 },
             { k: "fn", l: "First Name", w: 90 },
@@ -1644,36 +1650,38 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           ];
           const cW = cCols.reduce((s, c) => s + c.w, 0);
           return (
-            <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
-              <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>CSD Contact Fields</div>
-                  <div style={{ fontSize: 10, color: "#94A3B8" }}>{isFiltered ? `Showing ${csdUL.length} of ${UL.length}` : `All ${UL.length}`} AA contact records — engagement start, priority group, logins, and notes.</div>
-                </div>
-                <div style={{ fontSize: 11, color: isFiltered ? "#F97316" : "#64748B", background: isFiltered ? "#FFF7ED" : "#F1F5F9", padding: "4px 10px", borderRadius: 5, fontWeight: 600 }}>{csdUL.length} contacts</div>
-              </div>
-              <div style={{ overflowX: "auto" }}>
-                <div style={{ minWidth: cW + 20 }}>
-                  <div style={{ display: "grid", gridTemplateColumns: cCols.map(c => c.w + "px").join(" "), padding: "6px 10px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", gap: 0 }}>
-                    {cCols.map(c => <div key={c.k}>{c.l}</div>)}
+            <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowCsdModal(false)}>
+              <div style={{ background: "#FFF", borderRadius: 12, width: "90%", maxWidth: 1100, maxHeight: "85vh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }} onClick={(e) => e.stopPropagation()}>
+                <div style={{ padding: "16px 20px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 700 }}>CSD Contact Fields</div>
+                    <div style={{ fontSize: 10, color: "#94A3B8" }}>{csdUL.length} active contacts — suspended users excluded.</div>
                   </div>
-                  {csdUL.map((u, i) => {
-                    const aa = UPh.find((x) => x.id === u.uid);
-                    const ph = aa?.ph || 1;
-                    return (
-                      <div key={u.uid} style={{ display: "grid", gridTemplateColumns: cCols.map(c => c.w + "px").join(" "), padding: "7px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 10, alignItems: "center", gap: 0 }}>
-                        <div style={{ color: "#94A3B8", fontWeight: 600 }}>{u.uid}</div>
-                        <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.fn}</div>
-                        <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.ln}</div>
-                        <div style={{ color: "#F97316", fontWeight: 600 }}>{u.co}</div>
-                        <div><select value={ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.uid]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[ph], background: ph === 1 ? "#FFF7ED" : ph === 2 ? "#EFF6FF" : ph === 3 ? "#ECFDF5" : "#FEF2F2", border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 4px", cursor: "pointer", appearance: "auto", width: 100 }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option><option value={5}>Suspended</option></select></div>
-                        <div><input type="date" value={csdEngStart[u.uid] || ""} onChange={(e) => setCsdEngStart((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 9, border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 6px", width: 108, color: csdEngStart[u.uid] ? "#1E293B" : "#CBD5E1" }} /></div>
-                        <div><select value={csdPriGroup[u.uid] || ""} onChange={(e) => setCsdPriGroup((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 9, fontWeight: 700, color: csdPriGroup[u.uid] === "Top User" ? "#10B981" : csdPriGroup[u.uid] === "Mid User" ? "#3B82F6" : csdPriGroup[u.uid] === "Not Engaged" ? "#DC2626" : "#CBD5E1", background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 4px", cursor: "pointer", appearance: "auto", width: 88 }}><option value="">— Select —</option><option value="Top User">Top User</option><option value="Mid User">Mid User</option><option value="Not Engaged">Not Engaged</option></select></div>
-                        <div style={{ fontWeight: 700, color: u.tl === 0 ? "#DC2626" : u.tl < 10 ? "#D97706" : "#10B981", fontSize: 12, textAlign: "center" }}>{u.tl}</div>
-                        <div>{csdPopup === u.uid ? <div style={{ display: "flex", gap: 3 }}><input autoFocus value={csdNoteDraft} onChange={(e) => setCsdNoteDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && csdNoteDraft.trim()) { setCsdNotes((p) => ({ ...p, [u.uid]: [...(p[u.uid] || []), { text: csdNoteDraft.trim(), ts: new Date().toLocaleString() }] })); setCsdNoteDraft(""); setCsdPopup(null); } if (e.key === "Escape") { setCsdNoteDraft(""); setCsdPopup(null); } }} style={{ fontSize: 9, border: "1px solid #F97316", borderRadius: 4, padding: "3px 6px", flex: 1 }} placeholder="Type note + Enter" /><button onClick={() => { if (csdNoteDraft.trim()) { setCsdNotes((p) => ({ ...p, [u.uid]: [...(p[u.uid] || []), { text: csdNoteDraft.trim(), ts: new Date().toLocaleString() }] })); } setCsdNoteDraft(""); setCsdPopup(null); }} style={{ fontSize: 8, color: "#fff", background: "#10B981", border: "none", borderRadius: 4, padding: "3px 8px", cursor: "pointer", fontWeight: 700 }}>OK</button></div> : <Tip light text={(csdNotes[u.uid] || []).length > 0 ? [...(csdNotes[u.uid] || [])].reverse().map((n) => `[${n.ts}] ${n.text}`).join("\n") : "No notes yet"}><div onClick={() => { setCsdNoteDraft(""); setCsdPopup(u.uid); }} style={{ fontSize: 9, color: (csdNotes[u.uid] || []).length > 0 ? "#1E293B" : "#CBD5E1", cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(csdNotes[u.uid] || []).length > 0 ? (csdNotes[u.uid] || []).slice(-1)[0].text : "Click to add note..."}</div></Tip>}</div>
-                      </div>
-                    );
-                  })}
+                  <button onClick={() => setShowCsdModal(false)} style={{ fontSize: 18, color: "#94A3B8", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: "4px 8px" }}>✕</button>
+                </div>
+                <div style={{ overflowY: "auto", overflowX: "auto", flex: 1 }}>
+                  <div style={{ minWidth: cW + 20 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: cCols.map(c => c.w + "px").join(" "), padding: "6px 10px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", gap: 0, position: "sticky", top: 0 }}>
+                      {cCols.map(c => <div key={c.k}>{c.l}</div>)}
+                    </div>
+                    {csdUL.map((u, i) => {
+                      const aa = UPh.find((x) => x.id === u.uid);
+                      const ph = aa?.ph || 1;
+                      return (
+                        <div key={u.uid} style={{ display: "grid", gridTemplateColumns: cCols.map(c => c.w + "px").join(" "), padding: "7px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 10, alignItems: "center", gap: 0 }}>
+                          <div style={{ color: "#94A3B8", fontWeight: 600 }}>{u.uid}</div>
+                          <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.fn}</div>
+                          <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.ln}</div>
+                          <div style={{ color: "#F97316", fontWeight: 600 }}>{u.co}</div>
+                          <div><select value={ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.uid]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[ph], background: ph === 1 ? "#FFF7ED" : ph === 2 ? "#EFF6FF" : ph === 3 ? "#ECFDF5" : "#FEF2F2", border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 4px", cursor: "pointer", appearance: "auto", width: 100 }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option><option value={5}>Suspended</option></select></div>
+                          <div><input type="date" value={csdEngStart[u.uid] || ""} onChange={(e) => setCsdEngStart((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 9, border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 6px", width: 108, color: csdEngStart[u.uid] ? "#1E293B" : "#CBD5E1" }} /></div>
+                          <div><select value={csdPriGroup[u.uid] || ""} onChange={(e) => setCsdPriGroup((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 9, fontWeight: 700, color: csdPriGroup[u.uid] === "Top User" ? "#10B981" : csdPriGroup[u.uid] === "Mid User" ? "#3B82F6" : csdPriGroup[u.uid] === "Not Engaged" ? "#DC2626" : "#CBD5E1", background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 4px", cursor: "pointer", appearance: "auto", width: 88 }}><option value="">— Select —</option><option value="Top User">Top User</option><option value="Mid User">Mid User</option><option value="Not Engaged">Not Engaged</option></select></div>
+                          <div style={{ fontWeight: 700, color: u.tl === 0 ? "#DC2626" : u.tl < 10 ? "#D97706" : "#10B981", fontSize: 12, textAlign: "center" }}>{u.tl}</div>
+                          <div>{csdPopup === u.uid ? <div style={{ display: "flex", gap: 3 }}><input autoFocus value={csdNoteDraft} onChange={(e) => setCsdNoteDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && csdNoteDraft.trim()) { setCsdNotes((p) => ({ ...p, [u.uid]: [...(p[u.uid] || []), { text: csdNoteDraft.trim(), ts: new Date().toLocaleString() }] })); setCsdNoteDraft(""); setCsdPopup(null); } if (e.key === "Escape") { setCsdNoteDraft(""); setCsdPopup(null); } }} style={{ fontSize: 9, border: "1px solid #F97316", borderRadius: 4, padding: "3px 6px", flex: 1 }} placeholder="Type note + Enter" /><button onClick={() => { if (csdNoteDraft.trim()) { setCsdNotes((p) => ({ ...p, [u.uid]: [...(p[u.uid] || []), { text: csdNoteDraft.trim(), ts: new Date().toLocaleString() }] })); } setCsdNoteDraft(""); setCsdPopup(null); }} style={{ fontSize: 8, color: "#fff", background: "#10B981", border: "none", borderRadius: 4, padding: "3px 8px", cursor: "pointer", fontWeight: 700 }}>OK</button></div> : <Tip light text={(csdNotes[u.uid] || []).length > 0 ? [...(csdNotes[u.uid] || [])].reverse().map((n) => `[${n.ts}] ${n.text}`).join("\n") : "No notes yet"}><div onClick={() => { setCsdNoteDraft(""); setCsdPopup(u.uid); }} style={{ fontSize: 9, color: (csdNotes[u.uid] || []).length > 0 ? "#1E293B" : "#CBD5E1", cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(csdNotes[u.uid] || []).length > 0 ? (csdNotes[u.uid] || []).slice(-1)[0].text : "Click to add note..."}</div></Tip>}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
