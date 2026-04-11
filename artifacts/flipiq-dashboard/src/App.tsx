@@ -14,14 +14,14 @@ function Tip({ text, children, light = false }) {
   const bg = light ? "#FFFFFF" : "#1E293B";
   const fg = light ? "#1E293B" : "#F8FAFC";
   const shadow = light ? "0 8px 32px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06)" : "0 8px 24px rgba(0,0,0,0.25)";
-  const w = light ? 300 : 240;
+  const w = light ? "auto" : 240;
   return (
     <>
       <span ref={ref} onMouseEnter={enter} onMouseLeave={() => setShow(false)} style={{ cursor: "help", borderBottom: "1px dotted #CBD5E1", display: "inline" }}>
         {children}
       </span>
       {show && (
-        <div style={{ position: "fixed", left: Math.max(8, Math.min(pos.x - w / 2, window.innerWidth - w - 16)), top: pos.y - 6, transform: "translateY(-100%)", width: w, background: bg, color: fg, fontSize: light ? 12 : 11, lineHeight: 1.6, padding: light ? "12px 16px" : "8px 12px", borderRadius: 8, boxShadow: shadow, zIndex: 9999, pointerEvents: "none", whiteSpace: "pre-wrap", maxHeight: 300, overflowY: "auto" }}>
+        <div style={{ position: "fixed", left: Math.max(8, Math.min(pos.x - 150, window.innerWidth - 320)), top: pos.y - 6, transform: "translateY(-100%)", minWidth: light ? 280 : 240, maxWidth: light ? 420 : 240, width: light ? undefined : 240, background: bg, color: fg, fontSize: light ? 12 : 11, lineHeight: 1.6, padding: light ? "12px 16px" : "8px 12px", borderRadius: 8, boxShadow: shadow, zIndex: 9999, pointerEvents: "none", whiteSpace: "pre-wrap" }}>
           {light ? String(text).split("\n").map((line, i) => { const m = line.match(/^\[(.+?)\] (.+)$/); return m ? <div key={i} style={{ marginBottom: i < String(text).split("\n").length - 1 ? 6 : 0 }}><div style={{ fontSize: 10, color: "#F97316", fontWeight: 700 }}>{m[1]}</div><div style={{ color: "#334155" }}>{m[2]}</div></div> : <div key={i}>{line}</div>; }) : text}
           <div style={{ position: "absolute", bottom: -4, left: "50%", marginLeft: -4, width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: `5px solid ${bg}` }} />
         </div>
