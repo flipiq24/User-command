@@ -1064,7 +1064,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
       </div>
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "0 24px", display: "flex" }}>
-        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."],["users","User list","Complete user directory with login history, contact info, company, email sources, and Dialpad phone numbers."],["deals","Deal dashboard","Financial overview of all deals — pipeline stages, dollar forecasting, source/property type/intent breakdowns, and AA-grouped deal table."],["engagement","Engagement","Visual engagement report — quick-glance status of Ramy's engagement with each AA and AM. Who is engaged, cooling, or at risk."],["triggers","Trigger table","Complete reference of all 61 events and triggers across categories — actions, phases, frequencies, and activation rules."]].map(([t, label, tip]) => (
+        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."],["users","User list","Complete user directory with login history, contact info, company, email sources, and Dialpad phone numbers."],["deals","Deal dashboard","Financial overview of all deals — pipeline stages, dollar forecasting, source/property type/intent breakdowns, and AA-grouped deal table."],["csd","CSD contacts","Dedicated table for CSD contact fields — engagement start, priority group, logins, channel, and notes for every AA."],["engagement","Engagement","Visual engagement report — quick-glance status of Ramy's engagement with each AA and AM. Who is engaged, cooling, or at risk."],["triggers","Trigger table","Complete reference of all 61 events and triggers across categories — actions, phases, frequencies, and activation rules."]].map(([t, label, tip]) => (
           <Tip key={t} text={tip}><button onClick={() => { st(t); ss(null); seV(null); sE(null); }} style={{ padding: "10px 14px", fontSize: 12, fontWeight: tab === t ? 700 : 500, color: tab === t ? "#F97316" : "#64748B", background: "none", border: "none", borderBottom: tab === t ? "2px solid #F97316" : "2px solid transparent", cursor: "pointer" }}>
             {label}
           </button></Tip>
@@ -1530,7 +1530,10 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             { k: "fn", l: "First", w: 80, tip: "First name." },
             { k: "ln", l: "Last", w: 95, tip: "Last name." },
             { k: "phase", l: "Phase", w: 95, tip: "Current lifecycle phase: Onboarding, Activation, Performance, or Outlier." },
-            { k: "csd", l: "CSD", w: 40, tip: "Open CSD contact fields — engagement start, priority, channel, notes." },
+            { k: "engStart", l: "Eng. Start", w: 95, tip: "AA Engagement Start Date — when active use began." },
+            { k: "priGroup", l: "Priority", w: 75, tip: "80/20 classification from Priority 3 assessment." },
+            { k: "commCh", l: "Channel", w: 80, tip: "Communication channel — Intercom or CSD." },
+            { k: "notes", l: "Notes", w: 130, tip: "Free-text notes on AA engagement. Click to edit." },
             { k: "co", l: "Company", w: 110, tip: "Organization / company name." },
             { k: "lid", l: "Login ID", w: 100, tip: "Login username for FlipiQ." },
             { k: "st", l: "Status", w: 60, tip: "Account status: Active or Inactive." },
@@ -1554,23 +1557,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
           const fIds = new Set(fU.map(x => x.id));
           const fUL = UL.filter(u => fIds.has(u.uid));
           const isFiltered = flt.org || flt.phase || flt.health || flt.notDone || flt.doneAA;
-          const csdUser = fUL.find((u) => u.uid === csdPopup);
           return (
-            <>
-            {csdPopup !== null && csdUser && <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.35)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setCsdPopup(null)}>
-              <div onClick={(e) => e.stopPropagation()} style={{ background: "#FFF", borderRadius: 12, padding: "24px 28px", width: 440, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#1E293B", marginBottom: 4 }}>CSD Contact — {csdUser.fn} {csdUser.ln}</div>
-                <div style={{ fontSize: 10, color: "#94A3B8", marginBottom: 16 }}>{csdUser.co} — Total logins: {csdUser.tl}</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
-                  <div><div style={{ fontSize: 10, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>AA Engagement Start Date</div><input type="date" value={csdEngStart[csdPopup] || ""} onChange={(e) => setCsdEngStart((p) => ({ ...p, [csdPopup]: e.target.value }))} style={{ fontSize: 11, padding: "6px 10px", border: "1px solid #E2E8F0", borderRadius: 5, width: "100%" }} /></div>
-                  <div><div style={{ fontSize: 10, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>Priority Group</div><select value={csdPriGroup[csdPopup] || ""} onChange={(e) => setCsdPriGroup((p) => ({ ...p, [csdPopup]: e.target.value }))} style={{ fontSize: 11, padding: "6px 10px", border: "1px solid #E2E8F0", borderRadius: 5, width: "100%", cursor: "pointer", appearance: "auto" }}><option value="">— Select —</option><option value="Top 20%">Top 20%</option><option value="Bottom 80%">Bottom 80%</option></select></div>
-                  <div><div style={{ fontSize: 10, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>Total Times Logged In</div><div style={{ fontSize: 14, fontWeight: 800, color: csdUser.tl === 0 ? "#DC2626" : csdUser.tl < 10 ? "#D97706" : "#10B981", padding: "6px 10px", border: "1px solid #E2E8F0", borderRadius: 5, background: "#F8FAFB" }}>{csdUser.tl}</div></div>
-                  <div><div style={{ fontSize: 10, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>Communication Channel</div><select value={csdChannel[csdPopup] || ""} onChange={(e) => setCsdChannel((p) => ({ ...p, [csdPopup]: e.target.value }))} style={{ fontSize: 11, padding: "6px 10px", border: "1px solid #E2E8F0", borderRadius: 5, width: "100%", cursor: "pointer", appearance: "auto" }}><option value="">— Select —</option><option value="Intercom">Intercom</option><option value="CSD">CSD</option></select></div>
-                </div>
-                <div style={{ marginTop: 12 }}><div style={{ fontSize: 10, fontWeight: 600, color: "#64748B", marginBottom: 4 }}>Notes</div><textarea value={csdNotes[csdPopup] || ""} onChange={(e) => setCsdNotes((p) => ({ ...p, [csdPopup]: e.target.value }))} placeholder="Free-text notes on AA engagement..." rows={3} style={{ fontSize: 11, padding: "8px 10px", border: "1px solid #E2E8F0", borderRadius: 5, width: "100%", resize: "vertical", fontFamily: "inherit" }} /></div>
-                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}><button onClick={() => setCsdPopup(null)} style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: "#F97316", border: "none", borderRadius: 6, padding: "8px 22px", cursor: "pointer" }}>Done</button></div>
-              </div>
-            </div>}
             <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
               <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
@@ -1605,7 +1592,10 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                       <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.fn}</div>
                       <div style={{ fontWeight: 600, color: "#0369A1", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#CBD5E1" }} onClick={() => { ss(u.uid); st("overview"); }}>{u.ln}</div>
                       <div>{(() => { const aa = UPh.find((x) => x.id === u.uid); const ph = aa?.ph || 1; return <select value={ph} onChange={(e) => { e.stopPropagation(); setPhOverrides((p) => ({ ...p, [u.uid]: +e.target.value })); }} style={{ fontSize: 9, fontWeight: 700, color: PC[ph], background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "1px 2px", cursor: "pointer", appearance: "auto", width: 85 }}><option value={1}>Onboarding</option><option value={2}>Activation</option><option value={3}>Performance</option><option value={4}>Outlier</option></select>; })()}</div>
-                      <div><button onClick={() => setCsdPopup(u.uid)} style={{ fontSize: 8, fontWeight: 700, color: (csdEngStart[u.uid] || csdPriGroup[u.uid] || csdChannel[u.uid] || csdNotes[u.uid]) ? "#F97316" : "#94A3B8", background: (csdEngStart[u.uid] || csdPriGroup[u.uid] || csdChannel[u.uid] || csdNotes[u.uid]) ? "#FFF7ED" : "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 4, padding: "2px 6px", cursor: "pointer" }}>{(csdEngStart[u.uid] || csdPriGroup[u.uid] || csdChannel[u.uid] || csdNotes[u.uid]) ? "●" : "+"}</button></div>
+                      <div><input type="date" value={csdEngStart[u.uid] || ""} onChange={(e) => setCsdEngStart((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 8, border: "1px solid #E2E8F0", borderRadius: 3, padding: "1px 3px", width: 85, color: csdEngStart[u.uid] ? "#1E293B" : "#CBD5E1" }} /></div>
+                      <div><select value={csdPriGroup[u.uid] || ""} onChange={(e) => setCsdPriGroup((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 8, fontWeight: 700, color: csdPriGroup[u.uid] === "Top 20%" ? "#10B981" : csdPriGroup[u.uid] === "Bottom 80%" ? "#D97706" : "#CBD5E1", background: "none", border: "1px solid #E2E8F0", borderRadius: 3, padding: "1px 2px", cursor: "pointer", appearance: "auto", width: 65 }}><option value="">—</option><option value="Top 20%">Top 20%</option><option value="Bottom 80%">Bottom 80%</option></select></div>
+                      <div><select value={csdChannel[u.uid] || ""} onChange={(e) => setCsdChannel((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 8, fontWeight: 600, color: csdChannel[u.uid] === "Intercom" ? "#3B82F6" : csdChannel[u.uid] === "CSD" ? "#F97316" : "#CBD5E1", background: "none", border: "1px solid #E2E8F0", borderRadius: 3, padding: "1px 2px", cursor: "pointer", appearance: "auto", width: 70 }}><option value="">—</option><option value="Intercom">Intercom</option><option value="CSD">CSD</option></select></div>
+                      <div>{csdPopup === u.uid ? <div style={{ display: "flex", gap: 2 }}><input autoFocus value={csdNotes[u.uid] || ""} onChange={(e) => setCsdNotes((p) => ({ ...p, [u.uid]: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") setCsdPopup(null); }} style={{ fontSize: 8, border: "1px solid #F97316", borderRadius: 3, padding: "1px 4px", width: 100 }} /><button onClick={() => setCsdPopup(null)} style={{ fontSize: 7, color: "#fff", background: "#10B981", border: "none", borderRadius: 3, padding: "1px 4px", cursor: "pointer" }}>OK</button></div> : <div onClick={() => setCsdPopup(u.uid)} style={{ fontSize: 8, color: csdNotes[u.uid] ? "#1E293B" : "#CBD5E1", cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 120 }}>{csdNotes[u.uid] || "Click to add..."}</div>}</div>
                       <div style={{ color: "#F97316", fontWeight: 600 }}>{u.co}</div>
                       <div style={{ color: "#64748B", fontFamily: "monospace", fontSize: 9 }}>{u.lid}</div>
                       <div><span style={{ fontSize: 8, padding: "2px 6px", borderRadius: 3, background: u.st === "Active" ? "#ECFDF5" : "#FEF2F2", color: u.st === "Active" ? "#10B981" : "#DC2626", fontWeight: 600 }}>{u.st}</span></div>
@@ -1629,7 +1619,61 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 </div>
               </div>
             </div>
-            </>
+          );
+        })()}
+
+        {tab === "csd" && !sel && !eV && (() => {
+          const fIds = new Set(fU.map(x => x.id));
+          const csdUL = UL.filter(u => fIds.has(u.uid));
+          const isFiltered = flt.org || flt.phase || flt.health || flt.notDone || flt.doneAA;
+          const cCols = [
+            { k: "uid", l: "#", w: 35 },
+            { k: "fn", l: "First Name", w: 90 },
+            { k: "ln", l: "Last Name", w: 100 },
+            { k: "co", l: "Company", w: 120 },
+            { k: "phase", l: "Phase", w: 100 },
+            { k: "engStart", l: "Engagement Start", w: 120 },
+            { k: "priGroup", l: "Priority Group", w: 100 },
+            { k: "tl", l: "Total Logins", w: 80 },
+            { k: "channel", l: "Comm. Channel", w: 100 },
+            { k: "notes", l: "Notes", w: 250 },
+          ];
+          const cW = cCols.reduce((s, c) => s + c.w, 0);
+          return (
+            <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
+              <div style={{ padding: "14px 18px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>CSD Contact Fields</div>
+                  <div style={{ fontSize: 10, color: "#94A3B8" }}>{isFiltered ? `Showing ${csdUL.length} of ${UL.length}` : `All ${UL.length}`} AA contact records — engagement start, priority group, logins, communication channel, and notes.</div>
+                </div>
+                <div style={{ fontSize: 11, color: isFiltered ? "#F97316" : "#64748B", background: isFiltered ? "#FFF7ED" : "#F1F5F9", padding: "4px 10px", borderRadius: 5, fontWeight: 600 }}>{csdUL.length} contacts</div>
+              </div>
+              <div style={{ overflowX: "auto" }}>
+                <div style={{ minWidth: cW + 20 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: cCols.map(c => c.w + "px").join(" "), padding: "6px 10px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", gap: 0 }}>
+                    {cCols.map(c => <div key={c.k}>{c.l}</div>)}
+                  </div>
+                  {csdUL.map((u, i) => {
+                    const aa = UPh.find((x) => x.id === u.uid);
+                    const ph = aa?.ph || 1;
+                    return (
+                      <div key={u.uid} style={{ display: "grid", gridTemplateColumns: cCols.map(c => c.w + "px").join(" "), padding: "7px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC", fontSize: 10, alignItems: "center", gap: 0 }}>
+                        <div style={{ color: "#94A3B8", fontWeight: 600 }}>{u.uid}</div>
+                        <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.fn}</div>
+                        <div style={{ fontWeight: 600, color: "#1E293B" }}>{u.ln}</div>
+                        <div style={{ color: "#F97316", fontWeight: 600 }}>{u.co}</div>
+                        <div><span style={{ fontSize: 9, fontWeight: 700, color: PC[ph], background: ph === 1 ? "#FFF7ED" : ph === 2 ? "#EFF6FF" : ph === 3 ? "#ECFDF5" : "#FEF2F2", padding: "2px 8px", borderRadius: 4 }}>{PN[ph]}</span></div>
+                        <div><input type="date" value={csdEngStart[u.uid] || ""} onChange={(e) => setCsdEngStart((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 9, border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 6px", width: 108, color: csdEngStart[u.uid] ? "#1E293B" : "#CBD5E1" }} /></div>
+                        <div><select value={csdPriGroup[u.uid] || ""} onChange={(e) => setCsdPriGroup((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 9, fontWeight: 700, color: csdPriGroup[u.uid] === "Top 20%" ? "#10B981" : csdPriGroup[u.uid] === "Bottom 80%" ? "#D97706" : "#CBD5E1", background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 4px", cursor: "pointer", appearance: "auto", width: 88 }}><option value="">— Select —</option><option value="Top 20%">Top 20%</option><option value="Bottom 80%">Bottom 80%</option></select></div>
+                        <div style={{ fontWeight: 700, color: u.tl === 0 ? "#DC2626" : u.tl < 10 ? "#D97706" : "#10B981", fontSize: 12 }}>{u.tl}</div>
+                        <div><select value={csdChannel[u.uid] || ""} onChange={(e) => setCsdChannel((p) => ({ ...p, [u.uid]: e.target.value }))} style={{ fontSize: 9, fontWeight: 600, color: csdChannel[u.uid] === "Intercom" ? "#3B82F6" : csdChannel[u.uid] === "CSD" ? "#F97316" : "#CBD5E1", background: "none", border: "1px solid #E2E8F0", borderRadius: 4, padding: "3px 4px", cursor: "pointer", appearance: "auto", width: 88 }}><option value="">— Select —</option><option value="Intercom">Intercom</option><option value="CSD">CSD</option></select></div>
+                        <div>{csdPopup === u.uid ? <div style={{ display: "flex", gap: 3 }}><input autoFocus value={csdNotes[u.uid] || ""} onChange={(e) => setCsdNotes((p) => ({ ...p, [u.uid]: e.target.value }))} onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") setCsdPopup(null); }} style={{ fontSize: 9, border: "1px solid #F97316", borderRadius: 4, padding: "3px 6px", flex: 1 }} /><button onClick={() => setCsdPopup(null)} style={{ fontSize: 8, color: "#fff", background: "#10B981", border: "none", borderRadius: 4, padding: "3px 8px", cursor: "pointer", fontWeight: 700 }}>OK</button></div> : <div onClick={() => setCsdPopup(u.uid)} style={{ fontSize: 9, color: csdNotes[u.uid] ? "#1E293B" : "#CBD5E1", cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{csdNotes[u.uid] || "Click to add note..."}</div>}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           );
         })()}
 
