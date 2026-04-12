@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "7V8-x1t05XiWXKpCH1KTD"
+uri = "file://FlipiQ_CSM_Dashboard_Documentation.md"
+type = "text"
+title = "FlipiQ CSM Dashboard — Complete System Documentation"
