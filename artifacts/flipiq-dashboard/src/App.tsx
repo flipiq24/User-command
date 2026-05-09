@@ -397,6 +397,7 @@ const AM_AAS = [
     effort: { viewed: false, last: null },
     process: { viewed: true, last: "Mar 21 · 9:14am" },
     coaching: { done: 1, total: 1, lastNote: "Mar 18 · Discussed comps workflow." },
+    lastOpen: "Mar 19 · 2:14pm",
     trend: { focus: [0, 1, 1], fix: [1, 2, 2], effort: [0, 0, 0], process: [0, 1, 1], coaching: [0, 1, 1] },
   },
   {
@@ -431,6 +432,7 @@ const AM_AAS = [
     effort: { viewed: true, last: "Mar 21 · 8:42am" },
     process: { viewed: true, last: "Mar 21 · 8:50am" },
     coaching: { done: 1, total: 1, lastNote: "Mar 20 · Reviewed offer cadence and comps habit." },
+    lastOpen: "Mar 21 · 8:42am",
     trend: { focus: [3, 4, 5], fix: [4, 5, 6], effort: [1, 1, 1], process: [1, 1, 1], coaching: [0, 1, 1] },
   },
   {
@@ -465,6 +467,7 @@ const AM_AAS = [
     effort: { viewed: false, last: null },
     process: { viewed: false, last: null },
     coaching: { done: 0, total: 1, lastNote: null },
+    lastOpen: null,
     trend: { focus: [0, 0, 0], fix: [0, 0, 0], effort: [0, 0, 0], process: [0, 0, 0], coaching: [0, 0, 0] },
   },
 ];
@@ -1499,19 +1502,19 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <span style={{ fontSize: 12, fontWeight: 800, color: overallPct >= 80 ? "#10B981" : overallPct >= 40 ? "#D97706" : "#DC2626" }}>{overallPct}%</span>
               </div></Tip>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "32px 200px repeat(6, 1fr)", padding: "6px 12px", background: "#F1F5F9", borderBottom: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", alignItems: "center" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "32px 260px repeat(6, 1fr)", padding: "6px 12px", background: "#F1F5F9", borderBottom: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", alignItems: "center" }}>
               <div></div>
               <div>AA</div>
               {AM_COLS.map((c) => <div key={c.k} style={{ textAlign: "center" }}><Tip text={c.tip}>{c.label}</Tip></div>)}
             </div>
             {AM_AAS.map((aa, ri) => (
-              <div key={aa.id} style={{ display: "grid", gridTemplateColumns: "32px 200px repeat(6, 1fr)", padding: "8px 12px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", alignItems: "center" }}>
+              <div key={aa.id} style={{ display: "grid", gridTemplateColumns: "32px 260px repeat(6, 1fr)", padding: "8px 12px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", alignItems: "center" }}>
                 <div style={{ width: 22, height: 16, borderRadius: 3, background: "#0C447C15", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 800, color: "#0C447C" }}>AA</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981" }} />
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600 }}>{aa.name}</div>
-                    <div style={{ fontSize: 9, color: "#94A3B8" }}>{aa.org} · AA</div>
+                    <div style={{ fontSize: 9, color: "#94A3B8" }}>{aa.org} · AA · <Tip text="The most recent date and time the AM opened this AA's profile or any of their deals."><span style={{ color: aa.lastOpen ? "#64748B" : "#DC2626", fontWeight: 600 }}>Last open: {aa.lastOpen || "Never"}</span></Tip></div>
                   </div>
                 </div>
                 {AM_COLS.map((c) => {
