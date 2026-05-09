@@ -360,7 +360,6 @@ const AM_COLS = [
   { k: "effort", label: "Effort", tip: "AM opened the AA's Effort report." },
   { k: "process", label: "Process", tip: "AM opened the AA's Process report." },
   { k: "coaching", label: "Coaching", tip: "Coaching notes updated by the AM for this AA." },
-  { k: "deep", label: "Deep Dive", tip: "Average sub-section coverage across the AM's opened deals for this AA — PIQ, Comps, IA, Agent, Offer Terms, Notes, Communication (7 sections per deal)." },
 ];
 function amSecMask(viewedCount) { return Array.from({ length: 7 }, (_, j) => j < viewedCount); }
 function amDeal(addr, opened, viewedCount) { return { addr, opened, sections: amSecMask(opened ? viewedCount : 0) }; }
@@ -475,12 +474,6 @@ function amCellValue(aa, k) {
   if (k === "effort") return { d: aa.effort.viewed ? 1 : 0, t: 1 };
   if (k === "process") return { d: aa.process.viewed ? 1 : 0, t: 1 };
   if (k === "coaching") return { d: aa.coaching.done, t: aa.coaching.total };
-  if (k === "deep") {
-    const opened = aa.deals.filter((x) => x.opened);
-    const t = opened.length * 7;
-    const d = opened.reduce((s, x) => s + x.sections.filter(Boolean).length, 0);
-    return { d, t };
-  }
   return { d: 0, t: 0 };
 }
 function amScore(d, t) {
@@ -2702,29 +2695,6 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                         {d.sections.map((sv, si) => (
                           <div key={si} style={{ textAlign: "center", fontSize: 11, color: sv ? "#10B981" : "#CBD5E1", fontWeight: 700 }}>{sv ? "✓" : "·"}</div>
                         ))}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {col.k === "deep" && (
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 6 }}>Per-deal sub-section coverage (opened deals only)</div>
-                  {aa.deals.filter((d) => d.opened).length === 0 && <div style={{ fontSize: 12, color: "#DC2626", padding: "12px", background: "#FEF2F2", borderRadius: 6, border: "1px solid #FECACA" }}>AM hasn't opened any of this AA's deals yet — no sub-section coverage to show.</div>}
-                  {aa.deals.filter((d) => d.opened).map((d, i) => {
-                    const viewed = d.sections.filter(Boolean).length;
-                    return (
-                      <div key={i} style={{ padding: "8px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: "#334155" }}>{d.addr}</div>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: viewed === 7 ? "#10B981" : viewed >= 4 ? "#D97706" : "#DC2626" }}>{viewed}/7</div>
-                        </div>
-                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                          {AM_SECTIONS.map((s, si) => (
-                            <span key={si} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 3, background: d.sections[si] ? "#ECFDF5" : "#FEF2F2", color: d.sections[si] ? "#10B981" : "#DC2626" }}>{d.sections[si] ? "✓" : "✗"} {s}</span>
-                          ))}
-                        </div>
                       </div>
                     );
                   })}
