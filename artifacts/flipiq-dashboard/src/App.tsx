@@ -397,7 +397,7 @@ const AM_AAS = [
     ],
     effort: { viewed: false, last: null },
     process: { viewed: true, last: "Mar 21 · 9:14am" },
-    coaching: { done: 1, total: 5, lastNote: "Mar 18 · Discussed comps workflow." },
+    coaching: { done: 1, total: 1, lastNote: "Mar 18 · Discussed comps workflow." },
     trend: { focus: [0, 1, 1], fix: [1, 2, 2], effort: [0, 0, 0], process: [0, 1, 1], coaching: [0, 1, 1] },
   },
   {
@@ -431,8 +431,8 @@ const AM_AAS = [
     ],
     effort: { viewed: true, last: "Mar 21 · 8:42am" },
     process: { viewed: true, last: "Mar 21 · 8:50am" },
-    coaching: { done: 3, total: 5, lastNote: "Mar 20 · Reviewed offer cadence and comps habit." },
-    trend: { focus: [3, 4, 5], fix: [4, 5, 6], effort: [1, 1, 1], process: [1, 1, 1], coaching: [2, 3, 3] },
+    coaching: { done: 1, total: 1, lastNote: "Mar 20 · Reviewed offer cadence and comps habit." },
+    trend: { focus: [3, 4, 5], fix: [4, 5, 6], effort: [1, 1, 1], process: [1, 1, 1], coaching: [0, 1, 1] },
   },
   {
     id: "jaiden", name: "Jaiden Pelley", org: "Hegemark",
@@ -465,7 +465,7 @@ const AM_AAS = [
     ],
     effort: { viewed: false, last: null },
     process: { viewed: false, last: null },
-    coaching: { done: 0, total: 5, lastNote: null },
+    coaching: { done: 0, total: 1, lastNote: null },
     trend: { focus: [0, 0, 0], fix: [0, 0, 0], effort: [0, 0, 0], process: [0, 0, 0], coaching: [0, 0, 0] },
   },
 ];
