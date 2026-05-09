@@ -2684,19 +2684,17 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
 
               {col.k === "fix" && (
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 6 }}>Fix Today items — clicked by AM, with the linked deal's open status and per-deal sub-section coverage</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "20px 20px 1fr repeat(7, 56px)", gap: 4, padding: "6px 8px", background: "#F1F5F9", borderRadius: 6, fontSize: 9, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 6 }}>Fix Today items — clicked by AM, with per-deal sub-section coverage</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "20px 1fr repeat(7, 56px)", gap: 4, padding: "6px 8px", background: "#F1F5F9", borderRadius: 6, fontSize: 9, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>
                     <div title="Fix clicked">Fix</div>
-                    <div title="Deal opened">Deal</div>
                     <div>Item · Linked deal</div>
                     {AM_SECTIONS.map((s) => <div key={s} style={{ textAlign: "center" }}>{s}</div>)}
                   </div>
                   {aa.fixes.map((f, i) => {
                     const d = aa.deals[i] || aa.deals[aa.deals.length - 1];
                     return (
-                      <div key={i} style={{ display: "grid", gridTemplateColumns: "20px 20px 1fr repeat(7, 56px)", gap: 4, padding: "6px 8px", borderBottom: "1px solid #F1F5F9", alignItems: "center", background: i % 2 === 0 ? "#FFF" : "#FAFBFC" }}>
+                      <div key={i} style={{ display: "grid", gridTemplateColumns: "20px 1fr repeat(7, 56px)", gap: 4, padding: "6px 8px", borderBottom: "1px solid #F1F5F9", alignItems: "center", background: i % 2 === 0 ? "#FFF" : "#FAFBFC" }}>
                         <div style={{ fontSize: 13, color: f.clicked ? "#10B981" : "#DC2626", fontWeight: 800 }}>{f.clicked ? "✓" : "✗"}</div>
-                        <div style={{ fontSize: 13, color: d.opened ? "#10B981" : "#DC2626", fontWeight: 800 }}>{d.opened ? "✓" : "✗"}</div>
                         <div>
                           <div style={{ fontSize: 11, color: "#334155", fontWeight: 600 }}>{f.label}</div>
                           <div style={{ fontSize: 9, color: "#94A3B8" }}>{d.addr}</div>
