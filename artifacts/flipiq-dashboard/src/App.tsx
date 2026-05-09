@@ -352,6 +352,146 @@ const PL = { 1: "Critical", 2: "High", 3: "Medium", 4: "Low" };
 const PLC = { 1: "#DC2626", 2: "#EA580C", 3: "#D97706", 4: "#94A3B8" };
 const SL = ["Missing", "Gap", "Cooling", "Active"];
 
+const AM_INFO = { name: "Michael May", org: "Hegemark", role: "AM" };
+const AM_SECTIONS = ["PIQ", "Comps", "IA", "Agent", "Offer Terms", "Notes", "Comm"];
+const AM_COLS = [
+  { k: "focus", label: "Focus Here", tip: "High-propensity deals opened by the AM for this AA. Opening = AM clicked into the deal at least once." },
+  { k: "fix", label: "Fix Today", tip: "Fix Today buttons clicked by the AM for this AA. Click only — no open required." },
+  { k: "effort", label: "Effort", tip: "AM opened the AA's Effort report." },
+  { k: "process", label: "Process", tip: "AM opened the AA's Process report." },
+  { k: "coaching", label: "Coaching", tip: "Coaching notes updated by the AM for this AA." },
+  { k: "deep", label: "Deep Dive", tip: "Average sub-section coverage across the AM's opened deals for this AA — PIQ, Comps, IA, Agent, Offer Terms, Notes, Communication (7 sections per deal)." },
+];
+function amSecMask(viewedCount) { return Array.from({ length: 7 }, (_, j) => j < viewedCount); }
+function amDeal(addr, opened, viewedCount) { return { addr, opened, sections: amSecMask(opened ? viewedCount : 0) }; }
+function amFix(label, clicked) { return { label, clicked }; }
+const AM_AAS = [
+  {
+    id: "eric", name: "Eric Lau", org: "Hegemark",
+    deals: [
+      amDeal("412 Maple Ave, Reno NV", true, 4),
+      amDeal("89 Birchwood Ln, Sparks NV", false, 0),
+      amDeal("221 Lakeshore Dr, Carson City NV", false, 0),
+      amDeal("17 Aspen Ct, Reno NV", false, 0),
+      amDeal("908 Sierra Vista, Reno NV", false, 0),
+      amDeal("33 Pine Ridge, Sparks NV", false, 0),
+      amDeal("1442 Ridgemont, Reno NV", false, 0),
+      amDeal("605 Stagecoach, Carson City NV", false, 0),
+      amDeal("78 Juniper Way, Reno NV", false, 0),
+      amDeal("256 Oak Hollow, Sparks NV", false, 0),
+      amDeal("19 Cottonwood, Reno NV", false, 0),
+      amDeal("510 Sage Creek, Reno NV", false, 0),
+    ],
+    fixes: [
+      amFix("Fix: missing PIQ on 412 Maple", true),
+      amFix("Fix: stale comps on 89 Birchwood", true),
+      amFix("Fix: no agent assigned on 221 Lakeshore", false),
+      amFix("Fix: low offer count this week", false),
+      amFix("Fix: missed Daily Outreach", false),
+      amFix("Fix: 17 Aspen — no follow-up", false),
+      amFix("Fix: comms gap on 908 Sierra Vista", false),
+      amFix("Fix: priority not set on 33 Pine Ridge", false),
+      amFix("Fix: 1442 Ridgemont stalled in Negotiation", false),
+      amFix("Fix: missing notes on 605 Stagecoach", false),
+      amFix("Fix: 78 Juniper — no offer in 5 days", false),
+    ],
+    effort: { viewed: false, last: null },
+    process: { viewed: true, last: "Mar 21 · 9:14am" },
+    coaching: { done: 1, total: 5, lastNote: "Mar 18 · Discussed comps workflow." },
+    trend: { focus: [0, 1, 1], fix: [1, 2, 2], effort: [0, 0, 0], process: [0, 1, 1], coaching: [0, 1, 1] },
+  },
+  {
+    id: "jack", name: "Jack Cooney", org: "Hegemark",
+    deals: [
+      amDeal("701 Highland Park, Reno NV", true, 6),
+      amDeal("32 Sundance Ct, Sparks NV", true, 4),
+      amDeal("1188 Foothill Rd, Carson City NV", true, 5),
+      amDeal("46 Willow Bend, Reno NV", true, 5),
+      amDeal("215 Copper Hill, Sparks NV", true, 2),
+      amDeal("87 Riverside, Reno NV", false, 0),
+      amDeal("3300 Plumb Ln, Reno NV", false, 0),
+      amDeal("952 Mountain View, Sparks NV", false, 0),
+      amDeal("14 Quail Run, Carson City NV", false, 0),
+      amDeal("775 Vista Grande, Reno NV", false, 0),
+      amDeal("288 Diamond Peak, Reno NV", false, 0),
+      amDeal("66 Tahoe Vista, Sparks NV", false, 0),
+    ],
+    fixes: [
+      amFix("Fix: 701 Highland — finalize offer terms", true),
+      amFix("Fix: 32 Sundance — comps refresh", true),
+      amFix("Fix: 1188 Foothill — agent follow-up", true),
+      amFix("Fix: 46 Willow — investment analysis stale", true),
+      amFix("Fix: 215 Copper Hill — missing PIQ", true),
+      amFix("Fix: 87 Riverside — no contact in 3 days", true),
+      amFix("Fix: 3300 Plumb — re-engage seller", false),
+      amFix("Fix: 952 Mountain View — priority set", false),
+      amFix("Fix: 14 Quail Run — schedule walkthrough", false),
+      amFix("Fix: 775 Vista Grande — note follow-up", false),
+      amFix("Fix: 288 Diamond Peak — offer prep", false),
+    ],
+    effort: { viewed: true, last: "Mar 21 · 8:42am" },
+    process: { viewed: true, last: "Mar 21 · 8:50am" },
+    coaching: { done: 3, total: 5, lastNote: "Mar 20 · Reviewed offer cadence and comps habit." },
+    trend: { focus: [3, 4, 5], fix: [4, 5, 6], effort: [1, 1, 1], process: [1, 1, 1], coaching: [2, 3, 3] },
+  },
+  {
+    id: "jaiden", name: "Jaiden Pelley", org: "Hegemark",
+    deals: [
+      amDeal("128 Greenway, Reno NV", false, 0),
+      amDeal("44 Cedar Glen, Sparks NV", false, 0),
+      amDeal("1903 Skyline Blvd, Carson City NV", false, 0),
+      amDeal("550 Northgate, Reno NV", false, 0),
+      amDeal("12 Sunset Ridge, Sparks NV", false, 0),
+      amDeal("2210 Vista Park, Reno NV", false, 0),
+      amDeal("70 Holly Lane, Carson City NV", false, 0),
+      amDeal("388 Brookside, Reno NV", false, 0),
+      amDeal("99 Hawthorne, Sparks NV", false, 0),
+      amDeal("445 Granite Way, Reno NV", false, 0),
+      amDeal("1620 Ironwood, Reno NV", false, 0),
+      amDeal("57 Linden Ct, Sparks NV", false, 0),
+    ],
+    fixes: [
+      amFix("Fix: 128 Greenway — PIQ missing", false),
+      amFix("Fix: 44 Cedar Glen — no agent", false),
+      amFix("Fix: 1903 Skyline — comps stale", false),
+      amFix("Fix: 550 Northgate — no follow-up", false),
+      amFix("Fix: 12 Sunset Ridge — priority unset", false),
+      amFix("Fix: 2210 Vista Park — no notes", false),
+      amFix("Fix: 70 Holly Lane — offer overdue", false),
+      amFix("Fix: 388 Brookside — re-engage", false),
+      amFix("Fix: 99 Hawthorne — schedule walkthrough", false),
+      amFix("Fix: 445 Granite Way — agent intro", false),
+      amFix("Fix: 1620 Ironwood — pipeline review", false),
+    ],
+    effort: { viewed: false, last: null },
+    process: { viewed: false, last: null },
+    coaching: { done: 0, total: 5, lastNote: null },
+    trend: { focus: [0, 0, 0], fix: [0, 0, 0], effort: [0, 0, 0], process: [0, 0, 0], coaching: [0, 0, 0] },
+  },
+];
+function amCellValue(aa, k) {
+  if (k === "focus") { const t = aa.deals.length; const d = aa.deals.filter((x) => x.opened).length; return { d, t }; }
+  if (k === "fix") { const t = aa.fixes.length; const d = aa.fixes.filter((x) => x.clicked).length; return { d, t }; }
+  if (k === "effort") return { d: aa.effort.viewed ? 1 : 0, t: 1 };
+  if (k === "process") return { d: aa.process.viewed ? 1 : 0, t: 1 };
+  if (k === "coaching") return { d: aa.coaching.done, t: aa.coaching.total };
+  if (k === "deep") {
+    const opened = aa.deals.filter((x) => x.opened);
+    const t = opened.length * 7;
+    const d = opened.reduce((s, x) => s + x.sections.filter(Boolean).length, 0);
+    return { d, t };
+  }
+  return { d: 0, t: 0 };
+}
+function amScore(d, t) {
+  if (t === 0) return 0;
+  if (d === 0) return 0;
+  const p = d / t;
+  if (p < 0.4) return 1;
+  if (p < 0.8) return 2;
+  return 3;
+}
+
 function parseMarDate(s) {
   if (!s) return null;
   const d = parseInt(s.replace("Mar ", ""));
@@ -745,6 +885,8 @@ export default function App() {
   const [hmSort, setHmSort] = useState({ col: null, dir: 1 });
   const toggleHmSort = (col) => setHmSort((p) => p.col === col ? { col, dir: -p.dir } : { col, dir: 1 });
   const [hC, sHC] = useState(null);
+  const [amHC, setAmHC] = useState(null);
+  const [amExp, setAmExp] = useState(null);
   const [dR, sDR] = useState("Today");
   const [sortCol, setSortCol] = useState(null);
   const [sortDir, setSortDir] = useState("desc");
@@ -1072,7 +1214,7 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
       </div>
 
       <div style={{ background: "#FFF", borderBottom: "1px solid #E2E8F0", padding: "0 24px", display: "flex" }}>
-        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."],["users","User list","Complete user directory with login history, contact info, company, email sources, and Dialpad phone numbers."],["deals","Deal dashboard","Financial overview of all deals — pipeline stages, dollar forecasting, source/property type/intent breakdowns, and AA-grouped deal table."],["engagement","Engagement","Visual engagement report — quick-glance status of Ramy's engagement with each AA and AM. Who is engaged, cooling, or at risk."],["triggers","Trigger table","Complete reference of all 61 events and triggers across categories — actions, phases, frequencies, and activation rules."]].map(([t, label, tip]) => (
+        {[["overview","Overview","Daily task list. See every non-healthy AA, their root cause, and take action."],["leaderboard","Leaderboard","Ranked performance table of all AAs. Compare calls, offers, deals across the team."],["amdash","AM Dashboard","Acquisition Manager coaching coverage. One row per AA — see which AAs the AM has reviewed, fixed, and coached."],["heatmap","Heat map","Visual grid of 62 feature events across 7 categories for every AA. Red = missing, green = active."],["emails","Emails","Generate and preview coaching emails for each struggling AA. One click to send."],["logic","Email logic","Reference table of all rules that trigger coaching emails. Shows phase, timing, and escalation paths."],["users","User list","Complete user directory with login history, contact info, company, email sources, and Dialpad phone numbers."],["deals","Deal dashboard","Financial overview of all deals — pipeline stages, dollar forecasting, source/property type/intent breakdowns, and AA-grouped deal table."],["engagement","Engagement","Visual engagement report — quick-glance status of Ramy's engagement with each AA and AM. Who is engaged, cooling, or at risk."],["triggers","Trigger table","Complete reference of all 61 events and triggers across categories — actions, phases, frequencies, and activation rules."]].map(([t, label, tip]) => (
           <Tip key={t} text={tip}><button onClick={() => { st(t); ss(null); seV(null); sE(null); }} style={{ padding: "10px 14px", fontSize: 12, fontWeight: tab === t ? 700 : 500, color: tab === t ? "#F97316" : "#64748B", background: "none", border: "none", borderBottom: tab === t ? "2px solid #F97316" : "2px solid transparent", cursor: "pointer" }}>
             {label}
           </button></Tip>
@@ -1330,6 +1472,74 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
             </div>
           </div>
         )}
+
+        {tab === "amdash" && !sel && !eV && (() => {
+          const totalAA = AM_AAS.length;
+          const overall = AM_AAS.reduce((acc, aa) => {
+            AM_COLS.forEach((c) => { const v = amCellValue(aa, c.k); acc.d += v.d; acc.t += v.t; });
+            return acc;
+          }, { d: 0, t: 0 });
+          const overallPct = overall.t > 0 ? Math.round(overall.d / overall.t * 100) : 0;
+          return (
+          <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
+            <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700 }}><Tip text="Tracks whether the Acquisition Manager is doing the daily review work needed to support each one of his AAs. One row per AA. Click any cell to expand.">Acquisition Manager Dashboard</Tip></div>
+                <div style={{ fontSize: 11, color: "#94A3B8" }}>{totalAA} AAs. Hover for 3-Track. Click to expand.</div>
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                {[["#DC2626", "Miss", "AM has done none of this for the AA."], ["#EA580C", "Gap", "Started but well behind."], ["#D97706", "Cool", "Partial — past halfway but not done."], ["#10B981", "Active", "Complete or near-complete coverage."]].map(([c, l, tip]) => (
+                  <Tip key={l} text={tip}><div style={{ display: "flex", alignItems: "center", gap: 3 }}><div style={{ width: 9, height: 9, borderRadius: 2, background: c }} /><span style={{ fontSize: 10, color: "#64748B" }}>{l}</span></div></Tip>
+                ))}
+              </div>
+            </div>
+            <div style={{ padding: "10px 16px", background: "#F8FAFB", borderBottom: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#0C447C", color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800 }}>{AM_INFO.name.split(" ").map((p) => p[0]).join("")}</div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>{AM_INFO.name} <span style={{ color: "#94A3B8", fontWeight: 500 }}>— {AM_INFO.org} —</span> <span style={{ fontSize: 8, fontWeight: 800, color: "#FFF", background: "#0C447C", padding: "2px 6px", borderRadius: 3, marginLeft: 4 }}>AM</span></div>
+                  <div style={{ fontSize: 10, color: "#64748B" }}>Coaching {totalAA} AAs · Overall coverage {overallPct}% ({overall.d}/{overall.t})</div>
+                </div>
+              </div>
+              <Tip text="Coverage = sum of all done / total cells across every AA and every column."><div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 140, height: 6, background: "#E2E8F0", borderRadius: 3 }}><div style={{ height: 6, width: overallPct + "%", background: overallPct >= 80 ? "#10B981" : overallPct >= 40 ? "#D97706" : "#DC2626", borderRadius: 3 }} /></div>
+                <span style={{ fontSize: 12, fontWeight: 800, color: overallPct >= 80 ? "#10B981" : overallPct >= 40 ? "#D97706" : "#DC2626" }}>{overallPct}%</span>
+              </div></Tip>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "32px 200px repeat(6, 1fr)", padding: "6px 12px", background: "#F1F5F9", borderBottom: "1px solid #E2E8F0", fontSize: 9, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", alignItems: "center" }}>
+              <div></div>
+              <div>AA</div>
+              {AM_COLS.map((c) => <div key={c.k} style={{ textAlign: "center" }}><Tip text={c.tip}>{c.label}</Tip></div>)}
+            </div>
+            {AM_AAS.map((aa, ri) => (
+              <div key={aa.id} style={{ display: "grid", gridTemplateColumns: "32px 200px repeat(6, 1fr)", padding: "8px 12px", borderBottom: "1px solid #F1F5F9", background: ri % 2 === 0 ? "#FFF" : "#FAFBFC", alignItems: "center" }}>
+                <div style={{ width: 22, height: 16, borderRadius: 3, background: "#0C447C15", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 800, color: "#0C447C" }}>AA</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981" }} />
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 600 }}>{aa.name}</div>
+                    <div style={{ fontSize: 9, color: "#94A3B8" }}>{aa.org} · AA</div>
+                  </div>
+                </div>
+                {AM_COLS.map((c) => {
+                  const v = amCellValue(aa, c.k);
+                  const sc = amScore(v.d, v.t);
+                  return (
+                    <div key={c.k} style={{ display: "flex", justifyContent: "center", position: "relative" }}
+                      onMouseEnter={(e) => { const r = e.currentTarget.getBoundingClientRect(); setAmHC({ aa: aa.id, col: c.k, x: r.left, y: r.bottom + 4 }); }}
+                      onMouseLeave={() => setAmHC(null)}
+                      onClick={() => { setAmExp({ aa: aa.id, col: c.k }); setAmHC(null); }}>
+                      <div style={{ width: 64, height: 26, borderRadius: 4, background: HMBG[sc], border: "1.5px solid " + HMC[sc] + "60", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: HMC[sc] }}>{v.d}/{v.t}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+          );
+        })()}
 
         {tab === "heatmap" && !sel && !eV && (
           <div style={{ background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 9, overflow: "hidden" }}>
@@ -2398,6 +2608,155 @@ ${u.vid ? "Recommended video: " + (V[u.vid] ? V[u.vid][0] + " (" + V[u.vid][1] +
                 <button onClick={() => setBlockEdit(null)} style={{ fontSize: 11, fontWeight: 600, color: "#64748B", background: "#F8FAFB", border: "1px solid #E2E8F0", borderRadius: 6, padding: "6px 14px", cursor: "pointer" }}>Cancel</button>
                 <button onClick={() => { if (blockNote.trim()) { setBlockedCats((p) => ({ ...p, [bKey]: blockNote.trim() })); } else { setBlockedCats((p) => ({ ...p, [bKey]: "Blocked" })); } setBlockEdit(null); }} style={{ fontSize: 11, fontWeight: 700, color: "#FFF", background: "#DC2626", border: "none", borderRadius: 6, padding: "6px 14px", cursor: "pointer" }}>{isBlocked ? "Update" : "Mark Blocked"}</button>
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {amHC && !sel && !eV && tab === "amdash" && !amExp && (() => {
+        const aa = AM_AAS.find((x) => x.id === amHC.aa);
+        const col = AM_COLS.find((c) => c.k === amHC.col);
+        if (!aa || !col) return null;
+        const v = amCellValue(aa, col.k);
+        const sc = amScore(v.d, v.t);
+        const trend = aa.trend[col.k] || [v.d, v.d, v.d];
+        const labels = ["2d ago", "Yesterday", "Today"];
+        return (
+          <div style={{ position: "fixed", left: Math.min(amHC.x, 1000), top: amHC.y, width: 280, background: "#FFF", border: "1px solid #E2E8F0", borderRadius: 8, padding: "10px 12px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", zIndex: 100, pointerEvents: "none" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>{col.label} · {aa.name}</div>
+              <span style={{ fontSize: 9, fontWeight: 700, color: HMC[sc], background: HMBG[sc], padding: "1px 6px", borderRadius: 3 }}>{SL[sc]}</span>
+            </div>
+            <div style={{ fontSize: 10, color: "#64748B", marginBottom: 6, lineHeight: 1.4 }}>{col.tip}</div>
+            <div style={{ fontSize: 11, marginBottom: 6 }}>Coverage: <span style={{ fontWeight: 700, color: HMC[sc] }}>{v.d}/{v.t}</span></div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 5 }}>
+              {trend.map((t, i) => (
+                <div key={i} style={{ background: "#F8FAFB", borderRadius: 4, padding: "4px 6px", textAlign: "center" }}>
+                  <div style={{ fontSize: 9, color: "#94A3B8" }}>{labels[i]}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: t > 0 ? "#334155" : "#DC2626" }}>{t}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 9, color: "#94A3B8", marginTop: 6 }}>Click to expand</div>
+          </div>
+        );
+      })()}
+
+      {amExp && tab === "amdash" && (() => {
+        const aa = AM_AAS.find((x) => x.id === amExp.aa);
+        const col = AM_COLS.find((c) => c.k === amExp.col);
+        if (!aa || !col) return null;
+        const v = amCellValue(aa, col.k);
+        const sc = amScore(v.d, v.t);
+        return (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }} onClick={() => setAmExp(null)}>
+            <div style={{ background: "#FFF", borderRadius: 12, padding: "20px 24px", width: 720, maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 800 }}>{col.label}</div>
+                  <div style={{ fontSize: 11, color: "#64748B" }}>{AM_INFO.name} (AM) → {aa.name} (AA) · {aa.org}</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: HMC[sc], background: HMBG[sc], padding: "3px 10px", borderRadius: 4 }}>{v.d}/{v.t} · {SL[sc]}</span>
+                  <button onClick={() => setAmExp(null)} style={{ fontSize: 11, color: "#64748B", background: "#F1F5F9", border: "none", borderRadius: 5, padding: "4px 12px", cursor: "pointer" }}>Close</button>
+                </div>
+              </div>
+              <div style={{ fontSize: 11, color: "#475569", margin: "8px 0 14px", padding: "8px 10px", background: "#F8FAFB", borderRadius: 6, border: "1px solid #E2E8F0" }}>{col.tip}</div>
+
+              {col.k === "focus" && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 6 }}>High-propensity deals — open status & per-deal sub-section coverage</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "20px 1fr repeat(7, 60px)", gap: 4, padding: "6px 8px", background: "#F1F5F9", borderRadius: 6, fontSize: 9, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>
+                    <div></div><div>Deal</div>
+                    {AM_SECTIONS.map((s) => <div key={s} style={{ textAlign: "center" }}>{s}</div>)}
+                  </div>
+                  {aa.deals.map((d, i) => (
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "20px 1fr repeat(7, 60px)", gap: 4, padding: "6px 8px", borderBottom: "1px solid #F1F5F9", alignItems: "center", background: i % 2 === 0 ? "#FFF" : "#FAFBFC" }}>
+                      <div style={{ fontSize: 13, color: d.opened ? "#10B981" : "#DC2626", fontWeight: 800 }}>{d.opened ? "✓" : "✗"}</div>
+                      <div style={{ fontSize: 11, color: "#334155" }}>{d.addr}</div>
+                      {d.sections.map((sv, si) => (
+                        <div key={si} style={{ textAlign: "center", fontSize: 11, color: sv ? "#10B981" : "#CBD5E1", fontWeight: 700 }}>{sv ? "✓" : "·"}</div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {col.k === "fix" && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 6 }}>Fix Today items — clicked by AM, with the linked deal's open status and per-deal sub-section coverage</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "20px 20px 1fr repeat(7, 56px)", gap: 4, padding: "6px 8px", background: "#F1F5F9", borderRadius: 6, fontSize: 9, fontWeight: 700, color: "#64748B", textTransform: "uppercase" }}>
+                    <div title="Fix clicked">Fix</div>
+                    <div title="Deal opened">Deal</div>
+                    <div>Item · Linked deal</div>
+                    {AM_SECTIONS.map((s) => <div key={s} style={{ textAlign: "center" }}>{s}</div>)}
+                  </div>
+                  {aa.fixes.map((f, i) => {
+                    const d = aa.deals[i] || aa.deals[aa.deals.length - 1];
+                    return (
+                      <div key={i} style={{ display: "grid", gridTemplateColumns: "20px 20px 1fr repeat(7, 56px)", gap: 4, padding: "6px 8px", borderBottom: "1px solid #F1F5F9", alignItems: "center", background: i % 2 === 0 ? "#FFF" : "#FAFBFC" }}>
+                        <div style={{ fontSize: 13, color: f.clicked ? "#10B981" : "#DC2626", fontWeight: 800 }}>{f.clicked ? "✓" : "✗"}</div>
+                        <div style={{ fontSize: 13, color: d.opened ? "#10B981" : "#DC2626", fontWeight: 800 }}>{d.opened ? "✓" : "✗"}</div>
+                        <div>
+                          <div style={{ fontSize: 11, color: "#334155", fontWeight: 600 }}>{f.label}</div>
+                          <div style={{ fontSize: 9, color: "#94A3B8" }}>{d.addr}</div>
+                        </div>
+                        {d.sections.map((sv, si) => (
+                          <div key={si} style={{ textAlign: "center", fontSize: 11, color: sv ? "#10B981" : "#CBD5E1", fontWeight: 700 }}>{sv ? "✓" : "·"}</div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {col.k === "deep" && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 6 }}>Per-deal sub-section coverage (opened deals only)</div>
+                  {aa.deals.filter((d) => d.opened).length === 0 && <div style={{ fontSize: 12, color: "#DC2626", padding: "12px", background: "#FEF2F2", borderRadius: 6, border: "1px solid #FECACA" }}>AM hasn't opened any of this AA's deals yet — no sub-section coverage to show.</div>}
+                  {aa.deals.filter((d) => d.opened).map((d, i) => {
+                    const viewed = d.sections.filter(Boolean).length;
+                    return (
+                      <div key={i} style={{ padding: "8px 10px", borderBottom: "1px solid #F1F5F9", background: i % 2 === 0 ? "#FFF" : "#FAFBFC" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "#334155" }}>{d.addr}</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: viewed === 7 ? "#10B981" : viewed >= 4 ? "#D97706" : "#DC2626" }}>{viewed}/7</div>
+                        </div>
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                          {AM_SECTIONS.map((s, si) => (
+                            <span key={si} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 3, background: d.sections[si] ? "#ECFDF5" : "#FEF2F2", color: d.sections[si] ? "#10B981" : "#DC2626" }}>{d.sections[si] ? "✓" : "✗"} {s}</span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {(col.k === "effort" || col.k === "process") && (() => {
+                const r = aa[col.k];
+                return (
+                  <div style={{ padding: "12px 14px", border: "1px solid #E2E8F0", borderRadius: 8, background: r.viewed ? "#ECFDF5" : "#FEF2F2", display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: r.viewed ? "#10B981" : "#DC2626", color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800 }}>{r.viewed ? "✓" : "✗"}</div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: r.viewed ? "#065F46" : "#991B1B" }}>{col.label} report — {r.viewed ? "Opened" : "Not opened"}</div>
+                      <div style={{ fontSize: 11, color: "#64748B" }}>{r.viewed ? "Last viewed: " + r.last : "AM has not opened this report for " + aa.name + " in this period."}</div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {col.k === "coaching" && (
+                <div style={{ padding: "12px 14px", border: "1px solid #E2E8F0", borderRadius: 8, background: aa.coaching.done > 0 ? "#FFF7ED" : "#FEF2F2" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: aa.coaching.done > 0 ? "#F97316" : "#DC2626", color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800 }}>{aa.coaching.done}/{aa.coaching.total}</div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: aa.coaching.done > 0 ? "#9A3412" : "#991B1B" }}>Coaching notes — {aa.coaching.done} of {aa.coaching.total} updated</div>
+                      <div style={{ fontSize: 11, color: "#64748B" }}>{aa.coaching.lastNote ? "Last note: " + aa.coaching.lastNote : "No coaching notes recorded by the AM."}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
